@@ -38,7 +38,6 @@ int main(){
   int Mat[M][M], auxMat[M][M];
   int matTrace,maxDiag,offset=0;
   char Selector = '0', ch, str[3];
-  
   show_menu(menu);
   
   while(1) {  	   
@@ -55,7 +54,7 @@ int main(){
 	  do{
 		  printf("Insert an offset value between 0-100: ");
 		  gets(str);
-		  sscanf_s(str,"%d",&offset);
+		  sscanf(str,"%d",&offset);
 		  if (offset >= 0 && offset <= 100) break;
 
 	  } while (1);

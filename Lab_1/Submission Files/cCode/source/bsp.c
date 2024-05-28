@@ -1,7 +1,8 @@
 #include  "../header/bsp.h"    // private library - BSP layer
 
 //-----------------------------------------------------------------------------  
-//           GPIO congiguration
+//           GPIO congiguration - Lab 1
+//
 //-----------------------------------------------------------------------------
 void GPIOconfig(void){
  // volatile unsigned int i; // in case of while loop usage
@@ -18,12 +19,24 @@ void GPIOconfig(void){
   SWsArrPortDir &= ~0x0F;
   
   // PushButtons Setup
-  PBsArrPortSel &= ~0xF0;
-  PBsArrPortDir &= ~0xF0;
-  PBsArrIntEdgeSel |= 0x30;  	     // pull-up mode
-  PBsArrIntEdgeSel &= ~0xC0;         // pull-down mode
-  PBsArrIntEn |= 0x70;
-  PBsArrIntPend &= ~0xF0;            // clear pending interrupts 
+  // --------------------------
+  // Lab 1 configuration:
+  // P2.0 - P2.3: Inputs with interupts enabled
+  // P2.7 - Ouput for a PWM
+  // ---------------------
+
+
+  PBsArrPortSel &= ~0x8F;           // 0xxx0000
+  PBsArrPortDir &= ~0x0F;         // xxxx0000 (P2.0 - P2.3: Inputs)
+  PBsArrPortDir |= 0x80;          // 1xxxxxx - Set P2.7 - Ouput
+  PBsArrIntEdgeSel |= 0x30;  	     // pull-up mode - PB0-1 // Interrupt Edge Select Registers 
+                                                            //Bit = 0: The PxIFGx flag is set with a low-to-high transition
+                                                           //  Bit = 1: The PxIFGx flag is set with a high-to-low transition
+  PBsArrIntEdgeSel &= ~0xC0;         // pull-down mode - PB2-3
+  PBsArrIntEn |= 0x07;                // Enabaling P0-2 INT
+  PBsArrIntPend &= ~0xFF;            // clear pending interrupts
+
+  
   
   _BIS_SR(GIE);                     // enable interrupts globally
 }                             

@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "func.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "bsp.h": "c",
+        "app.h": "c"
     }
 }

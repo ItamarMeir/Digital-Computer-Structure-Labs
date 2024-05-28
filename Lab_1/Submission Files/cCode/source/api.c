@@ -22,7 +22,3 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 	}
 }
 
-
- 
-  
-

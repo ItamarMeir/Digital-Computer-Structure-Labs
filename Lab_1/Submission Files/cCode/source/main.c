@@ -5,7 +5,7 @@ enum FSMstate state;
 enum SYSmode lpm_mode;
 
 void main(void){
-	int i,j, dec_inc;
+	int i,j, dec_inc; // dec_inc = 1 when counting up in state1, and 0 when counting down
 	unsigned int up_down = 0; // For state1 - 0 means counting up, 1 means count down.
 	int LED_state[] = {0,0x01}; // LED_state[0] = LED state of state 1, LED_state[1] = LED state of state 2
  	state = state0;  // start in idle state on RESET

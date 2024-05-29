@@ -8,7 +8,7 @@ void main(void){
 	int i,j, dec_inc;
 	unsigned int up_down = 0; // For state1 - 0 means counting up, 1 means count down.
 	int LED_state[] = {0,0x01}; // LED_state[0] = LED state of state 1, LED_state[1] = LED state of state 2
- 	state = state3;  // start in idle state on RESET
+ 	state = state0;  // start in idle state on RESET
   	lpm_mode = mode0;     // start in idle state on RESET
   	sysConfig();
 

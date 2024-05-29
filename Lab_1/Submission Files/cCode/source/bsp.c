@@ -1,23 +1,23 @@
 #include  "../header/bsp.h"    // private library - BSP layer
 
-//-----------------------------------------------------------------------------  
+//-----------------------------------------------------------------------------
 //           GPIO congiguration - Lab 1
 //
 //-----------------------------------------------------------------------------
 void GPIOconfig(void){
  // volatile unsigned int i; // in case of while loop usage
-  
+
   WDTCTL = WDTHOLD | WDTPW;		// Stop WDT
-   
+
   // LEDs 8-bit Array Port configuration
   LEDsArrPortSel &= ~0xFF;            // GPIO capability
   LEDsArrPortDir |= 0xFF;             // output dir
   LEDsArrPort = 0x00;				  // clear all LEDs
-  
+
   // Switches Setup
-  SWsArrPortSel &= ~0x0F;
-  SWsArrPortDir &= ~0x0F;
-  
+  //SWsArrPortSel &= ~0x0F;
+  //SWsArrPortDir &= ~0x0F;
+
   // PushButtons Setup
   // --------------------------
   // Lab 1 configuration:
@@ -29,38 +29,38 @@ void GPIOconfig(void){
   PBsArrPortSel &= ~0x8F;           // 0xxx0000
   PBsArrPortDir &= ~0x0F;         // xxxx0000 (P2.0 - P2.3: Inputs)
   PBsArrPortDir |= 0x80;          // 1xxxxxx - Set P2.7 - Ouput
-  PBsArrIntEdgeSel |= 0x30;  	     // pull-up mode - PB0-1 // Interrupt Edge Select Registers 
+  PBsArrIntEdgeSel |= 0x03;  	     // pull-up mode - PB0-1 // Interrupt Edge Select Registers
                                                             //Bit = 0: The PxIFGx flag is set with a low-to-high transition
                                                            //  Bit = 1: The PxIFGx flag is set with a high-to-low transition
-  PBsArrIntEdgeSel &= ~0xC0;         // pull-down mode - PB2-3
+  PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode - PB2-3
   PBsArrIntEn |= 0x07;                // Enabaling P0-2 INT
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts
 
-  
-  
+
+
   _BIS_SR(GIE);                     // enable interrupts globally
-}                             
-//------------------------------------------------------------------------------------- 
-//            Timers congiguration 
+}
+//-------------------------------------------------------------------------------------
+//            Timers congiguration
 //-------------------------------------------------------------------------------------
 void TIMERconfig(void){
 	
 	//write here timers congiguration code
-} 
-//------------------------------------------------------------------------------------- 
-//            ADC congiguration 
+}
+//-------------------------------------------------------------------------------------
+//            ADC congiguration
 //-------------------------------------------------------------------------------------
 void ADCconfig(void){
 	
 	//write here ADC congiguration code
-}              
+}
 
-           
-             
 
- 
-             
-             
-            
-  
+
+
+
+
+
+
+
 

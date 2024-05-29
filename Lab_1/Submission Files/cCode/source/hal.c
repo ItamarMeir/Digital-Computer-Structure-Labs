@@ -118,15 +118,15 @@ void disable_interrupts(){
 //---------------------------------------------------------------------
 //            selector of transition between states
 //---------------------------------------------------------------------
-	if(PBsArrIntPend & PB0){
+	if(PBsArrIntPend & PB0 || PBsArrIntPend == 0x81){
 	  state = state1;
-	  PBsArrIntPend &= ~PB0;
+	  PBsArrIntPend &= ~PB0;	  
         }
-        else if(PBsArrIntPend & PB1){
+        else if(PBsArrIntPend & PB1 || PBsArrIntPend == 0x82){
 	  state = state2;
-	  PBsArrIntPend &= ~PB1; 
-        }
-	else if(PBsArrIntPend & PB2){ 
+	  PBsArrIntPend &= ~PB1;   
+	    }
+	else if(PBsArrIntPend & PB2 || PBsArrIntPend == 0x84){ 
 	  state = state3;
 	  PBsArrIntPend &= ~PB2;
         }
@@ -136,6 +136,7 @@ void disable_interrupts(){
 //---------------------------------------------------------------------	
         switch(lpm_mode){
 		case mode0:
+
 		 LPM0_EXIT; // must be called from ISR only
 		 break;
 		 

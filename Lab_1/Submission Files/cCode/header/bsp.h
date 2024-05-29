@@ -6,8 +6,8 @@
 
 
 #define   debounceVal      250
-#define   LEDs_SHOW_RATE   0xFFFF  // 62_5ms
-#define   P7OUT_RATE       0xFF00 // ???
+#define   LEDs_SHOW_RATE   0x1FF0  // 62_5ms
+#define   P7OUT_RATE       0x0003 // ???
 
 // LEDs abstraction
 #define LEDsArrPort        P1OUT
@@ -21,19 +21,19 @@
 #define SWmask             0x0F
 
 // PushButtons abstraction
-#define PBsArrPort	       P2IN 
-#define PBsArrIntPend	   P2IFG 
+#define PBsArrPort	       P2IN
+#define PBsArrIntPend	   P2IFG
 #define PBsArrIntEn	       P2IE
 #define PBsArrIntEdgeSel   P2IES
-#define PBsArrPortSel      P2SEL 
+#define PBsArrPortSel      P2SEL
 #define PBsArrPortDir      P2DIR
 #define OutArrPortOut      P2OUT
 
-#define PB0                0x10
-#define PB1                0x20
-#define PB2                0x40
-#define PB3                0x80
-            
+#define PB0                0x01
+#define PB1                0x02
+#define PB2                0x04
+#define PB3                0x08
+
 
 extern void GPIOconfig(void);
 extern void TIMERconfig(void);

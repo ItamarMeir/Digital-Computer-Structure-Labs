@@ -14,7 +14,7 @@ extern void clrLEDs(void);
 extern void toggleLEDs(char);
 extern void setLEDs(char);
 extern char getLEDs();
-extern void shlLEDs(char val)
+extern void shlLEDs(char val);
 extern unsigned char readSWs(void);
 extern void delay(unsigned int);
 extern void enterLPM(unsigned char);

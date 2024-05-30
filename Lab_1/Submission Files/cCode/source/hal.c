@@ -1,45 +1,45 @@
 #include  "../header/hal.h"     // private library - HAL layer
 
 //--------------------------------------------------------------------
-//             System Configuration  
+//             System Configuration
 //--------------------------------------------------------------------
-void sysConfig(void){ 
+void sysConfig(void){
 	GPIOconfig();
 	TIMERconfig();
 	ADCconfig();
 }
 //--------------------------------------------------------------------
-// 				Print Byte to 8-bit LEDs array 
+// 				Print Byte to 8-bit LEDs array
 //--------------------------------------------------------------------
 void print2LEDs(unsigned char ch){
 	LEDsArrPort = ch;
-}    
+}
 //--------------------------------------------------------------------
-//				Clear 8-bit LEDs array 
+//				Clear 8-bit LEDs array
 //--------------------------------------------------------------------
 void clrLEDs(void){
 	LEDsArrPort = 0x000;
-}  
+}
 //--------------------------------------------------------------------
-//				Toggle 8-bit LEDs array 
+//				Toggle 8-bit LEDs array
 //--------------------------------------------------------------------
 void toggleLEDs(char ch){
 	LEDsArrPort ^= ch;
 }
 //--------------------------------------------------------------------
-//				Set 8-bit LEDs array 
+//				Set 8-bit LEDs array
 //--------------------------------------------------------------------
 void setLEDs(char ch){
 	LEDsArrPort |= ch;
 }
 //--------------------------------------------------------------------
-//				Get 8-bit LEDs array 
+//				Get 8-bit LEDs array
 //--------------------------------------------------------------------
 char getLEDs(){
 	return LEDsArrPort;
 }
 //--------------------------------------------------------------------
-//				Read value of 4-bit SWs array 
+//				Read value of 4-bit SWs array
 //--------------------------------------------------------------------
 unsigned char readSWs(void){
 	unsigned char ch;
@@ -49,13 +49,13 @@ unsigned char readSWs(void){
 	return ch;
 }
 //---------------------------------------------------------------------
-//             Increment / decrement LEDs shown value 
+//             Increment / decrement LEDs shown value
 //---------------------------------------------------------------------
 void incLEDs(char val){
 	LEDsArrPort += val;
 }
 //---------------------------------------------------------------------
-//            Shift left LED 
+//            Shift left LED
 //---------------------------------------------------------------------
 void shlLEDs(char val){
 	LEDsArrPort <<= val;
@@ -72,28 +72,28 @@ void delay(unsigned int t){  // t[msec]
 //---------------------------------------------------------------------
 //            Set pin 7 in OutArrPortOut
 //---------------------------------------------------------------------
-void setOutputPin(){ 
+void setOutputPin(){
 	OutArrPortOut |= 0x80;
 }
 //---------------------------------------------------------------------
 //            Reset pin 7 in OutArrPortOut
 //---------------------------------------------------------------------
-void resetOutputPin(){ 
+void resetOutputPin(){
 	OutArrPortOut &= 0x7F;
 }
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
 //---------------------------------------------------------------------
 void enterLPM(unsigned char LPM_level){
-	if (LPM_level == 0x00) 
+	if (LPM_level == 0x00)
 	  _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
-        else if(LPM_level == 0x01) 
+        else if(LPM_level == 0x01)
 	  _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
-        else if(LPM_level == 0x02) 
+        else if(LPM_level == 0x02)
 	  _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
-	else if(LPM_level == 0x03) 
+	else if(LPM_level == 0x03)
 	  _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
-        else if(LPM_level == 0x04) 
+        else if(LPM_level == 0x04)
 	  _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
 }
 //---------------------------------------------------------------------
@@ -113,49 +113,48 @@ void disable_interrupts(){
 //*********************************************************************
 #pragma vector=PORT2_VECTOR
   __interrupt void PBs_handler(void){
-   
+
 	delay(debounceVal);
 //---------------------------------------------------------------------
 //            selector of transition between states
 //---------------------------------------------------------------------
 	if(PBsArrIntPend & PB0 || PBsArrIntPend == 0x81){
 	  state = state1;
-	  PBsArrIntPend &= ~PB0;	  
+	  PBsArrIntPend &= ~PB0;	
         }
         else if(PBsArrIntPend & PB1 || PBsArrIntPend == 0x82){
 	  state = state2;
-	  PBsArrIntPend &= ~PB1;   
+	  PBsArrIntPend &= ~PB1;
 	    }
-	else if(PBsArrIntPend & PB2 || PBsArrIntPend == 0x84){ 
+	else if(PBsArrIntPend & PB2 || PBsArrIntPend == 0x84){
 	  state = state3;
 	  PBsArrIntPend &= ~PB2;
         }
 	
 //---------------------------------------------------------------------
-//            Exit from a given LPM 
+//            Exit from a given LPM
 //---------------------------------------------------------------------	
         switch(lpm_mode){
 		case mode0:
 
-		 LPM0_EXIT; // must be called from ISR only
+		 LPM0_EXIT;; // must be called from ISR only
 		 break;
-		 
+		
 		case mode1:
 		 LPM1_EXIT; // must be called from ISR only
 		 break;
-		 
+		
 		case mode2:
 		 LPM2_EXIT; // must be called from ISR only
 		 break;
-                 
+
                 case mode3:
 		 LPM3_EXIT; // must be called from ISR only
 		 break;
-                 
+
                 case mode4:
 		 LPM4_EXIT; // must be called from ISR only
 		 break;
 	}
-        
+
 }
- 

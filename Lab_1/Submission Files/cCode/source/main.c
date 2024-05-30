@@ -41,12 +41,20 @@ void main(void){
 		}
 		// 10 seconds passed
 		LED_state[0] = getLEDs();	// Storing the latest LED state
+		state = state0;
 		enable_interrupts();
+
 		break;
 		
 	  case state2:
 		disable_interrupts();
 		print2LEDs(LED_state[1]); // Print the last state to LED
+		
+		// Delay in order to show the last LED state:
+		for(j=0; j<8; j++){		// 62.5m * 8 = 0.5[sec]
+				delay(LEDs_SHOW_RATE);	// delay of 62.5 [ms]
+			}
+
 		// The state runs for 7 sec, each iteration takes 0.5 sec --> 14 iterations needed
 		for (i = 0; i < 14; i++){
 			if (getLEDs() == 0)	incLEDs(1); // We don't want the LED to be empty (Set the LSB)
@@ -60,6 +68,7 @@ void main(void){
 		
 		}
 		LED_state[1] = getLEDs();	// Storing the latest LED state
+		state = state0;
 		enable_interrupts();
 		break;
 
@@ -67,6 +76,7 @@ void main(void){
 		clrLEDs();
 		// 4kH with DC=75% --> '1' for 0.1875 ms, '0' for 0.0625 ms.
 		while (1){
+			if(state != state3) break;
 			setOutputPin();	// delay 0.1875 ms
 			for(i=0; i<3; i++){	
 				delay(P7OUT_RATE);	// delay 0.0625 ms 3 times = delay 0.1875 ms
@@ -76,8 +86,8 @@ void main(void){
 			delay(P7OUT_RATE);	// delay 0.0625 ms
 		
 		}
-	}
 		break;
+	}
 		
   }
 }

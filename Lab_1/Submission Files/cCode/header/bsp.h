@@ -2,17 +2,22 @@
 #define _bsp_H_
 
 #include  <msp430g2553.h>          // MSP430x2xx
-// #include  <msp430xG46x.h>  // MSP430x4xx
 
+// *** FAMILY 4 ***
+// #include  <msp430xG46x.h>  // MSP430x4xx
+// *** FAMILY 4 ***
 
 #define   debounceVal      250
 #define   LEDs_SHOW_RATE   0x1FF0  // 62_5ms
 #define   P7OUT_RATE       0x0003 // ???
 
+// *** FAMILY 4 - CHANGE TO P9 ***
 // LEDs abstraction
 #define LEDsArrPort        P1OUT
 #define LEDsArrPortDir     P1DIR
 #define LEDsArrPortSel     P1SEL
+// *** FAMILY 4 - CHANGE TO P9 ***
+
 
 // Switches abstraction
 #define SWsArrPort         P2IN

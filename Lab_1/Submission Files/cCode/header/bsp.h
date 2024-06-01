@@ -9,7 +9,7 @@
 
 #define   debounceVal      250
 #define   LEDs_SHOW_RATE   0x1FF0  // 62_5ms
-#define   P7OUT_RATE       0x0003 // ???
+#define   P7OUT_RATE       0x0003  // ???
 
 // *** FAMILY 4 - CHANGE TO P9 ***
 // LEDs abstraction
@@ -26,9 +26,9 @@
 #define SWmask             0x0F
 
 // PushButtons abstraction
-#define PBsArrPort	       P2IN
+#define PBsArrPort	   P2IN
 #define PBsArrIntPend	   P2IFG
-#define PBsArrIntEn	       P2IE
+#define PBsArrIntEn	   P2IE
 #define PBsArrIntEdgeSel   P2IES
 #define PBsArrPortSel      P2SEL
 #define PBsArrPortDir      P2DIR

@@ -1,7 +1,11 @@
 #ifndef _hal_H_
 #define _hal_H_
 
-#include  "../header/bsp.h"    		// private library - BSP layer
+#ifdef __MSP430G2553__
+#include  "../header/bsp_msp430x2xx.h"    // private library - BSP msp430x2xx layer
+#else
+#include  "../header/bsp_msp430x4xx.h"    // private library - BSP msp430x4xx layer
+#endif
 #include  "../header/app.h"    		// private library - APP layer
 
 

@@ -33,7 +33,7 @@ void GPIOconfig(void){
                                                             //Bit = 0: The PxIFGx flag is set with a low-to-high transition
                                                            //  Bit = 1: The PxIFGx flag is set with a high-to-low transition
   PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode - PB2-3
-  PBsArrIntEn |= 0x07;                // Enabaling P0-2 INT
+  PBsArrIntEn |= 0x0F;                // Enabaling P0-2 INT
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts
 
 

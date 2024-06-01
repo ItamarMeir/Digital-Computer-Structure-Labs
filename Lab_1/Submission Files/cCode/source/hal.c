@@ -130,9 +130,10 @@ void disable_interrupts(){
 	  state = state3;
 	  PBsArrIntPend &= ~PB2;
         }
-	else if((PBsArrIntPend & PB3 || PBsArrIntPend == 0x88) && state == state3){
-	  state = state0;
-	  PBsArrIntPend &= ~PB3;
+	else if(PBsArrIntPend & PB3 || PBsArrIntPend == 0x88){
+		if (state == state3)
+	  		state = state0;
+	  	PBsArrIntPend &= ~PB3;
         }
 	
 //---------------------------------------------------------------------

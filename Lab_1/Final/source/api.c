@@ -27,10 +27,25 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 // DC 75%:  '0' for 0.125 ms,  '1' for  ms 0.375
 // DC 100%: '0' for 0 ms,      '1' for 0.5 ms
 
-void pwm(int Nfreq){
-	int Switches_State = readSWs;
-	PWM_driver(Nfreq * (Switches_State - 1) * P7OUT_RATE , Nfreq * (5 - Switches_State) * P7OUT_RATE);
+
+void pwm(int Nfreq) {
+    int Switches_State = readSWs();  // Call the function to get its return value
+
+    if (Switches_State == 1) {
+        resetOutputPin();
+        return;
+    } if (Switches_State == 5){
+        setOutputPin();
+        return;
+    }
+    else {
+        setOutputPin();
+        delay(Nfreq * (Switches_State - 1) * P7OUT_RATE);
+        resetOutputPin();
+        delay((Nfreq * (5 - Switches_State) * P7OUT_RATE)-8);
+    }
 }
+
 
 
   

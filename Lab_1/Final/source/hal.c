@@ -46,6 +46,7 @@ unsigned char readSWs(void){
 	ch = SWsArrPort;
 	//ch = PBsArrPort;
 	ch &= SWmask;     // mask the least 4-bit
+        ch = (ch >> 4) | (ch << 4);
 	return ch;
 }
 //---------------------------------------------------------------------
@@ -80,15 +81,6 @@ void setOutputPin(){
 //---------------------------------------------------------------------
 void resetOutputPin(){
 	OutArrPortOut &= 0x7F;
-}
-//---------------------------------------------------------------------
-//            PWM driver
-//---------------------------------------------------------------------
-void PWM_driver(int t_zero, int t_one){
-	setOutputPin();
-	delay(t_one);
-	resetOutputPin();
-	delay(t_zero);
 }
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode

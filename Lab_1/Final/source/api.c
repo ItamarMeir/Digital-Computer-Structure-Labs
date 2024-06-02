@@ -21,11 +21,11 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 	}
 }
 
-// DC 0%:  '0' for 0.5 ms,   '1' for 0 ms
-// DC 25%: '0' for 0.375 ms, '1' for 0.125 ms
-// DC 50%: '0' for 0.25 ms,  '1' for 0.25 ms
-// DC 75%: '0' for 0.125 ms, '1' for  ms 0.375
-// DC 100%: '0' for 0 ms,     '1' for 0.5 ms
+// DC 0%:   '0' for 0.5 ms,    '1' for 0 ms
+// DC 25%:  '0' for 0.375 ms,  '1' for 0.125 ms
+// DC 50%:  '0' for 0.25 ms,   '1' for 0.25 ms
+// DC 75%:  '0' for 0.125 ms,  '1' for  ms 0.375
+// DC 100%: '0' for 0 ms,      '1' for 0.5 ms
 
 void pwm(int Nfreq){
 	int Switches_State = readSWs;

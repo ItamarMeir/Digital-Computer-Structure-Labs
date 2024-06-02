@@ -43,8 +43,8 @@ char getLEDs(){
 //--------------------------------------------------------------------
 unsigned char readSWs(void){
 	unsigned char ch;
-	
-	ch = PBsArrPort;
+	ch = SWsArrPort;
+	//ch = PBsArrPort;
 	ch &= SWmask;     // mask the least 4-bit
 	return ch;
 }

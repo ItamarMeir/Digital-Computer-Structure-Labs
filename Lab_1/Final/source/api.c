@@ -29,20 +29,42 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 
 
 void pwm(int Nfreq) {
+    // int Switches_State = readSWs();  // Call the function to get its return value
+    // int k = 16 / Nfreq;
+    // if (Switches_State == 1) {
+    //     resetOutputPin();
+    //     return;
+    // } if (Switches_State == 5){
+    //     setOutputPin();
+    //     return;
+    // }
+    // else {
+    //     setOutputPin();
+    //     delay(Nfreq * (Switches_State - 1) * P7OUT_RATE);
+    //     resetOutputPin();
+    //     delay((Nfreq * (5 - Switches_State) * P7OUT_RATE)-8);
+    // }
+
     int Switches_State = readSWs();  // Call the function to get its return value
+    int k = 16 / Nfreq;
+    int totalPeriod = k * P7OUT_RATE;
+    int highStateDelay = totalPeriod * (Switches_State - 1) / 4;
+    int lowStateDelay = totalPeriod - highStateDelay;
 
     if (Switches_State == 1) {
         resetOutputPin();
         return;
-    } if (Switches_State == 5){
+    } 
+    if (Switches_State == 5){
         setOutputPin();
         return;
     }
     else {
         setOutputPin();
-        delay(Nfreq * (Switches_State - 1) * P7OUT_RATE);
+        delay(highStateDelay);
         resetOutputPin();
-        delay((Nfreq * (5 - Switches_State) * P7OUT_RATE)-8);
+        delay(lowStateDelay);
+    
     }
 }
 

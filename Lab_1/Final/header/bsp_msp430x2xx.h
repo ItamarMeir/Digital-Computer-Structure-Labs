@@ -9,7 +9,7 @@
 
 #define   debounceVal      250
 #define   LEDs_SHOW_RATE   0x1FF0  // 62_5ms
-#define   P7OUT_RATE       0x0004  // ???
+#define   P7OUT_RATE       0x0004  
 
 // *** FAMILY 4 - CHANGE TO P9 ***
 // LEDs abstraction

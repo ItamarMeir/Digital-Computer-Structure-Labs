@@ -3,6 +3,8 @@
         "func.h": "c",
         "stdio.h": "c",
         "bsp.h": "c",
-        "app.h": "c"
-    }
+        "app.h": "c",
+        "bsp_msp430x2xx.h": "c"
+    },
+    "C_Cpp.dimInactiveRegions": false
 }

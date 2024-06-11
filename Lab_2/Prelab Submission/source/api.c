@@ -21,6 +21,30 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 	}
 }
 
+unsigned char ext_timer_freq(){
+    unsigned int t_0;
+    unsigned int t_1;
+
+    
+    
+    // Begin capturing
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // DC 0%:   '0' for 0.5 ms,    '1' for 0 ms
 // DC 25%:  '0' for 0.375 ms,  '1' for 0.125 ms
 // DC 50%:  '0' for 0.25 ms,   '1' for 0.25 ms
@@ -28,45 +52,30 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 // DC 100%: '0' for 0 ms,      '1' for 0.5 ms
 
 
-void pwm(int Nfreq) {
-    // int Switches_State = readSWs();  // Call the function to get its return value
-    // int k = 16 / Nfreq;
-    // if (Switches_State == 1) {
-    //     resetOutputPin();
-    //     return;
-    // } if (Switches_State == 5){
-    //     setOutputPin();
-    //     return;
-    // }
-    // else {
-    //     setOutputPin();
-    //     delay(Nfreq * (Switches_State - 1) * P7OUT_RATE);
-    //     resetOutputPin();
-    //     delay((Nfreq * (5 - Switches_State) * P7OUT_RATE)-8);
-    // }
+// void pwm(int Nfreq) {
 
-    int Switches_State = readSWs();  // Call the function to get its return value
-    int k = 16 / Nfreq;
-    int totalPeriod = k * P7OUT_RATE;
-    int highStateDelay = totalPeriod * (Switches_State - 1) / 4;
-    int lowStateDelay = totalPeriod - highStateDelay;
+//     int Switches_State = readSWs();  // Call the function to get its return value
+//     int k = 16 / Nfreq;
+//     int totalPeriod = k * P7OUT_RATE;
+//     int highStateDelay = totalPeriod * (Switches_State - 1) / 4;
+//     int lowStateDelay = totalPeriod - highStateDelay;
 
-    if (Switches_State == 1) {
-        resetOutputPin();
-        return;
-    } 
-    if (Switches_State == 5){
-        setOutputPin();
-        return;
-    }
-    else {
-        setOutputPin();
-        delay(highStateDelay);
-        resetOutputPin();
-        delay(lowStateDelay);
+//     if (Switches_State == 1) {
+//         resetOutputPin();
+//         return;
+//     } 
+//     if (Switches_State == 5){
+//         setOutputPin();
+//         return;
+//     }
+//     else {
+//         setOutputPin();
+//         delay(highStateDelay);
+//         resetOutputPin();
+//         delay(lowStateDelay);
     
-    }
-}
+//     }
+// }
 
 
 

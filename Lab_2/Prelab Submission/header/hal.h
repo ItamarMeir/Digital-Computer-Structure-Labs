@@ -47,20 +47,21 @@ extern __interrupt void PBs_handler(void);
 /*----------------------------------------------------------
   CONFIG: change values according to your port pin selection
 ------------------------------------------------------------*/
-#define LCD_EN(a)	(!a ? (P1OUT&=~0X20) : (P1OUT|=0X20)) // P1.5 is lcd enable pin
-#define LCD_EN_DIR(a)	(!a ? (P1DIR&=~0X20) : (P1DIR|=0X20)) // P1.5 pin direction 
+#define LCD_EN(a)	(!a ? (LCD_CTL_OUT &= ~BIT5) : (LCD_CTL_OUT |= BIT5)) // P1.5 is lcd enable pin
+#define LCD_EN_DIR(a)	(!a ? (LCD_CTL_DIR &=~ BIT5) : (LCD_CTL_DIR |= BIT5)) // P1.5 pin direction 
 
-#define LCD_RS(a)	(!a ? (P1OUT&=~0X40) : (P1OUT|=0X40)) // P1.6 is lcd RS pin
-#define LCD_RS_DIR(a)	(!a ? (P1DIR&=~0X40) : (P1DIR|=0X40)) // P1.6 pin direction  
+#define LCD_RS(a)	(!a ? (LCD_CTL_OUT &=~ BIT6) : (LCD_CTL_OUT |= BIT6)) // P1.6 is lcd RS pin
+#define LCD_RS_DIR(a)	(!a ? (LCD_CTL_DIR &= ~BIT6) : (LCD_CTL_DIR |= BIT6)) // P1.6 pin direction  
   
-#define LCD_RW(a)	(!a ? (P1OUT&=~0X80) : (P1OUT|=0X80)) // P1.7 is lcd RW pin
-#define LCD_RW_DIR(a)	(!a ? (P1DIR&=~0X80) : (P1DIR|=0X80)) // P1.7 pin direction
+#define LCD_RW(a)	(!a ? (LCD_CTL_OUT &= ~BIT7) : (LCD_CTL_OUT |= BIT7)) // P1.7 is lcd RW pin
+#define LCD_RW_DIR(a)	(!a ? (LCD_CTL_DIR &= ~BIT7) : (LCD_CTL_DIR |= BIT7)) // P1.7 pin direction
 
 #define LCD_DATA_OFFSET 0x00 //data pin selection offset for 4 bit mode, variable range is 0-4, default 0 - Px.0-3, no offset
    
-#define LCD_DATA_WRITE	P1OUT
-#define LCD_DATA_DIR	P1DIR
-#define LCD_DATA_READ	P1IN
+// #define LCD_DATA_WRITE	P1OUT
+// #define LCD_DATA_DIR	P1DIR
+// #define LCD_DATA_READ	P1IN
+
 /*---------------------------------------------------------
   END CONFIG
 -----------------------------------------------------------*/
@@ -98,6 +99,9 @@ extern void lcd_init();
 extern void lcd_strobe();
 extern void DelayMs(unsigned int);
 extern void DelayUs(unsigned int);
+
+extern char read_TACCR0(void);
+extern char read_TACCR1(void);
 /*
  *	Delay functions for HI-TECH C on the PIC18
  *

@@ -71,9 +71,31 @@
 #define BIT6               0x40
 #define BIT7               0x80
 
+// TACTL abstraction
+#define TACLK              0x0000
+#define ACLK               0x0100
+#define SMCLK              0x0200
+#define INCLK              0x0300
+
+#define TAIFG              0x0001
+#define TAIE               0x0002
+#define TACLR              0x0004
+
+#define MC_0_stop          0x0000     // MC_0 - MC_3: Mode control (/0/1/2/3)
+#define MC_1_up            0x0010
+#define MC_2_continuous    0x0020
+#define MC_3_updown        0x0030
+
+#define ID_0               0x0000     // ID_0 - ID_3: Input divider (/1/2/4/8)
+#define ID_1               0x0040
+#define ID_2               0x0080
+#define ID_3               0x00C0
+
+
 extern void GPIOconfig(void);
 extern void TIMERconfig(void);
 extern void ADCconfig(void);
+
 
 #endif
 

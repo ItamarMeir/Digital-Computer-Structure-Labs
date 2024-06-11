@@ -55,11 +55,7 @@ void GPIOconfig(void){
   PBsArrIntEn |= (PB0 | PB1 | PB2);              // Enabaling P0-2 INT
   PBsArrIntPend &= ~0xFF;           // clear pending interrupts
 
-  // LCD configuration
-  LCD_DATA_WRITE &= ~0xFF;
-  LCD_DATA_DIR |= (BIT4 | BIT5 | BIT6 | BIT7);    // P1.4-P1.7 To Output('1')
-  LCD_DATA_SEL &= ~(BIT4 | BIT5 | BIT6 | BIT7);   // Bit clear P1.4-P1.7
-  LCD_CTL_SEL  &= ~(BIT5 | BIT6 | BIT7);   // Bit clear P2.5-P2.7
+  
   
   // Generator Setup
   //From the table at CCIx p2.4
@@ -77,8 +73,14 @@ void GPIOconfig(void){
 //            Timers congiguration
 //-------------------------------------------------------------------------------------
 void TIMERconfig(void){
-	
-	//write here timers congiguration code
+// Timer_A configuration
+TACTL &= TACLR; // Clear Timer_A register
+TACTL = SMCLK + ID_0 + MC_1; // SMCLK = 2^20 MHz, /1, Up mode;
+TACCTL0 = CM_1 + CCIS_0 + CAP; // Rising edge, CCI0A, Capture mode
+
+TACTL += TAIE; // Enable overflow interrupt
+TACCTL0 += CCIE; // Enable capture/compare interrupt
+
 }
 //-------------------------------------------------------------------------------------
 //            ADC congiguration
@@ -87,7 +89,6 @@ void ADCconfig(void){
 	
 	//write here ADC congiguration code
 }
-
 
 
 

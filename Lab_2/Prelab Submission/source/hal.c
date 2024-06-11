@@ -7,6 +7,7 @@ void sysConfig(void){
 	GPIOconfig();
 	TIMERconfig();
 	ADCconfig();
+	
 }
 //--------------------------------------------------------------------
 // 				Print Byte to 8-bit LEDs array
@@ -44,10 +45,12 @@ char getLEDs(){
 unsigned char readSWs(void){
 	unsigned char ch;
 	ch = SWsArrPort;
-	//ch = PBsArrPort;
 	ch &= SWmask;     // mask the least 4-bit
         ch = (ch >> 4) | (ch << 4);
 	return ch;
+}
+unsigned char read_single_SW(unsigned char sw){
+	return readSWs() & sw;
 }
 //---------------------------------------------------------------------
 //             Increment / decrement LEDs shown value
@@ -74,13 +77,13 @@ void delay(unsigned int t){  // t[msec]
 //            Set pin 7 in OutArrPortOut
 //---------------------------------------------------------------------
 void setOutputPin(){
-	OutArrPortOut |= 0x80;
+	OutArrPortOut |= OUTPUT_PIN;
 }
 //---------------------------------------------------------------------
 //            Reset pin 7 in OutArrPortOut
 //---------------------------------------------------------------------
 void resetOutputPin(){
-	OutArrPortOut &= 0x7F;
+	OutArrPortOut &= ~OUTPUT_PIN;
 }
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
@@ -119,22 +122,22 @@ void disable_interrupts(){
 //---------------------------------------------------------------------
 //            selector of transition between states
 //---------------------------------------------------------------------
-	if(PBsArrIntPend & PB0 || PBsArrIntPend == 0x81){
+	if(PBsArrIntPend & PB0){
 	  state = state1;
 	  PBsArrIntPend &= ~PB0;	
         }
-        else if(PBsArrIntPend & PB1 || PBsArrIntPend == 0x82){
+        else if(PBsArrIntPend & PB1){
 	  state = state2;
 	  PBsArrIntPend &= ~PB1;
 	    }
-	else if(PBsArrIntPend & PB2 || PBsArrIntPend == 0x84){
+	else if(PBsArrIntPend & PB2){
 	  state = state3;
 	  PBsArrIntPend &= ~PB2;
         }
-	else if(PBsArrIntPend & PB3 || PBsArrIntPend == 0x88){
-		state = state4;
-	  	PBsArrIntPend &= ~PB3;
-        }
+	// else if(PBsArrIntPend & PB3 || PBsArrIntPend == 0x88){
+	// 	state = state4;
+	//   	PBsArrIntPend &= ~PB3;
+    //     }
 	
 //---------------------------------------------------------------------
 //            Exit from a given LPM
@@ -163,6 +166,23 @@ void disable_interrupts(){
 	}
 
 }
+
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void Timer_A(void){
+	// write here the code for Timer_A interrupt
+}
+
+// --------------------------------------------------------
+//              TimerA Drivers
+// --------------------------------------------------------
+char read_TACCR0(void){
+	return TACCR0;
+}
+char read_TACCR1(void){
+	return TACCR1;
+}
+
+
 
 
 // --------------------------------------------------------

@@ -30,6 +30,8 @@ extern void resetOutputPin();
 extern void setOutputPin();
 extern void PWM_driver(int, int);
 extern void write_freq_tmp_LCD();
+extern void write_time_tmp_LCD();
+
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define min(a,b) ((a) < (b) ? (a) : (b))
 

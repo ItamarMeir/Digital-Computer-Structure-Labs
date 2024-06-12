@@ -179,12 +179,22 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
 #error Compiler not supported!
 #endif
 {
-
-    LPM0_EXIT;
-    TACTL = MC_0+TACLR;
+    if (TA0CTL & TAIFG) { // Check if the interrupt was caused by an overflow
+        TA0CTL &= ~(TAIFG); // Clear the interrupt flag
+    } else {
+            sec++; // Increment the seconds
+            if (sec == 60){ // If the seconds are 60
+                sec = 0; // Reset the seconds
+                min++; // Increment the minutes
+            }
+            if (min == 60){ // If the minutes are 60
+                min = 0; // Reset the minutes
+            }
+            write_MM_LCD(min);
+            write_SS_LCD(sec); 
+        }
+    }
 }
-
-
 //*********************************************************************
 //            TimerA1 Interrupt Service Routine
 //*********************************************************************
@@ -210,6 +220,7 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
           TA1CTL &= ~(TAIFG);
         break;
     case TA1IV_TACCR2:                    // Vector  4:  TACCR2 CCIFG
+		 TA1CTL &= ~(TAIFG);
         if (TA1CCTL2 & CCI) {               // Capture Input Pin Status
 		  
 		  if (count == 0) {
@@ -218,8 +229,7 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
 		  } else {
 			t_1 = TA1CCR2;
 			count = 2;
-		  }
-                     
+		  }              
                       
 		}
         break;
@@ -253,21 +263,32 @@ char read_TACCR1(void){
 
 
 //******************************************************************
-//    write frequency template to LCD for state1
+//    write frequency template to LCD for state1: fin={5 digit frequency}Hz
 //******************************************************************
 void write_freq_tmp_LCD(){
-   lcd_clear();
-   lcd_home();
-	const char SquareWaveFreq[] = "fin=";
-    const char Hz[] = "Hz";
-     lcd_puts(SquareWaveFreq);
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_puts(Hz);
+    lcd_clear();
+    lcd_home();
+	lcd_puts("fin=");
+    lcd_cursor_right();
+    lcd_cursor_right();
+    lcd_cursor_right();
+    lcd_cursor_right();
+    lcd_cursor_right();
+    lcd_puts("Hz");
 }
+
+//******************************************************************
+//    write time template to LCD for state1: {MM}:{SS}
+//******************************************************************
+
+void write_time_tmp_LCD(){
+	lcd_clear();
+	lcd_home();
+	lcd_cursor_right();
+	lcd_cursor_right();
+	lcd_puts(":");
+}
+
 
 // --------------------------------------------------------
 //              LCD Driver

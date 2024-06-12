@@ -73,11 +73,33 @@ void GPIOconfig(void){
 //            Timers congiguration
 //-------------------------------------------------------------------------------------
 void TIMERconfig(void){
-// TimerA1 configuration
-TA1CCTL2 = CM_1 + CCIS_0 + CAP + SCS + CCIE; // Rising edge, CCI0A, Capture mode, Synchronous
-
-
+  TIMER1_A1_config();       // TimerA1 configuration
+  TIMER0_A0_config();       // TimerA0 configuration
 }
+
+//------------------------------------------------------------------------------------- 
+//            Timer1 configuration state1
+//-------------------------------------------------------------------------------------
+void TIMER1_A1_config(void){
+    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+    TA1CTL = TACLR;                           //Clear TimerA1
+    TA1CTL = SMCLK + SCS + CCIE;          // SMCLK, Synchronous, enable interrupt
+    TA1CCTL2 = CM_1 + CCIS_0 + CAP + SCS + CCIE; // Rising edge, CCI0A, Capture mode, Synchronous
+} 
+
+
+//------------------------------------------------------------------------------------- 
+//            Timer0 1sec configuration - state2
+//-------------------------------------------------------------------------------------
+void TIMER0_A0_config(void){
+    WDTCTL = WDTPW + WDTHOLD;      // Stop WDT
+    TA0CTL = TACLR;              // Clear TimerA0
+    TA0CTL = SMCLK + ID_3 + CCIE; // SMCLK, /8, enable interrupt;
+    TA0CCTL0 = CCIE + CM_1 + SCS + CCIE;  // Compare mode, Synchronous, enable interrupt, rising edge
+    TA0CCR0 = 131072;              // Compare value: SMCLK/8 = 131072 Hz
+
+
+} 
 
 
 //-------------------------------------------------------------------------------------

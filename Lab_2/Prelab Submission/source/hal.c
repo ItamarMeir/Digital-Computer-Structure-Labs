@@ -167,9 +167,78 @@ void disable_interrupts(){
 
 }
 
-#pragma vector=TIMER0_A0_VECTOR
-__interrupt void Timer_A(void){
-	// write here the code for Timer_A interrupt
+//*********************************************************************
+//            TimerA0 Interrupt Service Routine
+//*********************************************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = TIMER0_A0_VECTOR
+__interrupt void Timer_A (void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
+#else
+#error Compiler not supported!
+#endif
+{
+
+    LPM0_EXIT;
+    TACTL = MC_0+TACLR;
+}
+
+
+//*********************************************************************
+//            TimerA1 Interrupt Service Routine
+//*********************************************************************
+unsigned int clk_overflows = 0;
+unsigned int t_0;
+unsigned int t_1;
+unsigned int count = 0;
+
+
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = TIMER1_A1_VECTOR
+__interrupt void TIMER1_A1_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) TIMER1_A1_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+  switch(__even_in_range(TA1IV, 0x0A))
+  {
+    case  TA1IV_NONE: break;              // Vector  0:  No interrupt
+    case  TA1IV_TACCR1:                   // Vector  2:  TACCR1 CCIFG
+          TA1CTL &= ~(TAIFG);
+        break;
+    case TA1IV_TACCR2:                    // Vector  4:  TACCR2 CCIFG
+        if (TA1CCTL2 & CCI) {               // Capture Input Pin Status
+		  
+		  if (count == 0) {
+			t_0 = TA1CCR2;
+			count = 1;
+		  } else {
+			t_1 = TA1CCR2;
+			count = 2;
+		  }
+                     
+                      
+		}
+        break;
+    case TA1IV_6: break;                  // Vector  6:  Reserved CCIFG
+    case TA1IV_8: break;                  // Vector  8:  Reserved CCIFG
+    case TA1IV_TAIFG:						 // Vector 10:  TAIFG
+		clk_overflows = 1;
+	    break;             
+      default:  break;
+  }
+}
+
+//*********************************************************************
+//            ADC10 Vector Interrupt Service Routine
+//*********************************************************************
+#pragma vector = ADC10_VECTOR
+__interrupt void ADC10_ISR (void)
+{
+    __bic_SR_register_on_exit(CPUOFF);
 }
 
 // --------------------------------------------------------
@@ -183,7 +252,22 @@ char read_TACCR1(void){
 }
 
 
-
+//******************************************************************
+//    write frequency template to LCD for state1
+//******************************************************************
+void write_freq_tmp_LCD(){
+   lcd_clear();
+   lcd_home();
+	const char SquareWaveFreq[] = "fin=";
+    const char Hz[] = "Hz";
+     lcd_puts(SquareWaveFreq);
+     lcd_cursor_right();
+     lcd_cursor_right();
+     lcd_cursor_right();
+     lcd_cursor_right();
+     lcd_cursor_right();
+     lcd_puts(Hz);
+}
 
 // --------------------------------------------------------
 //              LCD Driver

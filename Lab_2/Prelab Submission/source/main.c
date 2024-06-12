@@ -16,9 +16,12 @@ void main(void){
 				enterLPM(lpm_mode);
 			break;
 				
-			case state1:								// PWM input from P2.4 massuring the frequency with Timer_A1. Input capture mode, SMCLK
-				unsigned int clk_overflows = 0;
-
+			case state1: 	// PWM input from P2.4 massuring the frequency with Timer_A1. Input capture mode, SMCLK								
+				lcd_clear();
+				while (state == state1){
+					write_freq_tmp_LCD();							// Write template of Frequency
+					write_freq_LCD(ext_timer_freq());				// Write the frequency to the LCD
+				}
 				break;
 				
 			case state2:

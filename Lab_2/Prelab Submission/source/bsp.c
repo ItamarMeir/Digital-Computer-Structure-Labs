@@ -73,18 +73,17 @@ void GPIOconfig(void){
 //            Timers congiguration
 //-------------------------------------------------------------------------------------
 void TIMERconfig(void){
-// Timer_A configuration
-TACTL &= TACLR; // Clear Timer_A register
-TACTL = SMCLK + ID_0 + MC_1; // SMCLK = 2^20 MHz, /1, Up mode;
-TACCTL0 = CM_1 + CCIS_0 + CAP; // Rising edge, CCI0A, Capture mode
+// TimerA1 configuration
+TA1CCTL2 = CM_1 + CCIS_0 + CAP + SCS + CCIE; // Rising edge, CCI0A, Capture mode, Synchronous
 
-TACTL += TAIE; // Enable overflow interrupt
-TACCTL0 += CCIE; // Enable capture/compare interrupt
 
 }
+
+
 //-------------------------------------------------------------------------------------
 //            ADC congiguration
 //-------------------------------------------------------------------------------------
+
 void ADCconfig(void){
 	
 	//write here ADC congiguration code

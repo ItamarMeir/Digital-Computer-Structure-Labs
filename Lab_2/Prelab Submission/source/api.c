@@ -21,21 +21,49 @@ void printArr2SWs(char Arr[], int size, unsigned int rate){
 	}
 }
 
+unsigned int clk_overflows = 0;
+unsigned int t_0;
+unsigned int t_1;
+unsigned int count = 0;
+unsigned int SMCLK_freq = 1048576;
+
 unsigned char ext_timer_freq(){
-    unsigned int t_0;
-    unsigned int t_1;
-
-    
-    
+	unsigned int frequncy = 0;
     // Begin capturing
+	int i;
+	for (i = 0; i < N_of_measurements; i++){			// Average over N_of_measurements
+		Timer_A1_start();
+		while (count != 2){
+			// wait
+		}
+		Timer_A1_stop();
+		count = 0;
 
+		if (t_0 > t_1){										// If we got overflow
+			frequncy += t_1 - t_0 + 65536;					// Add the period to the total, and add the overflow (2^16 = 65536)
+		}
+		else{
+			frequncy += t_1 - t_0;							// Add the period to the total
+		}
+		
+	}
 
-
-
+	frequncy = frequncy / N_of_measurements; 			// Average the total
+	frequncy = SMCLK_freq / frequncy; 					// Calculate the frequency
+	return frequncy;
 }
 
-
-
+void write_freq_LCD(unsigned int freq){
+	char strFreq[6] = {'\0'};
+	sprintf(strFreq, "%d", freq);
+	lcd_home();
+	lcd_cursor_right();
+	lcd_cursor_right();
+	lcd_cursor_right();
+	lcd_cursor_right();
+	lcd_puts(strFreq);
+	cursor_off;
+}
 
 
 

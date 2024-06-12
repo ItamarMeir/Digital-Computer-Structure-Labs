@@ -29,8 +29,13 @@ extern void disable_interrupts();
 extern void resetOutputPin();
 extern void setOutputPin();
 extern void PWM_driver(int, int);
+extern void write_freq_tmp_LCD();
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#define min(a,b) ((a) < (b) ? (a) : (b))
 
-extern __interrupt void PBs_handler(void);
+extern __interrupt void Timer_A(void);
+extern __interrupt void ADC10_ISR(void);
+
 
 // --------------------------------------------------------
 //              LCD Driver

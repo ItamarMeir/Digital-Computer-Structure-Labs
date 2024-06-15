@@ -6,6 +6,30 @@
 #include  "../header/bsp_msp430x4xx.h"
 #endif
 
+//-----------------------------------------------------------------------------
+//           GPIO congiguration - Lab 2
+// P2.0: SW0 - Input for state 2
+// P1.0 - P1.2: PB0 - PB2
+// P1.3 Analog Input (A3)
+// P1.4 - P1.7: LCD data
+// P2.5 - P2.7: LCD control
+// P2.4: Generator output (for input capture)
+// P2.2: PWM output (output compare) connected to buzzer and CH2 of the oscilloscope
+
+// Port description:
+// ~~ Port 1 ~~
+// P1.0 - P1.2: PushButtons
+// P1.3: Analog Input (A3)
+// P1.4 - P1.7: LCD data
+
+// ~~ Port 2 ~~
+// P2.0: SW0 input
+// P2.2: PWM output
+// P2.4: Generator output
+// P2.5 - P2.7: LCD control
+
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------  
 //           GPIO congiguration
 //-----------------------------------------------------------------------------
@@ -14,33 +38,33 @@ void GPIOconfig(void){
   WDTCTL = WDTHOLD | WDTPW;     // Stop WDT
   
   // LCD configuration
-  LCD_DATA_WRITE &= ~0xFF;
-  LCD_DATA_DIR |= 0xF0;    // P1.4-P1.7 To Output('1')
-  LCD_DATA_SEL &= ~0xF0;   // Bit clear P2.4-P2.7
-  LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
+  LCD_DATA_WRITE &= ~(BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5 | BIT6 | BIT7);
+  LCD_DATA_DIR |= (BIT4 | BIT5 | BIT6 | BIT7);    // P1.4-P1.7 To Output('1')
+  LCD_DATA_SEL &= ~(BIT4 | BIT5 | BIT6 | BIT7);   // Bit clear P2.4-P2.7
+  LCD_CTL_SEL  &= ~(BIT5 | BIT6 | BIT7);   // Bit clear P2.5-P2.7
   
   // Switches Setup
-  SWsArrPortSel &= ~0x0F;
-  SWsArrPortDir &= ~0x0F;
+  SWsArrPortSel &= ~(SW0 | SW1 | SW2 | SW3);
+  SWsArrPortDir &= ~(SW0 | SW1 | SW2 | SW3);
   
   // Buzzer Setup
-  BuzzPortDir |= 0x04;             // P2.2 Output compare - '1'
-  BuzzPortSel |= 0x04;             // P2.2 Select = '1'
-  BuzzPortSel2 &= ~0x04;
-  BuzzPortOut &= ~0x04;            // P2.2 out = '0'
+  BuzzPortDir |= BIT2;             // P2.2 Output compare - '1'
+  BuzzPortSel |= BIT2;             // P2.2 Select = '1'
+  BuzzPortSel2 &= ~BIT2;
+  BuzzPortOut &= ~BIT2;            // P2.2 out = '0'
   
   // PushButtons Setup
-  PBsArrPortSel &= ~0x0F;
-  PBsArrPortDir &= ~0x0F;
-  PBsArrIntEdgeSel |= 0x03;  	     // pull-up mode
-  PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode
-  PBsArrIntEn |= 0x07;
-  PBsArrIntPend &= ~0x0F;            // clear pending interrupts 
+  PBsArrPortSel &= ~(PB0 | PB1 | PB2 | PB3);
+  PBsArrPortDir &= ~(PB0 | PB1 | PB2 | PB3);
+  PBsArrIntEdgeSel |= (PB0 | PB1); 	                  // pull-up mode
+  PBsArrIntEdgeSel &= ~(PB2 | PB3);                   // pull-down mode
+  PBsArrIntEn |= (PB0 | PB1 | PB2);
+  PBsArrIntPend &= ~(PB0 | PB1 | PB2 | PB3);          // clear pending interrupts 
   
   // Generator Setup
-  GenPortDir &= ~0x10;
-  GenPortSel |= 0x10;
-  GenPortSel2 &= ~0x10;
+  GenPortDir &= ~BIT4;
+  GenPortSel |= BIT4;
+  GenPortSel2 &= ~BIT4;
   
   _BIS_SR(GIE);                     // enable interrupts globally
 }                             

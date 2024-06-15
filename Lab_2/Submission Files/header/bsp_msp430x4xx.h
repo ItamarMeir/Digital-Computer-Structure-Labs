@@ -51,7 +51,7 @@
 #define SWsArrPort         P2IN
 #define SWsArrPortDir      P2DIR
 #define SWsArrPortSel      P2SEL
-#define SWmask             0xF0
+#define SWmask             0x01
 
 
 // PushButtons abstraction

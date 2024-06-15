@@ -4,7 +4,7 @@
 #include  "../header/halGPIO.h"     // private library - HAL layer
 
 
-extern void CountUpDown(void);
+extern void CountUp(void);
 extern void freqMeas(void);
 extern void tone_generator(void);
 

@@ -24,7 +24,7 @@ void main(void){
 		break;
 		 
 	  case state2:
-		CountUpDown();
+		CountUp();
 		break;       
                 
 	  case state3:

@@ -1,9 +1,9 @@
  // private library - BSP layer
 
-#ifdef __MSP430FG4619__
-#include  "../header/bsp_msp430x4xx.h"
-#else
+#ifdef __MSP430G2553__
 #include  "../header/bsp_msp430x2xx.h"
+#else
+#include  "../header/bsp_msp430x4xx.h"
 #endif
 
 //-----------------------------------------------------------------------------  
@@ -27,7 +27,7 @@ void GPIOconfig(void){
   BuzzPortDir |= 0x04;             // P2.2 Output compare - '1'
   BuzzPortSel |= 0x04;             // P2.2 Select = '1'
   BuzzPortSel2 &= ~0x04;
-  BuzzPortOut &= ~0x04;             // P2.2 out = '0'
+  BuzzPortOut &= ~0x04;            // P2.2 out = '0'
   
   // PushButtons Setup
   PBsArrPortSel &= ~0x0F;

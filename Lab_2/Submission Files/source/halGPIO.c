@@ -17,7 +17,7 @@ void sysConfig(void){
 unsigned char readSWs(void){
 	unsigned char ch;
 	ch = SWsArrPort;
-	ch &= SWmask;     // mask the least 4-bit
+	ch &= SWmask;     // mask the least 1-bit
 	return ch;
 }
 //---------------------------------------------------------------------
@@ -33,7 +33,7 @@ void delay(unsigned int t){  // t[msec]
 //---------------------------------------------------------------------
 void enterLPM(unsigned char LPM_level){
 	if (LPM_level == 0x00) 
-	  _BIS_SR(LPM0_bits + GIE);     /* Enter Low Power Mode 0 */
+	  _BIS_SR(LPM0_bits + GIE); /* Enter Low Power Mode 0 */
         else if(LPM_level == 0x01) 
 	  _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
         else if(LPM_level == 0x02) 
@@ -176,10 +176,10 @@ void lcd_init(){
     }
     else lcd_cmd(0x3C); // 8bit,two lines,5x10 dots
 
-    lcd_cmd(0xF); //Display On, Cursor On, Cursor Blink
-    lcd_cmd(0x1); //Display Clear
-    lcd_cmd(0x6); //Entry Mode
-    lcd_cmd(0x80); //Initialize DDRAM address to zero
+    lcd_cmd(0xF);  // Display On, Cursor On, Cursor Blink
+    lcd_cmd(0x1);  // Display Clear
+    lcd_cmd(0x6);  // Entry Mode
+    lcd_cmd(0x80); // Initialize DDRAM address to zero
     lcd_cmd(0x0C); // remove curser
 }
 //******************************************************************
@@ -206,7 +206,7 @@ void DelayMs(unsigned int cnt){
 void lcd_strobe(){
   LCD_EN(1);
   asm("NOP");
- // asm("NOP");
+  asm("NOP");
   LCD_EN(0);
 }
 //---------------------------------------------------------------------
@@ -344,7 +344,6 @@ float getDiff(){
     
     return Diff;
 }
-
 //*********************************************************************
 //            ADC10 Vector Interrupt Service Routine
 //*********************************************************************

@@ -49,7 +49,7 @@ void main(void){
 		break;
 
     case state4:
-        enterLPM(lpm_mode);
+        state = state0;
         break; 
     }
   }

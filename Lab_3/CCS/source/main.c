@@ -46,7 +46,11 @@ void main(void){
                 
 	  case state3:
 	    shift_leds();
-		break;        
+		break;
+
+    case state4:
+        enterLPM(lpm_mode);
+        break; 
     }
   }
 }

@@ -37,12 +37,12 @@ void GPIOconfig(void){
   KeypadIRQIntPend &= ~0xFF;             // clear pending interrupts P2.1
   
   // PushButtons Setup
-  PBsArrPortSel &= ~(PB0 + PB1 + PB2 + PB3);
-  PBsArrPortDir &= ~(PB0 + PB1 + PB2 + PB3);
+  PBsArrPortSel &= ~(PB0 + PB1 + PB2); //Add PB3
+  PBsArrPortDir &= ~(PB0 + PB1 + PB2);
   PBsArrIntEdgeSel |= (PB0 + PB1);  	        // pull-up mode
   PBsArrIntEdgeSel &= ~(PB2 + PB3);            // pull-down mode
-  PBsArrIntEn |= (PB0 + PB1 + PB2 + PB3);
-  PBsArrIntPend &= ~(PB0 + PB1 + PB2 + PB3);               // clear pending interrupts
+  PBsArrIntEn |= (PB0 + PB1 + PB2); //Add PB3
+  PBsArrIntPend &= ~(PB0 + PB1 + PB2 + PB3);            // clear pending interrupts
 
   
   _BIS_SR(GIE);                         // enable interrupts globally

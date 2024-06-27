@@ -16,7 +16,7 @@
 #define LCD_CTL_DIR        P2DIR
 #define LCD_CTL_OUT        P2OUT
 #define LCD_EN_PIN         BIT5
-#define LCD_RS_PIN         BIT5
+#define LCD_RS_PIN         BIT6
 #define LCD_RW_PIN         BIT7
 
 // LEDs abstraction

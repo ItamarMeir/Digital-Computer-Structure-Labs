@@ -15,10 +15,10 @@ void idiom_rec() {
         unsigned int keyInput;          // Variable to store key input
         unsigned int pressCount = 0;    // Variable to store key press count
 
-        // Enable key interrupts
-        KeypadIRQIntEn |= BIT1;     // Enable key interrupts
+        // Enable key interrupts allowing first key input
+        en_keypad_interrupts();     // Enable keypad interrupts
         enterLPM(mode0);            // Enter low power mode 0
-        KeypadIRQIntEn &= ~BIT1;    // Disable key interrupts
+        disable_keypad_interrupts();    // Disable keypad interrupts
 
         keyInput = Key;             // Store key input
 
@@ -28,15 +28,14 @@ void idiom_rec() {
                 break;
             }
             Key = 16;   // Reset key input
-            KeypadIRQIntPend &= ~BIT1;  // Clear key interrupt pending flag
-            KeypadIRQIntEn |= BIT1;    // Enable key interrupts
+            en_keypad_interrupts();     // Enable keypad interrupts
             startTimerA();              // Start timer A
-            enterLPM(mode0);            // Enter low power mode 0
+            enterLPM(mode0);            // Enter low power mode 0 to wait for the second key input
             finishTimerA();                // Finish timer A
-            KeypadIRQIntEn &= ~BIT1;    // Disable key interrupts
+            disable_keypad_interrupts();    // Disable keypad interrupts
 
             // Count presses per key
-            if (Key == keyInput) {      // If key input is valid
+            if (Key == keyInput) {      // If key input is the same as the previous key input
                 pressCount++;               // Increment press count
             }
         }
@@ -51,12 +50,12 @@ void idiom_rec() {
 
             // Display the character based on keyInput and pressCount
             idiom_recorder[i] = keyboard[keyInput][pressCount];
-            lcd_data(idiom_recorder[i]);
+            lcd_data(idiom_recorder[i]);        // Display character on LCD
 
-            i++;
+            i++;    // Increment character index
         }
     }
-    finishTimerA();
+    finishTimerA();     // Finish timer A
 }
 
 //-------------------------------------------------------------
@@ -64,52 +63,51 @@ void idiom_rec() {
 //-------------------------------------------------------------
 
 void merge() {
-    int i = 0, j = 0, k = 0;
-    int indx1 = -1, indx2 = -1;
-    unsigned int keyInput, prevKeyInput;
-    int Size;
+    int i = 0, j = 0, k = 0;    // i - index of substring in indx1, j - index of substring in indx2, k - index of merged string
+    int indx1 = -1, indx2 = -1; // Variables to store selected indices
+    unsigned int keyInput, prevKeyInput;    // Variables to store key input
+    int Size;   // Variable to store size of substring
 
-    lcd_puts("Select 1st str  and press *");
+    lcd_puts("Select 1st str and press *");
     while (state == state2) {
 
         // Main loop for selecting strings
         while (indx1 == -1 || indx2 == -1){
-            KeypadIRQIntEn |= BIT1;
-            enterLPM(mode0);
-            KeypadIRQIntEn &= ~BIT1;
-            keyInput = Key;
-            Key = 16;
+            en_keypad_interrupts();     // Enable keypad interrupts
+            enterLPM(mode0);            // Enter low power mode 0
+            disable_keypad_interrupts();    // Disable keypad interrupts
+            keyInput = Key;                 // Store key input
+            Key = 16;                       // Reset key input
 
-            // Adjusting key input for usability
-            if (keyInput >= 0 && keyInput <= 2) {
-                keyInput++;
-            } else if (keyInput >= 8 && keyInput <= 10) {
-                keyInput--;
-            } else if (keyInput == 13) {
+            if (keyInput >= 0 && keyInput <= 2) {       // Adjust key input for usability
+                keyInput++;             
+            } else if (keyInput >= 8 && keyInput <= 10) {            
+                keyInput--; 
+            } else if (keyInput == 13) {        
                 keyInput = 0;
-            } else if (!(keyInput >= 4 && keyInput <= 6) && keyInput != 16 && keyInput != 12) {
+            } else if (!(keyInput >= 4 && keyInput <= 6) && keyInput != 16 && keyInput != 12) {     // Invalid key input
                 lcd_clear();
                 lcd_puts("Invalid");
                 keyInput = 10;
             }
 
-            if (keyInput < 10) {
+            if (keyInput < 10) {    // Display selected string on LCD
                 lcd_clear();
                 lcd_puts(data_matrix[keyInput]);
-                prevKeyInput = keyInput;
+                prevKeyInput = keyInput;            // Store previous key input
             }
 
             // Processing selected indices
-            if (keyInput == 12 && prevKeyInput < 10) {
-                if (indx1 == -1) {
-                    indx1 = prevKeyInput;
-                    prevKeyInput = 10;
+            if (keyInput == 12 && prevKeyInput < 10) {  // If * is pressed
+                if (indx1 == -1) {                  // Selecting 1st string
+                    indx1 = prevKeyInput;           // Store selected index
+                    prevKeyInput = 10;              // Reset previous key input
                     lcd_clear();
                     lcd_puts("Select 2nd str  and press *");
-                } else if (indx2 == -1) {
-                    indx2 = prevKeyInput;
-                    lcd_clear();
-                    lcd_puts("done");
+                } else if (indx2 == -1) {       // Selecting 2nd string
+                    indx2 = prevKeyInput;       // Store selected index
+                    lcd_clear();                // Clear LCD
+                    lcd_puts("done");           // Display message on LCD
                     break;
                 }
             }
@@ -117,55 +115,56 @@ void merge() {
 
 
         // Merging the selected strings using DMA
-        while (data_matrix[indx1][i] != '\0' || data_matrix[indx2][j] != '\0'){
-            startDMA();
-            Size = 0;
+        while (data_matrix[indx1][i] != '\0' || data_matrix[indx2][j] != '\0'){     // Loop until end of strings
+            startDMA();     // Start DMA
+            Size = 0;       // Reset size of substring
 
             // Finding the size of substring in indx1
-            while (data_matrix[indx1][i + Size] != '\0' && data_matrix[indx1][i + Size] != ' ') {
+            while (data_matrix[indx1][i + Size] != '\0' && data_matrix[indx1][i + Size] != ' ') {   // Loop until end of substring
                 Size++;
             }
 
+            // i - index of substring in indx1, j - index of substring in indx2, k - index of merged string
             if (Size > 0) {
-                if (k > 0) strMerge[k++] = ' ';
-                DMA0_Src_Add = (void *)(data_matrix[indx1] + i);
-                DMA0_Dst_Add = (void *)(strMerge + k);
-                DMA0_Size = Size;
-                triggerDMA();
-                k += Size;
+                if (k > 0) strMerge[k++] = ' ';                     // Add space between words if not the first substring
+                DMA0_Src_Add = (void *)(data_matrix[indx1] + i);    // Set source address as the substring in indx1
+                DMA0_Dst_Add = (void *)(strMerge + k);              // Set destination address as the merged string
+                DMA0_Size = Size;                               // Set size of substring
+                triggerDMA();                                    // Trigger DMA
+                k += Size;                                // Increment index of merged string
             }
 
-            i += Size;
-            if (data_matrix[indx1][i] == ' ') {
-                i++;
+            i += Size;      // Increment index of substring in indx1
+            if (data_matrix[indx1][i] == ' ') {     // Skip space
+                i++;    // Increment index of substring in indx1
             }
 
-            Size = 0;
+            Size = 0;    // Reset size of substring
             // Finding the size of substring in indx2
-            while (data_matrix[indx2][j + Size] != '\0' && data_matrix[indx2][j + Size] != ' ') {
-                Size++;
+            while (data_matrix[indx2][j + Size] != '\0' && data_matrix[indx2][j + Size] != ' ') {   // Loop until end of substring
+                Size++;    // Increment size of substring
             }
 
-            if (Size > 0) {
-                if (k > 0) strMerge[k++] = ' ';
-                DMA0_Src_Add = (void *)(data_matrix[indx2] + j);
-                DMA0_Dst_Add = (void *)(strMerge + k);
-                DMA0_Size = Size;
-                triggerDMA();
-                k += Size;
+            if (Size > 0) {    // If size of substring is greater than 0
+                if (k > 0) strMerge[k++] = ' ';    // Add space between words if not the first substring
+                DMA0_Src_Add = (void *)(data_matrix[indx2] + j);    // Set source address as the substring in indx2
+                DMA0_Dst_Add = (void *)(strMerge + k);            // Set destination address as the merged string
+                DMA0_Size = Size;                            // Set size of substring
+                triggerDMA();                             // Trigger DMA
+                k += Size;                           // Increment index of merged string
             }
 
-            j += Size;
-            if (data_matrix[indx2][j] == ' ') {
-                j++;
+            j += Size;  // Increment index of substring in indx2
+            if (data_matrix[indx2][j] == ' ') {   // Skip space
+                j++;        
             }
-            stopDMA();
+            stopDMA();  // Stop DMA
         }
 
         // Displaying the merged string on LCD
         lcd_clear();
-        lcd_puts(strMerge);
-        enterLPM(mode0);
+        lcd_puts(strMerge);    // Display merged string on LCD
+        enterLPM(mode0);    // Enter low power mode 0
     }
 }
 //-------------------------------------------------------------

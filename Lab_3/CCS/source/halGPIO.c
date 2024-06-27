@@ -249,7 +249,18 @@ void disable_interrupts(){
 	}
         
 }
- 
+ // *********************************************************************
+//            Keypad functions
+//*********************************************************************
+void en_keypad_interrupts(){
+    KeypadIRQIntPend &= ~BIT1;  // Clear key interrupt pending flag
+    KeypadIRQIntEn |= BIT1;    // Enable key interrupts
+}
+
+void disable_keypad_interrupts(){
+    KeypadIRQIntEn &= ~BIT1;    // Disable key interrupts
+}
+
   //*********************************************************************
   //            Port2 Interrupt Service Routine
   //*********************************************************************
@@ -356,8 +367,8 @@ void finishTimerA(){
 //*********************************************************************
 
 void startDMA(){
-    if(state==state2){
-        DMA0CTL = DMADT_1 + DMASBDB + DMASRCINCR_3 + DMADSTINCR_3; // block, byte to byte, src inc, dst inc
+    if(state==state2){      // state2 - merge
+        DMA0CTL = DMADT_1 + DMASBDB + DMASRCINCR_3 + DMADSTINCR_3; // block repeat, byte to byte, src inc, dst inc
         DMACTL0 = DMA0TSEL_0; // SW Trigger
     }
     if(state==state3){

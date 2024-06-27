@@ -26,6 +26,8 @@ extern void finishTimerA();
 extern void startDMA();
 extern void stopDMA();
 extern void triggerDMA();
+extern void en_keypad_interrupts();
+extern void disable_keypad_interrupts();
 
 extern __interrupt void PBs_handler(void);
 

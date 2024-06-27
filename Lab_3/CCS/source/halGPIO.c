@@ -324,9 +324,9 @@ void disable_interrupts(){
 //*********************************************************************
 #pragma vector = TIMERA1_VECTOR
 __interrupt void TimerA_ISR (void){
-  if (Timer0_CTL & TAIFG){
+  if (Timer0_CTL & TAIFG){      //check if interrupt is from TimerA0
     Timer0_CTL &= ~TAIFG;            //turn off flag
-    LPM0_EXIT;
+    LPM0_EXIT;                      //exit LPM0
   }
 }
 
@@ -334,12 +334,14 @@ __interrupt void TimerA_ISR (void){
 //              StartTimer and FinishTimer
 //-------------------------------------------------------------
 void startTimerA(){
-    Timer0_CCR0 = 0xFFFF;
+    // Will interrupt after 0.5s (in the first time).
+    Timer0_CCR0 = 0xFFFF;   // 65535
     Timer0_CTL = TASSEL_2 + MC_3 + ID_3 + TACLR; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-    Timer0_CTL |= TAIE;
+    Timer0_CTL |= TAIE; // enable interrupt
 }
 
 void startTimerB(){
+    // Will interrupt after 0.5s
     Timer1_CCR0 = 0xFFFF;
     Timer1_CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; //  select: 2 - SMCLK ; control: 1 - Up  ; divider: 3 - /8
     Timer1_CTL &= ~TBIE;

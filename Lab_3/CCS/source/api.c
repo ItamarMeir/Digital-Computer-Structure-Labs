@@ -8,50 +8,46 @@
 //-------------------------------------------------------------
 
 void idiom_rec() {
-    lcd_puts("Enter Idiom:");
+    lcd_puts("Enter Idiom:");   // Display message on LCD
 
-    unsigned int i = 0;
+    unsigned int i = 0;         // Variable to store character index
     while (state == state1) {
-        unsigned int keyInput;
-        unsigned int pressCount = 0;
+        unsigned int keyInput;          // Variable to store key input
+        unsigned int pressCount = 0;    // Variable to store key press count
 
         // Enable key interrupts
-        KeypadIRQIntEn |= BIT1;
-        enterLPM(mode0);
-        KeypadIRQIntEn &= ~BIT1;
+        KeypadIRQIntEn |= BIT1;     // Enable key interrupts
+        enterLPM(mode0);            // Enter low power mode 0
+        KeypadIRQIntEn &= ~BIT1;    // Disable key interrupts
 
-        keyInput = Key;
+        keyInput = Key;             // Store key input
 
-        while (Key < 16 && Key == keyInput) {
+        while (Key < 16 && Key == keyInput) {       // Loop until key input is valid
             // Break if press count exceeds allowed presses for the key
-            if ((keyInput < 12 && pressCount == 1) || (keyInput >= 12 && pressCount == 2)) {
+            if ((keyInput < 12 && pressCount == 1) || (keyInput >= 12 && pressCount == 2)) {  
                 break;
             }
-            // Reset the key
-            Key = 16;
-            // Enable key interrupts and timer, wait for next key press or timer event
-            KeypadIRQIntPend &= ~BIT1;
-            KeypadIRQIntEn |= BIT1;
-            startTimerA();
-            //  Enter low power mode 0
-            enterLPM(mode0);
-            finishTimerA();
-            KeypadIRQIntEn &= ~BIT1;
+            Key = 16;   // Reset key input
+            KeypadIRQIntPend &= ~BIT1;  // Clear key interrupt pending flag
+            KeypadIRQIntEn |= BIT1;    // Enable key interrupts
+            startTimerA();              // Start timer A
+            enterLPM(mode0);            // Enter low power mode 0
+            finishTimerA();                // Finish timer A
+            KeypadIRQIntEn &= ~BIT1;    // Disable key interrupts
 
             // Count presses per key
-            if (Key == keyInput) {
-                pressCount++;
+            if (Key == keyInput) {      // If key input is valid
+                pressCount++;               // Increment press count
             }
         }
         // If valid key input and press count within limits, display character on LCD
         if (keyInput < 16 && pressCount < 3) {
-            if (i == 0)
+            if (i == 0)         // Clear LCD if first character
                 lcd_clear();
-            else if (i == 16)
+            else if (i == 16)   // Move to next line if 16 characters are displayed
                 lcd_new_line;
-            if (i == 32)
+            if (i == 32)        // Break if 32 characters are displayed
                 break;
-            //    i = 0;
 
             // Display the character based on keyInput and pressCount
             idiom_recorder[i] = keyboard[keyInput][pressCount];

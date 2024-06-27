@@ -66,5 +66,5 @@ void TIMER0_A0_config(void){
 //            DMA configuration
 //-------------------------------------------------------------------------------------
 void DMA_config(void){
-    DMA0CTL &= ~DMAIE;
+    DMA0CTL &= ~DMAIE;    // disable DMA0 interrupt
 }

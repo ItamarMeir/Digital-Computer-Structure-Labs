@@ -15,7 +15,7 @@ char data_matrix[10][40] = {"An apple a day keeps the doctor away",
                             "shed crocodile tears",
                             "Close but no cigar",
                             "Cut from the same cloth",
-                            "Strike while the iron’s hot"};
+                            "Strike while the iron's hot"};
 char strMerge[80];
 
 

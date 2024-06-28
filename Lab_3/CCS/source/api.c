@@ -1,8 +1,7 @@
 #include  "../header/api.h"    		// private library - API layer
 #include  "../header/halGPIO.h"     // private library - HAL layer
 #include <stdlib.h>
-
-
+#include <stdio.h>
 //-------------------------------------------------------------
 //                      idiom recorder
 //-------------------------------------------------------------
@@ -172,6 +171,7 @@ void merge() {
 //-------------------------------------------------------------
 
 void shift_leds(){
+    
     char leds[9] = {128,64,32,16,8,4,23,13,40};
     startTimerB();
     DMA0_Src_Add = (void (*)())leds;

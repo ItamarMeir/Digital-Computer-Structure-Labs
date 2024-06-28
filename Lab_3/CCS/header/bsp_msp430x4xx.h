@@ -25,8 +25,11 @@
 #define LEDsArrPortSel     P9SEL
 
 // Timers abstraction
+#define Timer0_CCR2        TACCR2
 #define Timer0_CCR0        TACCR0
 #define Timer0_CTL         TACTL
+#define Timer0_CCTL0      TACCTL0
+#define Timer0_CCTL2      TACCTL2
 #define Timer1_CCR0        TBCCR0
 #define Timer1_CTL         TBCTL
 

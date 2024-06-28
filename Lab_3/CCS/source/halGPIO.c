@@ -345,15 +345,25 @@ __interrupt void TimerA_ISR (void){
 //              StartTimer and FinishTimer
 //-------------------------------------------------------------
 void startTimerA(){
+    if (state == state3){
+        // Will interrupt after 0.5s (in the first time).
+    Timer0_CCR0 = 0xFFFF;   // 65535
+    Timer0_CCTL0 = CCIE; // enable interrupt
+    Timer0_CTL = TASSEL_2 + MC_3 + ID_3 + TACLR; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
+    //Timer0_CTL |= TAIE; // enable interrupt
+
+    }
+    else{
     // Will interrupt after 0.5s (in the first time).
     Timer0_CCR0 = 0xFFFF;   // 65535
     Timer0_CTL = TASSEL_2 + MC_3 + ID_3 + TACLR; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
     Timer0_CTL |= TAIE; // enable interrupt
+    }
 }
 
 void startTimerB(){
     // Will interrupt after 0.5s
-    Timer1_CCR0 = 0xFFFF;
+   Timer1_CCR0 = 0xFFFF;
     Timer1_CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; //  select: 2 - SMCLK ; control: 1 - Up  ; divider: 3 - /8
     Timer1_CTL &= ~TBIE;
 }

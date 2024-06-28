@@ -91,17 +91,17 @@ void lcd_data(unsigned char c){
 //******************************************************************
 void lcd_puts(const char * s){
     int i = 0;
-    while(*s){
-        lcd_data(*s++);
-        i++;
-        if(i == 16 || i == 48){
-            lcd_new_line;
+    while(*s){              // write data to LCD up to null
+        lcd_data(*s++);     // Write current char and increment pointer
+        i++;                // increment the counter
+        if(i == 16 || i == 48){     // check if the counter is equal to 16 or 48
+            lcd_new_line;           // move to the next line
         }
-        if(i == 32 || i == 64){
-            KeypadIRQIntEn |= BIT1;
+        if(i == 32 || i == 64){         // check if the counter is equal to 32 or 64
+            en_keypad_interrupts();   // enable keypad interrupts
             enterLPM(mode0);
-            KeypadIRQIntEn &= ~BIT1;
-            if(Key == 14){
+            disable_keypad_interrupts();    // disable keypad interrupts
+            if(Key == 14){          // check if the key pressed is '#'
                 lcd_clear();
             }
         }
@@ -386,6 +386,7 @@ void startTimerB(){
    Timer1_CCR0 = 0xFFFF;
     Timer1_CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; //  select: 2 - SMCLK ; control: 1 - Up  ; divider: 3 - /8
     Timer1_CTL |= TBIE; // enable interrupt
+    // for the single transfer DMA version: Timer1_CTL &= ~TBIE;
 }
 
 void finishTimerA(){
@@ -402,12 +403,12 @@ void startDMA(){
         DMACTL0 = DMA0TSEL_0; // SW Trigger
     }
     if(state==state3){
+        DMA0CTL = DMADT_5 + DMASBDB + DMASRCINCR_3 + DMAEN; // block repeat, byte to byte, src inc, enable
+        DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
+
+        // ----------------- version of single transfer DMA: -----------------
         // DMA0CTL = DMADT_4 + DMASBDB + DMASRCINCR_3 + DMAEN; // single repeat, byte to byte, src inc, enable
         // DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
-        
-       
-        DMA0CTL = DMADT_5 + DMASBDB + DMASRCINCR_3 + DMAEN; // block repeat, byte to byte, src inc, enable
-         DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
     }
 }
 

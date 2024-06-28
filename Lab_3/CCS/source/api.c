@@ -162,7 +162,29 @@ void merge() {
 
         // Displaying the merged string on LCD
         lcd_clear();
-        lcd_puts(strMerge);    // Display merged string on LCD
+        int str_merge_size = k;     // Store size of merged string
+        if (str_merge_size < 16) {   // If size of merged string is less than 16
+            lcd_puts(strMerge);    // Display merged string on LCD
+        } else {    // If size of merged string is greater than 16
+            lcd_puts("Press * to scroll");   // Display message on LCD
+            int scroll = 0;     // Variable to store scroll index
+            while (state == state2) {   // Loop until state is state2
+                en_keypad_interrupts();     // Enable keypad interrupts
+                enterLPM(mode0);            // Enter low power mode 0
+                disable_keypad_interrupts();    // Disable keypad interrupts
+                keyInput = Key;             // Store key input
+                Key = 16;                   // Reset key input
+
+                if (keyInput == 12) {       // If * is pressed
+                    scroll++;               // Increment scroll index
+                    lcd_clear();            // Clear LCD
+                    lcd_puts(strMerge + scroll);    // Display merged string on LCD
+                    if (scroll == str_merge_size - 16) {    // If scroll index is equal to size of merged string - 16
+                        break;      // Break
+                    }
+                }
+            }
+        }
         enterLPM(mode0);    // Enter low power mode 0
     }
 }
@@ -170,17 +192,37 @@ void merge() {
 //                         shift_leds
 //-------------------------------------------------------------
 
+
 void shift_leds(){
+    int i = 0;
+    for(i = 0; i < 9; i++){ // Loop through the LEDs array
+        if (state != state3)
+        {
+            break;
+        }
+        
+        startTimerB();      // Start timer B
+        DMA0_Src_Add = (void (*)())leds_ptr;
+        DMA0_Dst_Add = (void (*)())&LEDsArrPort;
+        DMA0_Size = 0x0001;     // Block size of 1
+        startDMA();
+        enterLPM(mode0);
+    }
     
-    char leds[9] = {128,64,32,16,8,4,23,13,40};
-    startTimerB();
-    DMA0_Src_Add = (void (*)())leds;
-    DMA0_Dst_Add = (void (*)())&LEDsArrPort;
-    DMA0_Size = 0x0009;
-    startDMA();
-    enterLPM(mode0);
     DMA0_Size = 0x0000;
-    LEDsArrPort = 0x00;
+    clear_LEDs();    // Clear LEDs
+
+
+    // char leds[9] = {128,64,32,16,8,4,23,13,40};
+    // startTimerB();
+    // DMA0_Src_Add = (void (*)())leds;
+    // DMA0_Dst_Add = (void (*)())&LEDsArrPort;
+    // DMA0_Size = 0x0009;
+    // startDMA();
+    // enterLPM(mode0);
+    // DMA0_Size = 0x0000;
+    // LEDsArrPort = 0x00;
+    
 }
 
 

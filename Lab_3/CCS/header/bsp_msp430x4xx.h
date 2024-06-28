@@ -32,6 +32,7 @@
 #define Timer0_CCTL2      TACCTL2
 #define Timer1_CCR0        TBCCR0
 #define Timer1_CTL         TBCTL
+#define Timer1_CCR2        TBCCR2
 
 // DMA abstraction
 #define DMA0_Src_Add       DMA0SA

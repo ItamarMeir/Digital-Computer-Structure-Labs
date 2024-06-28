@@ -17,7 +17,8 @@ char data_matrix[10][40] = {"An apple a day keeps the doctor away",
                             "Cut from the same cloth",
                             "Strike while the iron's hot"};
 char strMerge[80];
-
+char leds[9] = {128,64,32,16,8,4,23,13,40};
+char* leds_ptr = leds;
 
 void main(void){
   
@@ -34,6 +35,7 @@ void main(void){
 		break;
 		 
 	  case state1:
+        clear_LEDs();
         idiom_rec();
         if(state == state1){
             state = state0;
@@ -41,11 +43,13 @@ void main(void){
 		break;
 		 
 	  case state2:
+      clear_LEDs();
 	    merge();
 		break;       
                 
 	  case state3:
 	    shift_leds();
+      clear_LEDs();    // Clear LEDs
 		break;
 
     case state4:

@@ -93,6 +93,10 @@ extern void lcd_init();
 extern void lcd_strobe();
 extern void DelayMs(unsigned int);
 extern void DelayUs(unsigned int);
+extern void clear_LEDs();
+
+extern char leds[9];
+extern char* leds_ptr;
 /*
  *  Delay functions for HI-TECH C on the PIC18
  *

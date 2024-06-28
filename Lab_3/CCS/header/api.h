@@ -8,6 +8,9 @@ extern char idiom_recorder[32];
 extern const char keyboard[16][4];
 extern char data_matrix[10][40];
 extern char strMerge[80];
+extern char leds[9];
+extern char* leds_ptr;
+
 extern void idiom_rec();
 extern void merge();
 extern void shift_leds();

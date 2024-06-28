@@ -172,6 +172,9 @@ void DelayMs(unsigned int cnt){
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
 
 }
+void clear_LEDs(){
+    LEDsArrPort = 0x00;
+}
 //******************************************************************
 // lcd strobe functions
 //******************************************************************
@@ -341,6 +344,23 @@ __interrupt void TimerA_ISR (void){
   }
 }
 
+//*********************************************************************
+//            TimerB0 Interrupt Service Routine
+//*********************************************************************
+#pragma vector = TIMERB1_VECTOR
+__interrupt void TimerB_ISR (void){
+  if (Timer1_CTL & TBIFG){      //check if interrupt is from TimerA0
+    Timer1_CTL &= ~TBIFG;            //turn off flag
+    leds_ptr++;                     //increment pointer
+    if (leds_ptr == &leds[9]){      //check if pointer is at the end of the array
+        leds_ptr = &leds[0];         //reset pointer to the beginning of the array
+    }
+
+    
+    LPM0_EXIT;                      //exit LPM0
+  }
+}
+
 //-------------------------------------------------------------
 //              StartTimer and FinishTimer
 //-------------------------------------------------------------
@@ -365,7 +385,7 @@ void startTimerB(){
     // Will interrupt after 0.5s
    Timer1_CCR0 = 0xFFFF;
     Timer1_CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; //  select: 2 - SMCLK ; control: 1 - Up  ; divider: 3 - /8
-    Timer1_CTL &= ~TBIE;
+    Timer1_CTL |= TBIE; // enable interrupt
 }
 
 void finishTimerA(){
@@ -378,12 +398,16 @@ void finishTimerA(){
 
 void startDMA(){
     if(state==state2){      // state2 - merge
-        DMA0CTL = DMADT_1 + DMASBDB + DMASRCINCR_3 + DMADSTINCR_3; // block repeat, byte to byte, src inc, dst inc
+        DMA0CTL = DMADT_1 + DMASBDB + DMASRCINCR_3 + DMADSTINCR_3; // block, byte to byte, src inc, dst inc
         DMACTL0 = DMA0TSEL_0; // SW Trigger
     }
     if(state==state3){
-        DMA0CTL = DMADT_4 + DMASBDB + DMASRCINCR_3 + DMAEN; // single repeat, byte to byte, src inc, enable
-        DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
+        // DMA0CTL = DMADT_4 + DMASBDB + DMASRCINCR_3 + DMAEN; // single repeat, byte to byte, src inc, enable
+        // DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
+        
+       
+        DMA0CTL = DMADT_5 + DMASBDB + DMASRCINCR_3 + DMAEN; // block repeat, byte to byte, src inc, enable
+         DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
     }
 }
 

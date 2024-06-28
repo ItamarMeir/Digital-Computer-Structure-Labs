@@ -5,7 +5,8 @@
         "bsp.h": "c",
         "app.h": "c",
         "bsp_msp430x2xx.h": "c",
-        "hal.h": "c"
+        "hal.h": "c",
+        "api.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

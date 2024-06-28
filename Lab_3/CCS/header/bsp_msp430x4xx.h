@@ -13,6 +13,11 @@
 #define LCD_DATA_READ      P1IN
 #define LCD_DATA_SEL       P1SEL
 #define LCD_CTL_SEL        P2SEL
+#define LCD_CTL_DIR        P2DIR
+#define LCD_CTL_OUT        P2OUT
+#define LCD_EN_PIN         BIT5
+#define LCD_RS_PIN         BIT6
+#define LCD_RW_PIN         BIT7
 
 // LEDs abstraction
 #define LEDsArrPort        P9OUT
@@ -20,10 +25,14 @@
 #define LEDsArrPortSel     P9SEL
 
 // Timers abstraction
+#define Timer0_CCR2        TACCR2
 #define Timer0_CCR0        TACCR0
 #define Timer0_CTL         TACTL
+#define Timer0_CCTL0      TACCTL0
+#define Timer0_CCTL2      TACCTL2
 #define Timer1_CCR0        TBCCR0
 #define Timer1_CTL         TBCTL
+#define Timer1_CCR2        TBCCR2
 
 // DMA abstraction
 #define DMA0_Src_Add       DMA0SA
@@ -55,6 +64,26 @@
 #define KeypadIRQPortSel      P2SEL
 #define KeypadIRQPortDir      P2DIR
 #define KeypadIRQPortOut      P2OUT
+
+// Switches abstraction
+#define SWsArrPort         P2IN
+#define SWsArrPortDir      P2DIR
+#define SWsArrPortSel      P2SEL
+#define SWmask             0x01
+#define SW0                0x01
+#define SW1                0x02
+#define SW2                0x04
+#define SW3                0x08
+
+// General bits abstraction
+#define BIT0                 0x01
+#define BIT1                 0x02
+#define BIT2                 0x04
+#define BIT3                 0x08
+#define BIT4                 0x10
+#define BIT5                 0x20
+#define BIT6                 0x40
+#define BIT7                 0x80
 
 extern void GPIOconfig(void);
 extern void TIMER0_A0_config(void);

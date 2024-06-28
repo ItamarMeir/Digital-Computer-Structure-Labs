@@ -37,12 +37,12 @@ void GPIOconfig(void){
   KeypadIRQIntPend &= ~0xFF;             // clear pending interrupts P2.1
   
   // PushButtons Setup
-  PBsArrPortSel &= ~0x0F;
-  PBsArrPortDir &= ~0x0F;
-  PBsArrIntEdgeSel |= 0x03;  	        // pull-up mode
-  PBsArrIntEdgeSel &= ~0x0C;            // pull-down mode
-  PBsArrIntEn |= 0x0F;
-  PBsArrIntPend &= ~0x0F;               // clear pending interrupts
+  PBsArrPortSel &= ~(PB0 + PB1 + PB2 + PB3);
+  PBsArrPortDir &= ~(PB0 + PB1 + PB2 + PB3);
+  PBsArrIntEdgeSel |= (PB0 + PB1);  	        // pull-up mode
+  PBsArrIntEdgeSel &= ~(PB2 + PB3);            // pull-down mode
+  PBsArrIntEn |= (PB0 + PB1 + PB2 + PB3);
+  PBsArrIntPend &= ~(PB0 + PB1 + PB2 + PB3);               // clear pending interrupts
 
   
   _BIS_SR(GIE);                         // enable interrupts globally
@@ -66,5 +66,5 @@ void TIMER0_A0_config(void){
 //            DMA configuration
 //-------------------------------------------------------------------------------------
 void DMA_config(void){
-    DMA0CTL &= ~DMAIE;
+    DMA0CTL &= ~DMAIE;    // disable DMA0 interrupt
 }

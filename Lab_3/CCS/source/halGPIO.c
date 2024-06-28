@@ -91,17 +91,17 @@ void lcd_data(unsigned char c){
 //******************************************************************
 void lcd_puts(const char * s){
     int i = 0;
-    while(*s){
-        lcd_data(*s++);
-        i++;
-        if(i == 16 || i == 48){
-            lcd_new_line;
+    while(*s){              // write data to LCD up to null
+        lcd_data(*s++);     // Write current char and increment pointer
+        i++;                // increment the counter
+        if(i == 16 || i == 48){     // check if the counter is equal to 16 or 48
+            lcd_new_line;           // move to the next line
         }
-        if(i == 32 || i == 64){
-            KeypadIRQIntEn |= BIT1;
+        if(i == 32 || i == 64){         // check if the counter is equal to 32 or 64
+            en_keypad_interrupts();   // enable keypad interrupts
             enterLPM(mode0);
-            KeypadIRQIntEn &= ~BIT1;
-            if(Key == 14){
+            disable_keypad_interrupts();    // disable keypad interrupts
+            if(Key == 14){          // check if the key pressed is '#'
                 lcd_clear();
             }
         }
@@ -172,6 +172,9 @@ void DelayMs(unsigned int cnt){
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
 
 }
+void clear_LEDs(){
+    LEDsArrPort = 0x00;
+}
 //******************************************************************
 // lcd strobe functions
 //******************************************************************
@@ -218,6 +221,10 @@ void disable_interrupts(){
 	  state = state3;
 	  PBsArrIntPend &= ~PB2;
         }
+	else if(PBsArrIntPend & PB3){
+	      state = state4;
+	      PBsArrIntPend &= ~PB3;
+	        }
 
 //---------------------------------------------------------------------
 //            Exit from a given LPM 
@@ -245,7 +252,18 @@ void disable_interrupts(){
 	}
         
 }
- 
+ // *********************************************************************
+//            Keypad functions
+//*********************************************************************
+void en_keypad_interrupts(){
+    KeypadIRQIntPend &= ~BIT1;  // Clear key interrupt pending flag
+    KeypadIRQIntEn |= BIT1;    // Enable key interrupts
+}
+
+void disable_keypad_interrupts(){
+    KeypadIRQIntEn &= ~BIT1;    // Disable key interrupts
+}
+
   //*********************************************************************
   //            Port2 Interrupt Service Routine
   //*********************************************************************
@@ -320,9 +338,26 @@ void disable_interrupts(){
 //*********************************************************************
 #pragma vector = TIMERA1_VECTOR
 __interrupt void TimerA_ISR (void){
-  if (Timer0_CTL & TAIFG){
+  if (Timer0_CTL & TAIFG){      //check if interrupt is from TimerA0
     Timer0_CTL &= ~TAIFG;            //turn off flag
-    LPM0_EXIT;
+    LPM0_EXIT;                      //exit LPM0
+  }
+}
+
+//*********************************************************************
+//            TimerB0 Interrupt Service Routine
+//*********************************************************************
+#pragma vector = TIMERB1_VECTOR
+__interrupt void TimerB_ISR (void){
+  if (Timer1_CTL & TBIFG){      //check if interrupt is from TimerA0
+    Timer1_CTL &= ~TBIFG;            //turn off flag
+    leds_ptr++;                     //increment pointer
+    if (leds_ptr == &leds[9]){      //check if pointer is at the end of the array
+        leds_ptr = &leds[0];         //reset pointer to the beginning of the array
+    }
+
+    
+    LPM0_EXIT;                      //exit LPM0
   }
 }
 
@@ -330,15 +365,28 @@ __interrupt void TimerA_ISR (void){
 //              StartTimer and FinishTimer
 //-------------------------------------------------------------
 void startTimerA(){
-    Timer0_CCR0 = 0xFFFF;
+    if (state == state3){
+        // Will interrupt after 0.5s (in the first time).
+    Timer0_CCR0 = 0xFFFF;   // 65535
+    Timer0_CCTL0 = CCIE; // enable interrupt
     Timer0_CTL = TASSEL_2 + MC_3 + ID_3 + TACLR; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-    Timer0_CTL |= TAIE;
+    //Timer0_CTL |= TAIE; // enable interrupt
+
+    }
+    else{
+    // Will interrupt after 0.5s (in the first time).
+    Timer0_CCR0 = 0xFFFF;   // 65535
+    Timer0_CTL = TASSEL_2 + MC_3 + ID_3 + TACLR; //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
+    Timer0_CTL |= TAIE; // enable interrupt
+    }
 }
 
 void startTimerB(){
-    Timer1_CCR0 = 0xFFFF;
+    // Will interrupt after 0.5s
+   Timer1_CCR0 = 0xFFFF;
     Timer1_CTL = TBSSEL_2 + MC_2 + ID_3 + TBCLR; //  select: 2 - SMCLK ; control: 1 - Up  ; divider: 3 - /8
-    Timer1_CTL &= ~TBIE;
+    Timer1_CTL |= TBIE; // enable interrupt
+    // for the single transfer DMA version: Timer1_CTL &= ~TBIE;
 }
 
 void finishTimerA(){
@@ -350,13 +398,17 @@ void finishTimerA(){
 //*********************************************************************
 
 void startDMA(){
-    if(state==state2){
+    if(state==state2){      // state2 - merge
         DMA0CTL = DMADT_1 + DMASBDB + DMASRCINCR_3 + DMADSTINCR_3; // block, byte to byte, src inc, dst inc
         DMACTL0 = DMA0TSEL_0; // SW Trigger
     }
     if(state==state3){
-        DMA0CTL = DMADT_4 + DMASBDB + DMASRCINCR_3 + DMAEN; // single repeat, byte to byte, src inc, enable
+        DMA0CTL = DMADT_5 + DMASBDB + DMASRCINCR_3 + DMAEN; // block repeat, byte to byte, src inc, enable
         DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
+
+        // ----------------- version of single transfer DMA: -----------------
+        // DMA0CTL = DMADT_4 + DMASBDB + DMASRCINCR_3 + DMAEN; // single repeat, byte to byte, src inc, enable
+        // DMACTL0 = DMA0TSEL_2; // TimerB CCR2 Trigger
     }
 }
 

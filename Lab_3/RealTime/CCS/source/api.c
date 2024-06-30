@@ -235,7 +235,6 @@ void shift_leds(){
 
 void mirror(){
     unsigned int size = strlen(str);
-    
     DMA0_Size = size;
     DMA0_Src_Add = (str + size-1);    // Set source address as the substring in indx2
     DMA0_Dst_Add = (void *)(strMirror);            // Set destination address as the merged string
@@ -245,8 +244,4 @@ void mirror(){
     lcd_puts(strMirror);
     state = state0;
     stopDMA();
-
-
-
-
 }

@@ -19,6 +19,8 @@ char data_matrix[10][40] = {"An apple a day keeps the doctor away",
 char strMerge[80];
 char leds[9] = {128,64,32,16,8,4,23,13,40};
 char* leds_ptr = leds;
+char str[] = "Google Colaboratory is a free Jupyter notebook environment that runs on Google's cloud servers, letting the user leverage backend hardware like GPUs and TPUs";
+char strMirror[160];
 
 void main(void){
   
@@ -28,13 +30,14 @@ void main(void){
   lcd_init();
   
   while(1){
-    lcd_clear();
+    //lcd_clear();
 	switch(state){
 	  case state0:
                 enterLPM(lpm_mode);
 		break;
 		 
 	  case state1:
+	      lcd_clear();
         clear_LEDs();
         idiom_rec();
         if(state == state1){
@@ -43,17 +46,24 @@ void main(void){
 		break;
 		 
 	  case state2:
+	      lcd_clear();
       clear_LEDs();
 	    merge();
 		break;       
                 
 	  case state3:
+	      lcd_clear();
+	      clear_LEDs();    // Clear LEDs
 	    shift_leds();
-      clear_LEDs();    // Clear LEDs
+	    clear_LEDs();    // Clear LEDs
+
 		break;
 
     case state4:
-        state = state0;
+        clear_LEDs();
+        mirror();
+
+
         break; 
     }
   }

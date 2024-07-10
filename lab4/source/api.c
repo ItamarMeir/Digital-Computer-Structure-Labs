@@ -24,13 +24,10 @@ void to_string(char *str, unsigned int num){
 //                         Blink RGB
 //-------------------------------------------------------------
 void blinkRGB(){
-    char rgb_val[8] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07};
     unsigned int i = 0;
     while(state == state1){
-        RGBArrPortOut = i;
-        if(i == 8){
-            i = 0;
-        }
+        RGBArrPortOut = i++;
+        if(i == 8) i = 0;
         startTimerA0();
         enterLPM(mode0);
         finishTimerA0();
@@ -65,13 +62,10 @@ void buzzer(){
     while(state == state3){
         Timer1_CCR0 = (int)tone_series[i];
         Timer1_CCR2 = (int)tone_series[i++]>>1;
-        if(i == 7){
-            i = 0;
-        }
+        if(i == 7) i = 0;
         startTimerA0();
         enterLPM(mode0);
         finishTimerA0();
-
     }
     disableTimerA1_bzr();
     finishTimerA1();
@@ -94,10 +88,10 @@ void set_X(){
 }
 
 //-------------------------------------------------------------
-//                      Measure LDR Value
+//                      Measure POT Value
 //-------------------------------------------------------------
-void measLDR(){
-    int LDR_meas;
+void measPOT(){
+    int POT_meas;
     char num[6];
     int i;
 
@@ -106,26 +100,27 @@ void measLDR(){
         startADC10();
         enterLPM(mode0);
         finishADC10();
-        LDR_meas = ( 53 * ADC_MEM ) >> 4;
-        to_string(num, LDR_meas);
+
+        POT_meas = ( 53 * ADC_MEM ) >> 4;
+        to_string(num, POT_meas);
 
         lcd_home();
-        lcd_puts("LDR Meas:");
+        lcd_puts("Potentiomter Meas:");
         lcd_new_line;
-        if(LDR_meas <= 999){
+        if(POT_meas <= 999){
             lcd_putchar('0');
         }
         else{
             lcd_putchar(num[i++]);
         }
         lcd_putchar('.');
-        if(LDR_meas <= 99){
+        if(POT_meas <= 99){
             lcd_putchar('0');
         }
         else{
             lcd_putchar(num[i++]);
         }
-        if(LDR_meas <= 9){
+        if(POT_meas <= 9){
             lcd_putchar('0');
         }
         else{

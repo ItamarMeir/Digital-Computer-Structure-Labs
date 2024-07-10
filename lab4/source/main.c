@@ -48,7 +48,7 @@ void main(void){
 
       case state5:
           IE2 |= UCA0RXIE;
-          measLDR();
+          measPOT();
           break;
 
       case state6:

@@ -9,6 +9,6 @@ extern void blinkRGB(void);
 extern void count(void);
 extern void buzzer(void);
 extern void set_X(void);
-extern void measLDR(void);
+extern void measPOT(void);
 
 #endif

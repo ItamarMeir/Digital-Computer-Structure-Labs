@@ -20,45 +20,45 @@ void main(void){
     lcd_clear();
 	switch(state){
 	  case state8:
-	      IE2 |= UCA0RXIE;          // Enable USCI_A0 RX interrupt
-	      enterLPM(lpm_mode);       // enter low power mode
+	      enable_UARTRX_interrupts();          // Enable USCI_A0 RX interrupt
+	      enterLPM(lpm_mode);                   // enter low power mode
 		  break;
 		 
 	  case state1:
-	      IE2 |= UCA0RXIE;      // Enable USCI_A0 RX interrupt
-	      blinkRGB();           // blink RGB LED
+	      enable_UARTRX_interrupts();           // Enable USCI_A0 RX interrupt
+	      blinkRGB();                            // blink RGB LED
 		  break;
 		 
 	  case state2:
-	      IE2 |= UCA0RXIE;
-	      count();              // count up to LCD
+	      enable_UARTRX_interrupts();     
+	      count();                                 // count up to LCD
 		  break;
                 
 	  case state3:
-	      IE2 |= UCA0RXIE;
-	      buzzer();         // shift buzzer frequency
+	      enable_UARTRX_interrupts();     
+	      buzzer();                                   // shift buzzer frequency
 	      break;
             
-	  case state4:              // Set X
+	  case state4:                                        // Set X
         if(state == state4){
             state = state8;
         }
         set_X();
 		break;   
 
-      case state5:              // Measure POT
-          IE2 |= UCA0RXIE;
+      case state5:                              // Measure POT
+          enable_UARTRX_interrupts();     
           measPOT();
           break;
 
-      case state6:              // Reset num value and clear LCD
+      case state6:                          // Reset num value and clear LCD
           num = 0;
           state = state8;
           lcd_clear();
           break;
 
-      case state7:              // Menu display on PC side
-          IE2 |= UCA0RXIE;
+      case state7:                            // Menu display on PC side
+          enable_UARTRX_interrupts();     
           state = state8;
           break;
 

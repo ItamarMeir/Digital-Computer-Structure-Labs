@@ -97,6 +97,7 @@ extern void DelayUs(unsigned int);
 extern void clear_RGB();
 extern void assign_RGB_value(unsigned int value);
 extern int get_ADC_value();
+extern void enable_UARTRX_interrupts();
 /*
  *  Delay functions for HI-TECH C on the PIC18
  *

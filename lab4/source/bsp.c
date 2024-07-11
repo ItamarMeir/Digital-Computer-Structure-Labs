@@ -29,6 +29,8 @@ void GPIOconfig(void){
   BuzzPortSel |= BuzzPin;             // P2.4 Select = '1'
   BuzzPortOut &= ~BuzzPin;             // P2.4 out = '0'
 
+  // Potentiometer Setup
+
   _BIS_SR(GIE);                     // enable interrupts globally
 }                             
 

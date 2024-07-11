@@ -41,7 +41,7 @@ void main(void){
             
 	  case state4:
         if(state == state4){
-            state = state0;
+            state = state8;
         }
         set_X();
 		break;   
@@ -53,12 +53,13 @@ void main(void){
 
       case state6:
           num = 0;
-          state = state0;
+          state = state8;
+          lcd_clear();
           break;
 
       case state7:
           IE2 |= UCA0RXIE;
-          enterLPM(lpm_mode);
+          state = state8;
           break;
 
 	}

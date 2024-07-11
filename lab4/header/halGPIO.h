@@ -94,6 +94,9 @@ extern void lcd_init();
 extern void lcd_strobe();
 extern void DelayMs(unsigned int);
 extern void DelayUs(unsigned int);
+extern void clear_RGB();
+extern void assign_RGB_value(unsigned int value);
+extern int get_ADC_value();
 /*
  *  Delay functions for HI-TECH C on the PIC18
  *

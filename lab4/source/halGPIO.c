@@ -157,10 +157,8 @@ void DelayUs(unsigned int cnt){
 // Delay msec functions
 //******************************************************************
 void DelayMs(unsigned int cnt){
-
     unsigned char i;
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
-
 }
 //******************************************************************
 // lcd strobe functions
@@ -171,6 +169,17 @@ void lcd_strobe(){
  // asm("NOP");
   LCD_EN(0);
 }
+//---------------------------------------------------------------------
+//            RGB functions
+//---------------------------------------------------------------------
+void clear_RGB(){
+    RGBArrPortOut = 0x00;
+}
+
+void assign_RGB_value(unsigned int value){
+    RGBArrPortOut = value;
+}
+
 //---------------------------------------------------------------------
 //            Enable interrupts
 //---------------------------------------------------------------------
@@ -220,7 +229,7 @@ void finishTimerA1(){
 }
 
 void enableTimerA1_bzr(){
-    Timer1_CCTL2 |=  OUTMOD_7;
+    Timer1_CCTL2 |=  OUTMOD_7;  // 7 - reset/set
 }
 
 void disableTimerA1_bzr(){
@@ -243,6 +252,10 @@ void startADC10(){
 
 void finishADC10(){
     ADC_CTL0 &= ~ADC10ON;
+}
+
+int get_ADC_value(){
+    return ADC_MEM;
 }
 
 //-------------------------------------------------------------

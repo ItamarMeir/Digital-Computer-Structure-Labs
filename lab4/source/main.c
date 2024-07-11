@@ -31,33 +31,33 @@ void main(void){
 		 
 	  case state2:
 	      IE2 |= UCA0RXIE;
-	      count();
+	      count();              // count up to LCD
 		  break;
                 
 	  case state3:
 	      IE2 |= UCA0RXIE;
-	      buzzer();
+	      buzzer();         // shift buzzer frequency
 	      break;
             
-	  case state4:
+	  case state4:              // Set X
         if(state == state4){
             state = state8;
         }
         set_X();
 		break;   
 
-      case state5:
+      case state5:              // Measure POT
           IE2 |= UCA0RXIE;
           measPOT();
           break;
 
-      case state6:
+      case state6:              // Reset num value and clear LCD
           num = 0;
           state = state8;
           lcd_clear();
           break;
 
-      case state7:
+      case state7:              // Menu display on PC side
           IE2 |= UCA0RXIE;
           state = state8;
           break;

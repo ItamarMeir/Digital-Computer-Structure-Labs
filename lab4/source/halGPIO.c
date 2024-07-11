@@ -343,7 +343,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
   }
 
   else if (UCA0RXBUF == '8' && !X_flag){
-      state = state0;
+      state = state8;
       IE2 |= UCA0TXIE;
   }
 

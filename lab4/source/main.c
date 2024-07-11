@@ -11,7 +11,7 @@ char timerInput[6];
 
 void main(void){
   
-  state = state0;  // start in idle state on RESET
+  state = state8;  // start in idle state on RESET
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();
   lcd_init();
@@ -19,14 +19,14 @@ void main(void){
   while(1){
     lcd_clear();
 	switch(state){
-	  case state0:
-	      IE2 |= UCA0RXIE;
-	      enterLPM(lpm_mode);
+	  case state8:
+	      IE2 |= UCA0RXIE;          // Enable USCI_A0 RX interrupt
+	      enterLPM(lpm_mode);       // enter low power mode
 		  break;
 		 
 	  case state1:
-	      IE2 |= UCA0RXIE;
-	      blinkRGB();
+	      IE2 |= UCA0RXIE;      // Enable USCI_A0 RX interrupt
+	      blinkRGB();           // blink RGB LED
 		  break;
 		 
 	  case state2:

@@ -25,12 +25,12 @@ void to_string(char *str, unsigned int num){
 //-------------------------------------------------------------
 void blinkRGB(){
     unsigned int i = 0;
-    while(state == state1){
-        RGBArrPortOut = i++;
-        if(i == 8) i = 0;
-        startTimerA0();
-        enterLPM(mode0);
-        finishTimerA0();
+    while(state == state1){         // state1 is the state for blinking RGB LED
+        RGBArrPortOut = i++;          // increment i to shift the LED color
+        if(i == 8) i = 0;           // reset i to 0 if it reaches 8
+        startTimerA0();             // start timer A0
+        enterLPM(mode0);            // enter low power mode
+        finishTimerA0();            // finish timer A0
     }
     RGBArrPortOut = 0x00;
 }
@@ -75,10 +75,10 @@ void buzzer(){
 //                         set X value
 //-------------------------------------------------------------
 void set_X(){
-    finishTimerA0();
-    X = atoi(timerInput);
-    X = (X*33) >> 5; // = X * 1.024
-    if(X >= 1024){
+    finishTimerA0();                     // finish timer A0
+    X = atoi(timerInput);               // convert timerInput to integer by stdlib.h
+    X = (X*33) >> 5; // = X * 1.024     
+    if(X >= 1024){                      // Maximum daelay possible is 1 sec = 1024 ms
         X = 0xFFFF;
     }
     else {

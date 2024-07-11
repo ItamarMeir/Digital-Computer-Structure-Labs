@@ -15,19 +15,19 @@ void GPIOconfig(void){
   
   // LCD configuration
   LCD_DATA_WRITE &= ~0xFF;
-  LCD_DATA_DIR |= 0xF0;    // P1.4-P1.7 To Output('1')
-  LCD_DATA_SEL &= ~0xF0;   // Bit clear P1.4-P1.7
-  LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
+  LCD_DATA_DIR |= LCD_DATA_MASK;    // P1.4-P1.7 To Output('1')
+  LCD_DATA_SEL &= ~LCD_DATA_MASK;   // Bit clear P1.4-P1.7
+  LCD_CTL_SEL  &= ~LCD_CTL_MASK;   // Bit clear P2.5-P2.7
 
   // RGB configuration
-  RGBArrPortOut = 0x00;
-  RGBArrPortDir |= 0x07;
-  RGBArrPortSEL &= ~0x07;
+  RGBArrPortOut &= ~RGBmask;     // RBGpins Out = '0'
+  RGBArrPortDir |= RGBmask;     // RBGpins Dir = '1'
+  RGBArrPortSEL &= ~RGBmask;    // RBGpins Sel = '0'
 
   // Buzzer Setup
-  BuzzPortDir |= 0x10;             // P2.4 Output compare - '1'
-  BuzzPortSel |= 0x10;             // P2.4 Select = '1'
-  BuzzPortOut &= ~0x10;             // P2.4 out = '0'
+  BuzzPortDir |= BuzzPin;             // P2.4 Output compare - '1'
+  BuzzPortSel |= BuzzPin;             // P2.4 Select = '1'
+  BuzzPortOut &= ~BuzzPin;             // P2.4 out = '0'
 
   _BIS_SR(GIE);                     // enable interrupts globally
 }                             
@@ -71,8 +71,8 @@ void UARTconfig(void){
 
     P2DIR = 0xFF;                             // All P2.x outputs
     P2OUT = 0;                                // All P2.x reset
-    P1SEL = BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
-    P1SEL2 = BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
+    P1SEL = RXD + TXD ;                     // P1.1 = RXD, P1.2=TXD
+    P1SEL2 = RXD + TXD ;                     // P1.1 = RXD, P1.2=TXD
     P1DIR |= RXLED + TXLED;
     P1OUT &= 0x00;
 

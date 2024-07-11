@@ -74,16 +74,24 @@ void buzzer(){
 //-------------------------------------------------------------
 //                         set X value
 //-------------------------------------------------------------
+// Each timer tick is 8/2^20 = 0.007629 ms. We use up/down mode, so the delay is 2 times the value of CCR0
+// define real_time_tick = (8/2^20) * 2 = 2^-16 = 0.015625 ms (include the time for the timer to count up and down)
+// CCR0 = (X * 10^-3)/ real_time_tick = X * 2^16 * 10^-3 = X * 65.536
 void set_X(){
     finishTimerA0();                     // finish timer A0
     X = atoi(timerInput);               // convert timerInput to integer by stdlib.h
-    X = (X*33) >> 5; // = X * 1.024     
-    if(X >= 1024){                      // Maximum daelay possible is 1 sec = 1024 ms
+    // X = (X*33) >> 5; // = X * 1.024     
+    // if(X >= 1024){                      // Maximum daelay possible is 1 sec = 1024 ms
+    //     X = 0xFFFF;
+    // }
+    // else {
+    //     X = X << 6;
+    // }
+    X = (int)(X* 65.536 - 1);
+    if (X >= 0xFFFF){
         X = 0xFFFF;
     }
-    else {
-        X = X << 6;
-    }
+
     TIMER0_A0_config();
 }
 

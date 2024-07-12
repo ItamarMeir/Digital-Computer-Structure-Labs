@@ -15,6 +15,7 @@
 
 #define LCD_CTL_DIR        P2DIR
 #define LCD_CTL_SEL        P2SEL
+#define LCD_CTL_OUT        P2OUT
 
 #define LCD_EN_PIN         BIT5
 #define LCD_RS_PIN         BIT6

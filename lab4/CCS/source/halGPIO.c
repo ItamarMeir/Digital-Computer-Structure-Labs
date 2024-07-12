@@ -221,7 +221,7 @@ void finishTimerA0(){
 //   start/shutdown timer and enable/disable interrupts
 //-------------------------------------------------------------
 void startTimerA1(){
-    Timer1_CTL |= TASSEL_2 + MC_1 + ID_0 + TACLR;
+    Timer1_CTL |= TASSEL_2 + MC_1 + ID_0 + TACLR; //  select: 2 - SMCLK ; control: 1 - Up  ; divider: 0 - /1   
 }
 
 void finishTimerA1(){

@@ -261,12 +261,12 @@ int get_ADC_value(){
 //                      UART functions
 //-------------------------------------------------------------
 void enable_UARTRX_interrupts(){
-    IE2 |= UCA0RXIE;
+    IE2 |= UCA0RXIE;                  // Enable USCI_A0 RX interrupt
 }
 
 
 //-------------------------------------------------------------
-//                      UART TX ISR
+//                      UART TX ISR - Recieve from PC
 //-------------------------------------------------------------
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCIAB0TX_VECTOR
@@ -277,11 +277,11 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    if (X_flag){
-        if (X_flag < 6){
+    if (X_flag){                // If X_flag is greater then 0, then we are in the process of setting X
+        if (X_flag < 6){    // If X_flag is less then 6, then we are still in the process of setting X
             UCA0TXBUF = '4'; // Send next Char
         }
-        else{
+        else{   
             UCA0TXBUF = 'E'; // Error - Char sent is not 0-9.
             X_flag = 0;
         }
@@ -296,7 +296,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 }
 
 //-------------------------------------------------------------
-//                      UART RX ISR
+//                      UART RX ISR - Send to PC
 //-------------------------------------------------------------
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCIAB0RX_VECTOR
@@ -307,69 +307,69 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 #error Compiler not supported!
 #endif
 {
-  if (UCA0RXBUF == '1' && !X_flag){
+  if (UCA0RXBUF == '1' && !X_flag){     // If 1 is pressed, blink RGB
       state = state1;
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '2' && !X_flag){
+  else if (UCA0RXBUF == '2' && !X_flag){ // If 2 is pressed, count up to LCD
       state = state2;
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '3' && !X_flag){
+  else if (UCA0RXBUF == '3' && !X_flag){ // If 3 is pressed, shift buzzer frequency
       state = state3;
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '4' || X_flag){
-      if(!X_flag){
-          X_flag = 1;
-          IE2 |= UCA0TXIE;
-          state = state0;
+  else if (UCA0RXBUF == '4' || X_flag){ // If 4 is pressed, set X
+      if(!X_flag){          // If X_flag is 0, then we are starting to set X
+          X_flag = 1;       // Set X_flag to 1
+          IE2 |= UCA0TXIE;  // Enable USCI_A0 TX interrupt
+          state = state8;   // Set state to sleep mode
       }
       else{
-          if(UCA0RXBUF == '\n'){
-              timerInput[X_flag - 1] = UCA0RXBUF;
-              timerInput[X_flag - 1] = '\0';
-              X_flag = 0;
-              state = state4;
+          if(UCA0RXBUF == '\n'){    // If Enter is pressed, then we are done setting X
+              timerInput[X_flag - 1] = UCA0RXBUF; // Set the last char to '\n'
+              timerInput[X_flag - 1] = '\0';    // Set the next char to '\0'
+              X_flag = 0;   // Reset X_flag
+              state = state4;   // Set state to set X
           }
-          else if (UCA0RXBUF >= '0' && UCA0RXBUF <= '9') {
-              timerInput[X_flag - 1] = UCA0RXBUF;
-              X_flag++;
+          else if (UCA0RXBUF >= '0' && UCA0RXBUF <= '9') { // If the char is between 0-9, then we are still setting X
+              timerInput[X_flag - 1] = UCA0RXBUF;   // Set the char to the timerInput array
+              X_flag++;                             // Increment X_flag
           }
           else{
-              X_flag = 404;
-              state = state0;
+              X_flag = 404;  // Error - Char sent is not 0-9.
+              state = state8; // Set state to sleep mode
           }
       }
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '5' && !X_flag){
+  else if (UCA0RXBUF == '5' && !X_flag){        // If 5 is pressed, measure POT
       state = state5;
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '6' && !X_flag){
+  else if (UCA0RXBUF == '6' && !X_flag){       // If 6 is pressed, reset num value and clear LCD
       state = state6;
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '7' && !X_flag){
+  else if (UCA0RXBUF == '7' && !X_flag){      // If 7 is pressed, Menu display on PC side
       state = state7;
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '8' && !X_flag){
+  else if (UCA0RXBUF == '8' && !X_flag){    // If 8 is pressed, then we are at sleep mode
       state = state8;
       IE2 |= UCA0TXIE;
   }
 
   else {
-      X_flag = 404;
-      state = state0;
+      X_flag = 404;         // Error - Char sent is not 0-9.
+      state = state8;    // Set state to sleep mode
       IE2 |= UCA0TXIE;
   }
 

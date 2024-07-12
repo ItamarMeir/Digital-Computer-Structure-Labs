@@ -10,22 +10,10 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
-"./Material/MCU side (MSP430FG461x) - examples/Ex2 uart.obj" \
-"./Material/MCU side (MSP430G2553) - examples/Ex1 uart.obj" \
-"./Material/MCU side (MSP430G2553) - examples/Ex2 uart.obj" \
-"./Material/MCU side (MSP430G2553) - examples/Ex3 uart.obj" \
-"./Material/msp430xG46x_usart1_19200.obj" \
-"./Material/msp430xG46x_usart1_uart_115k.obj" \
-"./Material/msp430xG46x_usart1_uart_2400.obj" \
-"./Material/msp430xG46x_usart1_uart_9600.obj" \
-"./Prelab Submision/CCS/source/api.obj" \
-"./Prelab Submision/CCS/source/bsp.obj" \
-"./Prelab Submision/CCS/source/halGPIO.obj" \
-"./Prelab Submision/CCS/source/main.obj" \
-"./Ref/CCS/source/api.obj" \
-"./Ref/CCS/source/bsp.obj" \
-"./Ref/CCS/source/halGPIO.obj" \
-"./Ref/CCS/source/main.obj" \
+"./source/api.obj" \
+"./source/bsp.obj" \
+"./source/halGPIO.obj" \
+"./source/main.obj" \
 "../lnk_msp430g2553.cmd" \
 $(GEN_CMDS__FLAG) \
 -llibc.a \
@@ -38,17 +26,9 @@ RMDIR := RMDIR /S/Q
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
--include Material/MCU\ side\ (MSP430FG461x)\ -\ examples/subdir_vars.mk
--include Material/MCU\ side\ (MSP430G2553)\ -\ examples/subdir_vars.mk
--include Material/subdir_vars.mk
--include Prelab\ Submision/CCS/source/subdir_vars.mk
--include Ref/CCS/source/subdir_vars.mk
+-include source/subdir_vars.mk
 -include subdir_rules.mk
--include Material/MCU\ side\ (MSP430FG461x)\ -\ examples/subdir_rules.mk
--include Material/MCU\ side\ (MSP430G2553)\ -\ examples/subdir_rules.mk
--include Material/subdir_rules.mk
--include Prelab\ Submision/CCS/source/subdir_rules.mk
--include Ref/CCS/source/subdir_rules.mk
+-include source/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -145,42 +125,42 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-Lab_4.out \
+lab4.out \
 
 EXE_OUTPUTS__QUOTED += \
-"Lab_4.out" \
+"lab4.out" \
 
 BIN_OUTPUTS += \
-Lab_4.hex \
+lab4.hex \
 
 BIN_OUTPUTS__QUOTED += \
-"Lab_4.hex" \
+"lab4.hex" \
 
 
 # All Target
 all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
-	@$(MAKE) --no-print-directory -Onone "Lab_4.out"
+	@$(MAKE) --no-print-directory -Onone "lab4.out"
 
 # Tool invocations
-Lab_4.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+lab4.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: MSP430 Linker'
-	"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/bin/cl430" -vmsp --use_hw_mpy=none --advice:power=all --define=__MSP430G2553__ -g --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number -z -m"Lab_4.map" --heap_size=80 --stack_size=80 -i"C:/ti/ccs740/ccsv7/ccs_base/msp430/include" -i"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/lib" -i"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="Lab_4_linkInfo.xml" --use_hw_mpy=none --rom_model -o "Lab_4.out" $(ORDERED_OBJS)
+	"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/bin/cl430" -vmsp --use_hw_mpy=none --advice:power=all --define=__MSP430G2553__ -g --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number -z -m"lab4.map" --heap_size=80 --stack_size=80 -i"C:/ti/ccs740/ccsv7/ccs_base/msp430/include" -i"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/lib" -i"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="lab4_linkInfo.xml" --use_hw_mpy=none --rom_model -o "lab4.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
-Lab_4.hex: $(EXE_OUTPUTS)
+lab4.hex: $(EXE_OUTPUTS)
 	@echo 'Building files: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo 'Invoking: MSP430 Hex Utility'
-	"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/bin/hex430" --memwidth=8 --romwidth=8 -o "Lab_4.hex" $(EXE_OUTPUTS__QUOTED)
+	"C:/ti/ccs740/ccsv7/tools/compiler/ti-cgt-msp430_16.9.11.LTS/bin/hex430" --memwidth=8 --romwidth=8 -o "lab4.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "Material\MCU side (MSP430FG461x) - examples\Ex2 uart.obj" "Material\MCU side (MSP430G2553) - examples\Ex1 uart.obj" "Material\MCU side (MSP430G2553) - examples\Ex2 uart.obj" "Material\MCU side (MSP430G2553) - examples\Ex3 uart.obj" "Material\msp430xG46x_usart1_19200.obj" "Material\msp430xG46x_usart1_uart_115k.obj" "Material\msp430xG46x_usart1_uart_2400.obj" "Material\msp430xG46x_usart1_uart_9600.obj" "Prelab Submision\CCS\source\api.obj" "Prelab Submision\CCS\source\bsp.obj" "Prelab Submision\CCS\source\halGPIO.obj" "Prelab Submision\CCS\source\main.obj" "Ref\CCS\source\api.obj" "Ref\CCS\source\bsp.obj" "Ref\CCS\source\halGPIO.obj" "Ref\CCS\source\main.obj" 
-	-$(RM) "Material\MCU side (MSP430FG461x) - examples\Ex2 uart.d" "Material\MCU side (MSP430G2553) - examples\Ex1 uart.d" "Material\MCU side (MSP430G2553) - examples\Ex2 uart.d" "Material\MCU side (MSP430G2553) - examples\Ex3 uart.d" "Material\msp430xG46x_usart1_19200.d" "Material\msp430xG46x_usart1_uart_115k.d" "Material\msp430xG46x_usart1_uart_2400.d" "Material\msp430xG46x_usart1_uart_9600.d" "Prelab Submision\CCS\source\api.d" "Prelab Submision\CCS\source\bsp.d" "Prelab Submision\CCS\source\halGPIO.d" "Prelab Submision\CCS\source\main.d" "Ref\CCS\source\api.d" "Ref\CCS\source\bsp.d" "Ref\CCS\source\halGPIO.d" "Ref\CCS\source\main.d" 
+	-$(RM) "source\api.obj" "source\bsp.obj" "source\halGPIO.obj" "source\main.obj" 
+	-$(RM) "source\api.d" "source\bsp.d" "source\halGPIO.d" "source\main.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

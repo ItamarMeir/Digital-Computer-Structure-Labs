@@ -1,0 +1,81 @@
+[33m38674c9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mrevert-to-commit-2fbec32[m[33m)[m Revert "refactor: Improve UART communication and menu handling in main.py"
+[33m2fbec32[m refactor: Improve UART communication and menu handling in main.py
+[33m6a44095[m Everthing works
+[33m84e5f5d[m refactor: Remove unnecessary header files and enums
+[33ma38c265[m refactor: Enable UART RX interrupts in main.c
+[33m4869c6f[m refactor: Improve timer delay calculation in set_X function
+[33m94cb6c2[m refactor: Improve timer delay calculation in set_X function
+[33m5efa44b[m refactor: Improve timer delay calculation in set_X function
+[33m038b3bf[m chore: Update FSMstate enum to include state8 in app.h
+[33m60ffe98[m Update LCD configuration and LED abstraction in bsp.c
+[33mb27d65f[m chore: Update LCD configuration and LED abstraction in bsp.c
+[33m34325e2[m pre_update
+[33m9579c95[m Merge branch 'main' of https://github.com/ItamarMeir/Digital-Computer-Structure-Labs
+[33m9a0b26d[m pre lab 4
+[33m54011f7[m update
+[33m1f1da70[m Files
+[33m0b14edc[m lab4
+[33m1da8719[m Delete unnecessary header and project files
+[33mca56d93[m chore: Update .gitignore to include Lab_3/208536888_319095832.zip
+[33m9e5f85d[m chore: Update API header and implement mirror function
+[33m39178b5[m dasd
+[33m126930f[m Merge pull request #1 from ItamarMeir/Lab_03_Itamar_edits
+[33m1ec3b76[m chore: Refactor LCD scrolling functionality and optimize DMA usage
+[33m191490e[m chore: Add API header file and update main.c with LED changes
+[33m8794875[m Works state3 not block transfer
+[33m0d25ef5[m chore: Add keypad interrupt enable and disable functions
+[33m5a37053[m chore: Update LCD_RS_PIN mapping and LCD pin mappings in bsp_msp430x4xx.h
+[33m2cb178c[m chore: Update PBsArrPortSel and PBsArrIntEn in bsp.c
+[33m0e56c21[m chore: Update PBsArrPortSel and PBsArrIntEn in bsp.c
+[33m56ac7ac[m chore: Update PBsArrPortSel and PBsArrIntEn in bsp.c
+[33m6bb01ec[m chore: Update LCD_RS_PIN mapping in bsp_msp430x4xx.h
+[33m0675761[m chore: Update main.c with corrected apostrophe in string
+[33me3b3ba9[m chore: Update LCD pin mappings and constants in bsp_msp430x4xx.h
+[33m5dc5a14[m pre lab3
+[33m5303916[m real time task
+[33m7722db6[m final code
+[33meb1a2da[m Del files
+[33mc5f147e[m Merge branch 'main' of https://github.com/ItamarMeir/Digital-Computer-Structure-Labs
+[33mc389a2d[m chore: Update pin mappings and constants in bsp_msp430x2xx.h and bsp_msp430x4xx.h
+[33m291ebbd[m zip
+[33m9ce69c5[m to sabmit
+[33m3ac579a[m final version
+[33m72ae91b[m Merge branch 'main' of https://github.com/ItamarMeir/Digital-Computer-Structure-Labs
+[33m903f726[m version 1
+[33mfeb7898[m chore: Update
+[33m56d8599[m chore: Update LCD driver code and documentation
+[33m7d1001b[m chore: Update bsp_msp430x2xx.h with new pin mappings and constants
+[33maf0550f[m chore: Update bsp_msp430x2xx.h with new pin mappings and constants
+[33m41f1b25[m chore: Refactor LCD driver code and update LCD documentation
+[33mb04d3e2[m Base
+[33m94dfe7d[m User guides
+[33m8be04ac[m Lab2 material
+[33m54aee05[m draft
+[33m7d38261[m Fixed issue #123 and improved documentation
+[33m2ed323c[m Fixed issue #123 and improved documentation
+[33m0063d9c[m Save main.c.
+[33m3aca18f[m chore: Refactor P7OUT_RATE constant in bsp_msp430x2xx.h
+[33mb0a4fc1[m fix api func
+[33m24dabc4[m final Lab1
+[33m833a034[m final Lab1
+[33m0cb6fc0[m Final zip
+[33ma76da24[m Separation into two bsp files
+[33mb1778f2[m Fixed main.c
+[33mc2fe32f[m chore: Refactor PB3 configuration for state3 to state0
+[33m2c8863b[m PB3 config for state3 to state0
+[33m5de23e8[m Family 4 comments
+[33mbc5fc30[m Works
+[33meeb5e13[m V
+[33m9d1dc06[m V
+[33m0f45385[m Works
+[33m636b203[m Day 1
+[33mdfdb3d0[m Submission
+[33m5ad1b77[m Core
+[33m7fe3370[m Delted Lab+0
+[33mc0d28fc[m chore: Add .vscode settings and new functions to Lab_0
+[33m4143344[m Add files via upload
+[33md98a5b8[m Merge branch 'main' of https://github.com/ItamarMeir/Digital-Computer-Structure-Labs
+[33mc4465a5[m example
+[33mec4077a[m Add files via upload
+[33mb2fe99d[m New file
+[33m98add43[m Initial commit

@@ -61,6 +61,7 @@ void count(){
 void buzzer(){
     //tone series = {1kHz, 1.25kHz, 1.5kHz, 1.75kHz, 2kHz, 2.25kHz, 2.5kHz}
     // CCR value calculation = f_SMCLK / tone_series[j] = ((1 << 20)/tone_series[j])
+    // TimerA1 - PWM signal for the buzzer, TimerA0 - delay
     unsigned int tone_series[7] = {1000, 1250, 1500, 1750, 2000, 2250, 2500};   // Given tone series
     unsigned int CCR_values[7];                                         // CCR values for the tone series
      unsigned int j = 0;
@@ -68,8 +69,8 @@ void buzzer(){
         CCR_values[j] = (unsigned int)((1UL << 20) / tone_series[j]);         // convert the tone series to CCR values
     }
     unsigned int i = 0;
-    startTimerA1();
-    enableTimerA1_bzr();
+    startTimerA1();                     // TimerA1 generates PWM signal for the buzzer
+    enableTimerA1_bzr();                // Configure TimerA1 for buzzer (Reset/set mode for PWM with 50% duty cycle)
     while(state == state3){
         Timer1_CCR0 = CCR_values[i];          // Set value - set the frequency of the buzzer
         Timer1_CCR2 = CCR_values[i++]>>1;    // Reset value - set the duty cycle of the buzzer to 50% and increment i

@@ -8,5 +8,6 @@
         "hal.h": "c",
         "api.h": "c"
     },
-    "C_Cpp.dimInactiveRegions": false
+    "C_Cpp.dimInactiveRegions": false,
+    "python.analysis.typeCheckingMode": "off"
 }

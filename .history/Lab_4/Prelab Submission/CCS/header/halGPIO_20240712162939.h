@@ -29,7 +29,6 @@ extern void startTimerA1();
 extern void finishTimerA1();
 extern void startADC10();
 extern void finishADC10();
-extern int get_ADC_value();
 
 extern __interrupt void PBs_handler(void);
 

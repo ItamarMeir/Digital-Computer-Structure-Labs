@@ -292,20 +292,11 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
         UCA0TXBUF = '8'; // Print Menu
     }
     else if(state == state8){
-        if(k==0){
             UCA0TXBUF = '7';
-            k++;
+            UCA0TXBUF = sentance[k-1];
+            k++;    
         }
-        else{
-                while (!(IFG2 & UCA0TXIFG)){} // USCI_A0 TX buffer ready?
-                UCA0TXBUF = sentance[k-1];
-                k++;
-        
-            
-        }
-        
-    }
-    
+
     else{
         UCA0TXBUF = 'R'; // Received
     }

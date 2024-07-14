@@ -61,13 +61,8 @@ def main():
             r_char = bytes_r_Char.decode('ascii') # convert byte to char
             if r_char == '7':
                 print("hey")
-                while(r_char != '\0'):
-                    bytes_r_Char = s.read()
-                    r_char = bytes_r_Char.decode('ascii')
-                    print(r_char)
-                    r_str += r_char
-                print(r_str)   
-                r_str = ""
+                r_str = s.read_until('\n')
+                print(r_str.decode('ascii'))   
                 s.reset_input_buffer() 
             if r_char == '8': # if the received char is '8'
                 print(menu) # print the menu

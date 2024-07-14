@@ -26,9 +26,9 @@ void to_string(char *str, unsigned int num){        // convert integer to string
 void blinkRGB(){
     unsigned int i = 1;             // Starts from Blue (001), Green (010), Red (100)
     while(state == state1){         // state1 is the state for blinking RGB LED
-        assign_RGB_value(i);
-        i = i << 1;          
-        if(i == 8) i = 1;           // reset i to 0 if it reaches 8
+                                    // i is the RGB value
+         assign_RGB_value(i++);
+        if(i == 8) i = 0;           // reset i to 0 if it reaches 8
         startTimerA0();             // start timer A0
         enterLPM(mode0);            // enter low power mode
         finishTimerA0();            // finish timer A0

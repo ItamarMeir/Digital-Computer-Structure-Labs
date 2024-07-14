@@ -11,8 +11,9 @@ def main():
            "4. Get delay time X[ms]:\n" \
            "5. Potentiometer 3-digit value [v] onto LCD\n" \
            "6. Clear LCD screen\n" \
-           "7. Show menu\n" \
-           "8. Sleep\n"
+           "7. On each PB1 pressed, send a Massage “I love my Negev”\n" \
+           "8. Show menu\n" \
+           "9. Sleep\n"
 
     s = ser.Serial('COM5', baudrate=9600, bytesize=ser.EIGHTBITS,
                    parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
@@ -27,6 +28,8 @@ def main():
     i = 0
     X = "0"
     print(menu)
+    r_str = ""
+    
 
     while 1:
 
@@ -56,18 +59,33 @@ def main():
         while s.in_waiting > 0:                                                # while the input buffer isn't empty
             bytes_r_Char = s.read()                                             # read one byte.
             r_char = bytes_r_Char.decode('ascii') # convert byte to char
-            if r_char == '7': # if the received char is '7'
+            if r_char == '7':
+                print("hey")
+                while(r_char != '\0'):
+                    bytes_r_Char = s.read()
+                    r_char = bytes_r_Char.decode('ascii')
+                    print(r_char)
+                    r_str += r_char
+                print(r_str)   
+                r_str = ""
+                s.reset_input_buffer() 
+            if r_char == '8': # if the received char is '8'
                 print(menu) # print the menu
-                print("Option 7 done, state is now state0") # print the state
+                print("Option 8 done, state is now state0") # print the state
             elif r_char == 'R':                                            # if the received char is 'R' (Received)
                 if o_Char != '4' and o_Char != '6' and o_Char != '8':    # if the menu option is not 4, 6, or 8 (states 4, 6, 8 are handled in the output section)
                     print("Option " + o_Char + " is running, MSP430 state is now state" + o_Char)
                 else:
-                    print("Option " + o_Char + " done, MSP430 state is now state8")
+                    print("Option " + o_Char + " done, MSP430 state is now state0")
                     state4 = False
                     X = "0"
             elif r_char == 'E':                                       # if the received char is 'E' (error)
-                print("MSP430 received invalid Char, MSP430 state is now state8 (sleep mode)")
+                print("MSP430 received invalid Char, MSP430 state is now state0 (sleep mode)")
+                state4 = False
+                X = "0"
+            
+            else:
+                print(r_char, end='')
                 state4 = False
                 X = "0"
 

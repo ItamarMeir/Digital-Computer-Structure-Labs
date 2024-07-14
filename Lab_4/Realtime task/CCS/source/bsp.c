@@ -29,8 +29,13 @@ void GPIOconfig(void){
   BuzzPortSel |= BuzzPin;             // P2.4 Select = '1'
   BuzzPortOut &= ~BuzzPin;             // P2.4 out = '0'
 
-  // Potentiometer Setup
-
+  // PushButtons Setup
+  PBsArrPortSel &= ~(PB0);
+  PBsArrPortDir &= ~(PB0);
+  PBsArrIntEdgeSel |= (PB0 + PB1);  	        // pull-up mode
+  PBsArrIntEdgeSel &= ~(PB2 + PB3);            // pull-down mode
+  PBsArrIntEn |= (PB0);
+  PBsArrIntPend &= ~(PB0);               // clear pending interrupts
   _BIS_SR(GIE);                     // enable interrupts globally
 }                             
 

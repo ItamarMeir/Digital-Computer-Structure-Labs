@@ -14,7 +14,8 @@ extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
 extern unsigned int X_flag;
 extern char timerInput[6];
-
+extern char sentance[];
+extern int k;
 
 extern void sysConfig(void);
 extern void delay(unsigned int);
@@ -29,6 +30,7 @@ extern void startTimerA1();
 extern void finishTimerA1();
 extern void startADC10();
 extern void finishADC10();
+extern void enable_UARTTX_interrupts();
 
 extern __interrupt void PBs_handler(void);
 

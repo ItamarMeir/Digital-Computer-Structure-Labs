@@ -263,7 +263,9 @@ int get_ADC_value(){
 void enable_UARTRX_interrupts(){
     IE2 |= UCA0RXIE;                  // Enable USCI_A0 RX interrupt
 }
-
+void enable_UARTTX_interrupts(){
+    IE2 |= UCA0TXIE;                  // Enable USCI_A0 TX interrupt
+}
 
 //-------------------------------------------------------------
 //                      UART TX ISR - Recieve from PC
@@ -287,8 +289,23 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
         }
     }
     else if (state == state7){
-        UCA0TXBUF = '7'; // Print Menu
+        UCA0TXBUF = '8'; // Print Menu
     }
+    else if(state == state8){
+        if(k==0){
+            UCA0TXBUF = '7';
+            k++;
+        }
+        else{
+                while (!(IFG2 & UCA0TXIFG)){} // USCI_A0 TX buffer ready?
+                UCA0TXBUF = sentance[k-1];
+                k++;
+        
+            
+        }
+        
+    }
+    
     else{
         UCA0TXBUF = 'R'; // Received
     }
@@ -326,7 +343,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
       if(!X_flag){          // If X_flag is 0, then we are starting to set X
           X_flag = 1;       // Set X_flag to 1
           IE2 |= UCA0TXIE;  // Enable USCI_A0 TX interrupt
-          state = state8;   // Set state to sleep mode
+          state = state0;   // Set state to sleep mode
       }
       else{
           if(UCA0RXBUF == '\n'){    // If Enter is pressed, then we are done setting X
@@ -341,7 +358,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
           }
           else{
               X_flag = 404;  // Error - Char sent is not 0-9.
-              state = state8; // Set state to sleep mode
+              state = state0; // Set state to sleep mode
           }
       }
       IE2 |= UCA0TXIE;
@@ -356,20 +373,24 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
       state = state6;
       IE2 |= UCA0TXIE;
   }
+    else if (UCA0RXBUF == '7' && !X_flag){    // If 7 is pressed, then we are at 
+      state = state8;
+      IE2 |= UCA0TXIE;
+  }
 
-  else if (UCA0RXBUF == '7' && !X_flag){      // If 7 is pressed, Menu display on PC side
+  else if (UCA0RXBUF == '8' && !X_flag){      // If 8 is pressed, Menu display on PC side
       state = state7;
       IE2 |= UCA0TXIE;
   }
 
-  else if (UCA0RXBUF == '8' && !X_flag){    // If 8 is pressed, then we are at sleep mode
-      state = state8;
+  else if (UCA0RXBUF == '9' && !X_flag){    // If 9 is pressed, then we are at sleep mode
+      state = state0;
       IE2 |= UCA0TXIE;
   }
 
   else {
       X_flag = 404;         // Error - Char sent is not 0-9.
-      state = state8;    // Set state to sleep mode
+      state = state0;    // Set state to sleep mode
       IE2 |= UCA0TXIE;
   }
 
@@ -396,8 +417,48 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     }
 }
 
-
-
-
+//*********************************************************************
+//            Port1 Interrupt Service Routine
+//*********************************************************************
+#pragma vector=PORT1_VECTOR
+  __interrupt void PBs_handler(void){
+   
+	delay(debounceVal);
+        
+//---------------------------------------------------------------------
+//            selector of transition between states
+//---------------------------------------------------------------------
+  
+PBsArrIntPend &= ~PB0; 
+PBsArrIntPend &= ~PB1; 
+PBsArrIntPend &= ~PB2; 
+PBsArrIntPend &= ~PB3;     
+	
+//---------------------------------------------------------------------
+//            Exit from a given LPM 
+//---------------------------------------------------------------------	
+        switch(lpm_mode){
+		case mode0:
+		 LPM0_EXIT; // must be called from ISR only
+		 break;
+		 
+		case mode1:
+		 LPM1_EXIT; // must be called from ISR only
+		 break;
+		 
+		case mode2:
+		 LPM2_EXIT; // must be called from ISR only
+		 break;
+                 
+         case mode3:
+		 LPM3_EXIT; // must be called from ISR only
+		 break;
+                 
+         case mode4:
+		 LPM4_EXIT; // must be called from ISR only
+		 break;
+	}
+        
+}
 
 

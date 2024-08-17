@@ -5,11 +5,12 @@
 
 extern unsigned int num;
 
-extern void blinkRGB(void);
-extern void count(void);
-extern void buzzer(void);
-extern void set_X(void);
-extern void measPOT(void);
+extern void to_string(char *str, unsigned int num);
+
+extern void Script_Mode();
+extern void Stepper_Calibration();
+extern void Joystick_Painter();
+extern void Manual_Motor();
 
 
 #endif

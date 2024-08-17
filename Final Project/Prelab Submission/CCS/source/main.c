@@ -11,7 +11,7 @@ char timerInput[6];
 
 void main(void){
   
-  state = state8;  // start in idle state on RESET
+  state = state0;  // start in idle state on RESET
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();
   lcd_init();
@@ -19,48 +19,36 @@ void main(void){
   while(1){
     lcd_clear();
 	switch(state){
-	  case state8:
+    
+    // LPM0 - sleep mode
+	  case state0:
 	      enable_UARTRX_interrupts();          // Enable USCI_A0 RX interrupt
 	      enterLPM(lpm_mode);                   // enter low power mode
 		  break;
-		 
+	
+    // 	Manual Control of Motor Based Machine 
 	  case state1:
-	      enable_UARTRX_interrupts();           // Enable USCI_A0 RX interrupt
-	      blinkRGB();                            // blink RGB LED
+	      enable_UARTRX_interrupts();          
+	      Manual_Motor();                           
 		  break;
-		 
+
+    // Joystick Based PC Painter	 
 	  case state2:
 	      enable_UARTRX_interrupts();     
-	      count();                                 // count up to LCD
+	      Joystick_Painter();                                 
 		  break;
-                
+
+    // Stepper Motor Calibration            
 	  case state3:
 	      enable_UARTRX_interrupts();     
-	      buzzer();                                   // shift buzzer frequency
+	      Stepper_Calibration();                                
 	      break;
-            
-	  case state4:                                        // Set X
-        if(state == state4){
-            state = state8;
-        }
-        set_X();
+
+    // Script Mode        
+	  case state4:                                  
+        
+        Script_Mode();
 		break;   
-
-      case state5:                              // Measure POT
-          enable_UARTRX_interrupts();     
-          measPOT();
-          break;
-
-      case state6:                          // Reset num value and clear LCD
-          num = 0;
-          state = state8;
-          lcd_clear();
-          break;
-
-      case state7:                            // Menu display on PC side
-          enable_UARTRX_interrupts();     
-          state = state8;
-          break;
 
 	}
   }

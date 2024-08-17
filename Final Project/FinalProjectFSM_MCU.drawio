@@ -1,0 +1,31 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0" version="24.7.7">
+  <diagram name="Page-1" id="eh6xwYXdlgy1LYGolRj9">
+    <mxGraphModel dx="1386" dy="749" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Lc3KypAjGT7oZhg8iTuu-1" value="Sleep Mode (LPM)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="230" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc3KypAjGT7oZhg8iTuu-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Lc3KypAjGT7oZhg8iTuu-4" target="Lc3KypAjGT7oZhg8iTuu-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc3KypAjGT7oZhg8iTuu-4" value="RESET" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="135" y="170" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc3KypAjGT7oZhg8iTuu-5" value="Manual Control of Motor Based Machine" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="230" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc3KypAjGT7oZhg8iTuu-9" value="Joystick Based PC Painter" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="480" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc3KypAjGT7oZhg8iTuu-10" value="Stepper Motor Calibration" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="480" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc3KypAjGT7oZhg8iTuu-11" value="Script Mode" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="560" width="150" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

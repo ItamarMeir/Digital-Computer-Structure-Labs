@@ -269,6 +269,22 @@ void delay(unsigned int t){  //
 #pragma vector = TIMER0_A0_VECTOR // For delay
 __interrupt void TimerA_ISR (void)
 {
+    switch (step_index){
+        case 0:
+            StepmotorPortOUT = 0x01; // out = 0001
+            break;
+        case 1:
+            StepmotorPortOUT = 0x08; // out = 1000
+            break;
+        case 2:
+            StepmotorPortOUT = 0x04; // out = 0100
+            break;
+        case 3:
+            StepmotorPortOUT = 0x02; // out = 0010
+            break;
+    }
+    step_index = (step_index + 1) % 4;
+    
     StopAllTimers();
     LPM0_EXIT;
 }

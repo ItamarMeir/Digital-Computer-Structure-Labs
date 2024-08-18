@@ -17,7 +17,7 @@ extern void ClearLEDsRGB();
 
 extern int16_t Vrx;
 extern int16_t Vry;
-
+extern int step_index;
 
 
 

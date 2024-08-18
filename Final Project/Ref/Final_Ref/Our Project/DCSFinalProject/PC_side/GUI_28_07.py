@@ -490,7 +490,7 @@ def GUI():
 if __name__ == '__main__':
     # MSP430_port = port_search()
 
-    s = ser.Serial('COM6', baudrate=9600, bytesize=ser.EIGHTBITS,
+    s = ser.Serial('COM5', baudrate=9600, bytesize=ser.EIGHTBITS,
                    parity=ser.PARITY_NONE, stopbits=ser.STOPBITS_ONE,
                    timeout=1)  # timeout of 1 sec so that the read and write operations are blocking,
     # after the timeout the program continues

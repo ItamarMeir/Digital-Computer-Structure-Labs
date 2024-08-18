@@ -8,6 +8,7 @@
 int flag_script = 1;
 int16_t Vrx = 0;
 int16_t Vry = 0;
+int step_index = 0;
 
 //-------------------------------------------------------------
 //                StepperUsingJoyStick
@@ -236,18 +237,27 @@ void ClearLEDsRGB(){
 //-------------------------------------------------------------
 //                Stepper clockwise
 //-------------------------------------------------------------
+// void Stepper_clockwise(long speed_Hz){
+//     int speed_clk;
+//     // 1 step clockwise of stepper - 50Hz
+//     //speed_clk = 131072/speed_Hz;
+//     speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
+//     StepmotorPortOUT = 0x01; // out = 0001
+//     START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
+//     StepmotorPortOUT = 0x08; // out = 1000
+//     START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
+//     StepmotorPortOUT = 0x04; // out = 0100
+//     START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
+//     StepmotorPortOUT = 0x02; // out = 0010
+// }
+
 void Stepper_clockwise(long speed_Hz){
     int speed_clk;
+    
     // 1 step clockwise of stepper - 50Hz
-//    speed_clk = 131072/speed_Hz;
+    //speed_clk = 131072/speed_Hz;
     speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
-    StepmotorPortOUT = 0x01; // out = 0001
-    START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
-    StepmotorPortOUT = 0x08; // out = 1000
-    START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
-    StepmotorPortOUT = 0x04; // out = 0100
-    START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
-    StepmotorPortOUT = 0x02; // out = 0010
+    START_TIMERA0(speed_clk);
 }
 
 //-------------------------------------------------------------

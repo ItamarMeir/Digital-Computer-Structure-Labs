@@ -350,7 +350,7 @@ def GUI():
                 if "_Rotation_" in event:
                     send_state('A')  # Auto Rotate
                 elif "_Stop_" in event:
-                    send_state('M')  # Stop, was S
+                    send_state('M')  # Stop
                     counter = read_from_MSP('calib', 4)
                     window["Counter"].update(value=counter)
                     phi = int(counter.split('\x00')[0]) / 360

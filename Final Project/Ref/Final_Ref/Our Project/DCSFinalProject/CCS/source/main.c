@@ -51,16 +51,16 @@ void main(void){
 	    break;
 
 	case state2: // Calibrate
-        IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt
+        EnableRXIE();                          // Enable USCI_A0 RX interrupt
 
         switch(stateStepp){
         case stateDefault:
-            __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
+            EnterLPM();       // Enter LPM0 w/ int until Byte RXed
             break;
 
         case stateAutoRotate: // start rotate
             counter = 0;
-            while(rotateIFG) { Stepper_clockwise(100); counter++; }
+            Activate_Stepper(100, Clockwise); 
             break;
 
         case stateStopRotate: // stop and set phi

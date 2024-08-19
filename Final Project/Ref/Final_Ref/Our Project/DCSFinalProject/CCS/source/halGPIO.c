@@ -270,6 +270,8 @@ void delay(unsigned int t){  //
 __interrupt void TimerA_ISR (void)
 {
     if (rotation == Clockwise){
+        if (state == state2){counter++;} // for calibration mode
+
         switch (step_index){
             case 0:
                 StepmotorPortOUT = 0x01; // out = 0001
@@ -593,11 +595,11 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     // If's for states
     if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
     else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was p
-    else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was c
+    else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Calibration mode
     else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
 
     else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotation = Clockwise; rotateIFG = 1; j = 0;}// Auto Rotate
-    else if (stringFromPC[0] == 'M'){ stateStepp = stateDefault; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
+    else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
     else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
 
 

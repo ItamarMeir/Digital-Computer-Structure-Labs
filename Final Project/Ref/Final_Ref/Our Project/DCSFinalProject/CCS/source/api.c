@@ -298,8 +298,8 @@ void calibrate(){
   //  sprintf(counter_str, "%d", counter);
     tx_index = 0;
     UCA0TXBUF = counter_str[tx_index++];
-    IE2 |= UCA0TXIE;                        // Enable USCI_A0 TX interrupt
-    __bis_SR_register(LPM0_bits + GIE); // Sleep
+    EnableTXIE();                      // Enable USCI_A0 TX interrupt
+    EnterLPM(); // Sleep
     curr_counter = 0;
 }
 //--------------------------------------------------------------

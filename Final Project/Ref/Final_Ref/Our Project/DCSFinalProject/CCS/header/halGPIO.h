@@ -37,6 +37,8 @@ extern unsigned int tx_index;
 extern int curr_counter;
 extern int max_counter;
 extern int step_index;
+extern int curr_angle;
+extern double phi;
 
 extern void sysConfig(void);
 extern void print2RGB(char);

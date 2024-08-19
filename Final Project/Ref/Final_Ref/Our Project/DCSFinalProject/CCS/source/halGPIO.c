@@ -32,6 +32,9 @@ char finish_str[3] = "FIN";
 int curr_counter = 0;
 int max_counter = 0;
 short finishIFG = 0;
+int curr_angle = 0;
+double phi = 0;
+
 //--------------------------------------------------------------------
 //             System Configuration  
 //--------------------------------------------------------------------
@@ -270,21 +273,24 @@ void delay(unsigned int t){  //
 #pragma vector = TIMER0_A0_VECTOR // For delay
 __interrupt void TimerA_ISR (void)
 {
+    counter++;
+    if (counter == count)
     if (rotation == Clockwise){
-        if (state == state2){counter++;} // for calibration mode
+
 
         switch (step_index){
             case 0:
-                StepmotorPortOUT = 0x01; // out = 0001
-                break;
-            case 1:
                 StepmotorPortOUT = 0x08; // out = 1000
                 break;
+            case 1:
+                StepmotorPortOUT = 0x01; // out = 0001
+                
+                break;
             case 2:
-                StepmotorPortOUT = 0x04; // out = 0100
+                StepmotorPortOUT = 0x02; // out = 0010
                 break;
             case 3:
-                StepmotorPortOUT = 0x02; // out = 0010
+                StepmotorPortOUT = 0x04; // out = 0100
                 break;
         }
         step_index = (step_index + 1) % 4;
@@ -300,18 +306,16 @@ __interrupt void TimerA_ISR (void)
     {
         switch (step_index){
             case 0:
-                StepmotorPortOUT = 0x08; // out = 1000
-                
+                StepmotorPortOUT = 0x01; // out = 0001
                 break;
             case 1:
-                StepmotorPortOUT = 0x01; // out = 0001
-                
+                StepmotorPortOUT = 0x08; // out = 1000
                 break;
             case 2:
-                StepmotorPortOUT = 0x02; // out = 0010
+                StepmotorPortOUT = 0x04; // out = 0100
                 break;
             case 3:
-                StepmotorPortOUT = 0x04; // out = 0100
+                StepmotorPortOUT = 0x02; // out = 0010
                 break;
         }
         step_index = (step_index + 1) % 4;
@@ -398,6 +402,7 @@ __interrupt void TimerA_ISR (void)
     else{
         if (curr_counter == max_counter){curr_counter = 0;}
         StopAllTimers();
+        step_index = 0;
         LPM0_EXIT;
     }
 }

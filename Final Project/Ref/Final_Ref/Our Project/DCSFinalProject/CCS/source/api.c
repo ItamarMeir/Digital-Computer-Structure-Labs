@@ -255,6 +255,7 @@ void Activate_Stepper(long speed_Hz, int Rot_state){
     //speed_clk = 131072/speed_Hz;
     speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
     rotation = Rot_state;
+    step_index = 0;
     START_TIMERA0(speed_clk);
     while (rotation == Rot_state)
         {
@@ -262,6 +263,7 @@ void Activate_Stepper(long speed_Hz, int Rot_state){
         }  
                 
 }
+
 
 void Stepper_clockwise(long speed_Hz){
     int speed_clk;
@@ -289,7 +291,31 @@ void Stepper_counter_clockwise(long speed_Hz){
     }  
 }
 
-
+void GotoAngle(int angle){
+    curr_angle = (int)(360/((double)(max_counter)/ (double)(curr_counter)));
+    int speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
+    step_index = 0;
+    counter = 0;
+    if (angle > curr_angle){
+        rotation = Clockwise;
+        START_TIMERA0(speed_clk);
+        int count_until = (int)(((double)(angle - curr_angle)) / phi);
+        int i = 0;
+        for (counter <= count_until)
+            {
+                EnterLPM(); // Sleep
+            }  
+    }
+    else{
+        rotation = CounterClockwise;
+        START_TIMERA0(speed_clk);
+        int count_until = (int)(((double)(curr_angle - angle)) / phi);
+        while (counter <= count_until)
+            {
+                EnterLPM(); // Sleep
+            }  
+    }                
+}
 //-------------------------------------------------------------
 //                Stepper Motor Calibration
 //-------------------------------------------------------------
@@ -299,6 +325,7 @@ void calibrate(){
     int2str(counter_str, (int)counter);
   //  sprintf(counter_str, "%d", counter);
     tx_index = 0;
+    phi = 360.0 / max_counter;
     UCA0TXBUF = counter_str[tx_index++];
     EnableTXIE();                      // Enable USCI_A0 TX interrupt
     EnterLPM(); // Sleep

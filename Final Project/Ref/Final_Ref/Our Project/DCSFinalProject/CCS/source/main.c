@@ -8,7 +8,7 @@ enum Stepperstate stateStepp;
 enum RotationState rotation;
 enum SYSmode lpm_mode;
 
-double ang;
+
 
 void main(void){
   
@@ -29,19 +29,21 @@ void main(void){
 
             case stateJSRotate:
                 //counter = 514;
-                StepperUsingJoyStick();
+                // StepperUsingJoyStick();
 
-                ClearJoystickIFG();
-                ClearTXIFG();
-                DisableJoystickInt();
-                DisableTXIE();
+                // ClearJoystickIFG();
+                // ClearTXIFG();
+                // DisableJoystickInt();
+                // DisableTXIE();
+                GotoAngle(45);
+                stateStepp = stateDefault;
                 break;
             case stateDefault:
                 EnterLPM();       // Enter LPM0 w/ int until Byte RXed
                 break;
             
             case stateStopRotate:
-                ang = (int)(360/((double)(max_counter)/ (double)(curr_counter)));
+                curr_angle = (int)(360/((double)(max_counter)/ (double)(curr_counter)));
                 EnterLPM(); 
                 break;
             }

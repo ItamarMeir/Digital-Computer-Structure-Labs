@@ -15,6 +15,7 @@ extern void calibrate();
 extern void ScriptFunc();
 extern void ExecuteScript();
 extern void ClearLEDsRGB();
+extern void GotoAngle(int);
 
 extern int16_t Vrx;
 extern int16_t Vry;

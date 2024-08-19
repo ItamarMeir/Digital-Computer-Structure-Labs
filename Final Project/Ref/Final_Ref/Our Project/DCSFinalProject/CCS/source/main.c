@@ -8,6 +8,7 @@ enum Stepperstate stateStepp;
 enum RotationState rotation;
 enum SYSmode lpm_mode;
 
+double ang;
 
 void main(void){
   
@@ -23,11 +24,11 @@ void main(void){
 	case state0: //   StepperUsingJoyStick
 	    switch(stateStepp){
             case stateAutoRotate:
-                Activate_Stepper(200, Clockwise);
+                Activate_Stepper(200, CounterClockwise);
                 break;
 
             case stateJSRotate:
-                counter = 514;
+                //counter = 514;
                 StepperUsingJoyStick();
 
                 ClearJoystickIFG();
@@ -37,6 +38,11 @@ void main(void){
                 break;
             case stateDefault:
                 EnterLPM();       // Enter LPM0 w/ int until Byte RXed
+                break;
+            
+            case stateStopRotate:
+                ang = (int)(360/((double)(max_counter)/ (double)(curr_counter)));
+                EnterLPM(); 
                 break;
             }
 	    break;
@@ -54,20 +60,20 @@ void main(void){
         EnableRXIE();                          // Enable USCI_A0 RX interrupt
 
         switch(stateStepp){
-        case stateDefault:
-            EnterLPM();       // Enter LPM0 w/ int until Byte RXed
-            break;
+            case stateDefault:
+                EnterLPM();       // Enter LPM0 w/ int until Byte RXed
+                break;
 
-        case stateAutoRotate: // start rotate
-            counter = 0;
-            Activate_Stepper(100, Clockwise); 
-            break;
+            case stateAutoRotate: // start rotate
+                counter = 0;
+                Activate_Stepper(200, Clockwise); 
+                break;
 
-        case stateStopRotate: // stop and set phi
-            calibrate();
-            break;
-        }
-	    break;
+            case stateStopRotate: // stop and set phi
+                calibrate();
+                break;
+            }
+        break;
 
 	case state3:  //Script
         IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt

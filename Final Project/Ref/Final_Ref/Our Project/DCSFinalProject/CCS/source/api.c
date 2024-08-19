@@ -48,11 +48,10 @@ void JoyStickADC_Painter(){
 //                StepperUsingJoyStick
 //-------------------------------------------------------------
 void JoyStickADC_Steppermotor(){
-        ADC10CTL0 &= ~ENC;
-        while (ADC10CTL1 & ADC10BUSY);               // Wait if ADC10 core is active
-        ADC10SA = &Vr;                        // Data buffer start
-        ADC10CTL0 |= ENC + ADC10SC; // Sampling and conversion start
-        __bis_SR_register(LPM0_bits + GIE);        // LPM0, ADC10_ISR will force exit
+        DisableADC();                     // Disable ADC
+        ADC_wait;              // Wait if ADC10 core is active
+        EnableADC(Vr);                        // Start ADC
+        EnterLPM();        // LPM0, ADC10_ISR will force exit
 
 }
 //-----------For Flash-------------------------------------
@@ -255,6 +254,7 @@ void Activate_Stepper(long speed_Hz, int Rot_state){
     // 1 step clockwise of stepper - 50Hz
     //speed_clk = 131072/speed_Hz;
     speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
+    rotation = Rot_state;
     START_TIMERA0(speed_clk);
     while (rotation == Rot_state)
         {
@@ -294,7 +294,9 @@ void Stepper_counter_clockwise(long speed_Hz){
 //                Stepper Motor Calibration
 //-------------------------------------------------------------
 void calibrate(){
-    int2str(counter_str, counter);
+    max_counter = counter;
+    curr_counter = 0;
+    int2str(counter_str, (int)counter);
   //  sprintf(counter_str, "%d", counter);
     tx_index = 0;
     UCA0TXBUF = counter_str[tx_index++];

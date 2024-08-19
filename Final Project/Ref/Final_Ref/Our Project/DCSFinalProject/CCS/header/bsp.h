@@ -52,6 +52,7 @@
 #define TXD BIT2
 #define RXD BIT1
 
+#define ADC_wait while (ADC10CTL1 & ADC10BUSY);   // Wait if ADC10 core is active
 
 extern void GPIOconfig(void);
 extern void ADCconfig(void);
@@ -70,7 +71,7 @@ extern void DisableTXIE(void);
 extern void DisableJoystickInt(void);
 extern void EnableJoystickInt(void);
 extern void ClearJoystickIFG(void);
-
+extern void EnableADC(short* DataBufferStart);
 
 #endif
 

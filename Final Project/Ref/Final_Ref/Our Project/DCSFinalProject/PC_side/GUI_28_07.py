@@ -313,7 +313,7 @@ def GUI():
                 if event == "_Rotation_":
                     send_state('A')  # Auto Rotate
                 elif event == "_Stop_":
-                    send_state('M')  # Stop , was S
+                    send_state('M')  # Stop
                 elif event == "_JoyStickCrtl_":
                     send_state('J')  # JoyStick Control
 
@@ -353,7 +353,7 @@ def GUI():
                     send_state('M')  # Stop
                     counter = read_from_MSP('calib', 4)
                     window["Counter"].update(value=counter)
-                    phi = int(counter.split('\x00')[0]) / 360
+                    phi = 360 / int(counter.split('\x00')[0])
                     window["Phi"].update(value=str(round(phi, 4)) + "[deg]")
 
         if event == "_Script_":

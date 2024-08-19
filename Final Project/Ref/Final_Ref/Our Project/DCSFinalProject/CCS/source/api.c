@@ -258,6 +258,10 @@ void Stepper_clockwise(long speed_Hz){
     //speed_clk = 131072/speed_Hz;
     speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
     START_TIMERA0(speed_clk);
+    while (stateStepp == stateAutoRotate)
+    {
+        EnterLPM(); // Sleep
+    }  
 }
 
 //-------------------------------------------------------------
@@ -301,6 +305,8 @@ void StepperUsingJoyStick(){
     uint32_t phi;
     uint32_t temp;
 //    curr_counter = 0;
+    EnableJoystickInt();
+    EnableTXIE();
     while (counter != 0 && state==state0 && stateStepp==stateJSRotate){
         JoyStickADC_Steppermotor();
         if (!( Vr[1] > 400 && Vr[1] < 600 && Vr[0] > 400 && Vr[0] < 600)){

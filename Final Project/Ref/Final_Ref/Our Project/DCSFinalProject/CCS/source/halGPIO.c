@@ -269,24 +269,28 @@ void delay(unsigned int t){  //
 #pragma vector = TIMER0_A0_VECTOR // For delay
 __interrupt void TimerA_ISR (void)
 {
-    switch (step_index){
-        case 0:
-            StepmotorPortOUT = 0x01; // out = 0001
-            break;
-        case 1:
-            StepmotorPortOUT = 0x08; // out = 1000
-            break;
-        case 2:
-            StepmotorPortOUT = 0x04; // out = 0100
-            break;
-        case 3:
-            StepmotorPortOUT = 0x02; // out = 0010
-            break;
+    if (stateStepp == stateAutoRotate){
+        switch (step_index){
+            case 0:
+                StepmotorPortOUT = 0x01; // out = 0001
+                break;
+            case 1:
+                StepmotorPortOUT = 0x08; // out = 1000
+                break;
+            case 2:
+                StepmotorPortOUT = 0x04; // out = 0100
+                break;
+            case 3:
+                StepmotorPortOUT = 0x02; // out = 0010
+                break;
+        }
+        step_index = (step_index + 1) % 4;
+        LPM0_EXIT;
     }
-    step_index = (step_index + 1) % 4;
-    
-    StopAllTimers();
-    LPM0_EXIT;
+    else{
+        StopAllTimers();
+        LPM0_EXIT;
+    }
 }
 
 //*********************************************************************
@@ -510,7 +514,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
 
     else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
-    else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotateIFG = 0; j = 0;}// Stop Rotate
+    else if (stringFromPC[0] == 'M'){ stateStepp = stateDefault; rotateIFG = 0; j = 0;}// Stop Rotate
     else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
 
 

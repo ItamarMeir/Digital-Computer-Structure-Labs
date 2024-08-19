@@ -12,12 +12,12 @@ void GPIOconfig(void){
 
   // JoyStick Configuration  P1.3 - Vrx; P1.4 - Vry; P1.5 - PB
   // P1.3-P1.4 - X(Don't care) for Sel, Dir According the dataSheet For A3,A4 input Select For ADC
-  JoyStickPortSEL &= ~BIT5;  // P1.5 Sel = '0'
-  JoyStickPortDIR &= ~BIT5;  // P1.5 input = '0'
-  JoyStickPortOUT &= ~BIT5;  //
-  JoyStickIntEN |= BIT5; // P1.5 PB_interrupt = '1'
-  JoyStickIntEdgeSel |= BIT5; // P1.5 PB pull-up - '1'
-  JoyStickIntPend &= ~BIT5; // Reset Int IFG - '0'
+  JoyStickPortSEL &= ~JoyStickPB;  // P1.5 Sel = '0'
+  JoyStickPortDIR &= ~JoyStickPB;  // P1.5 input = '0'
+  JoyStickPortOUT &= ~JoyStickPB;  //
+  JoyStickIntEN &= ~JoyStickPB; // P1.5 Joystick interrrupt disabled = '0'
+  JoyStickIntEdgeSel |= JoyStickPB; // P1.5 PB pull-up - '1'
+  JoyStickIntPend &= ~JoyStickPB; // Reset Int IFG - '0'
 
   // Stepmotor Configuration
   StepmotorPortSEL &= ~(BIT0+BIT1+BIT2+BIT3);  // P2.0-P2.3 Sel = '0'
@@ -85,7 +85,11 @@ void UART_init(void){
     UCA0BR1 = 0x00;                           //
     UCA0MCTL = UCBRS0;               //
   //  UCA0MCTL = 0x10|UCOS16; //UCBRFx=1,UCBRSx=0, UCOS16=1
-    UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
+    UCA0CTL1 &= ~UCSWRST;        // **Initialize USCI state machine**
+    IFG2 &= ~UCA0RXIFG;  // Clear USCI_A0 RX interrupt flag             
+    IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
+    IFG2 &= ~UCA0TXIFG;  // Clear USCI_A0 TX interrupt flag
+    IE2 &= ~UCA0TXIE;       // Disable USCI_A0 TX interrupt
 }
 
 
@@ -99,3 +103,43 @@ void ADCconfig(void){
     ADC10AE0 |= 0x18;                         // P1.3-4 ADC10 option select
 }
 
+
+void EnterLPM(void){
+    __bis_SR_register(LPM0_bits + GIE); // Sleep
+}
+
+void ClearRXIFG(void){
+    IFG2 &= ~UCA0RXIFG;  // Clear USCI_A0 RX interrupt flag
+}
+
+void EnableRXIE(void){
+    IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
+}
+
+void DisableRXIE(void){
+    IE2 &= ~UCA0RXIE; // Disable USCI_A0 RX interrupt
+}
+
+void ClearTXIFG(void){
+    IFG2 &= ~UCA0TXIFG;  // Clear USCI_A0 TX interrupt flag
+}
+
+void EnableTXIE(void){
+    IE2 |= UCA0TXIE; // Enable USCI_A0 TX interrupt
+}
+
+void DisableTXIE(void){
+    IE2 &= ~UCA0TXIE; // Disable USCI_A0 TX interrupt
+}
+
+void DisableJoystickInt(void){
+    JoyStickIntEN &= ~JoyStickPB; // Disable Joystick interrupt
+}
+
+void EnableJoystickInt(void){
+    JoyStickIntEN |= JoyStickPB; // Enable Joystick interrupt
+}
+
+void ClearJoystickIFG(void){
+    JoyStickIntPend &= ~JoyStickPB; // Clear Joystick pending interrupt
+}

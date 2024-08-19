@@ -2,8 +2,6 @@
 #include  "../header/app.h"    		// private library - APP layer
 #include  <stdio.h>
 
-//------------------------Roy Kislev-----------------------------
-//----------------------Michael Grenader-------------------------
 
 enum FSMstate state;
 enum Stepperstate stateStepp;
@@ -22,25 +20,24 @@ void main(void){
 	switch(state){
 
 	case state0: //   StepperUsingJoyStick
-	    IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
 	    switch(stateStepp){
-	    case stateAutoRotate:
-	        while(rotateIFG){ curr_counter++; Stepper_clockwise(200); }
-	        break;
+            case stateAutoRotate:
+                Stepper_clockwise(200);
+                break;
 
-        case stateStopRotate:
-            break;
-
-        case stateJSRotate:
-            counter = 514;
-            StepperUsingJoyStick();
-            break;
-        case stateDefault:
-         //   counter = 514;
-        //    motorGoToPosition(360, 1);
-            __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
-            break;
-	    }
+            case stateJSRotate:
+                counter = 514;
+                StepperUsingJoyStick();
+                
+                ClearJoystickIFG();
+                ClearTXIFG();
+                DisableJoystickInt();
+                DisableTXIE();
+                break;
+            case stateDefault:
+                EnterLPM();       // Enter LPM0 w/ int until Byte RXed
+                break;
+            }
 	    break;
 
 	case state1: // Paint

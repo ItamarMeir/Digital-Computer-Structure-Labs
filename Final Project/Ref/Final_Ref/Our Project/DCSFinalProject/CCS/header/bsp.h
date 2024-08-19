@@ -34,7 +34,7 @@
 #define JoyStickIntEdgeSel  P1IES
 #define JoyStickIntEN       P1IE
 #define JoyStickIntPend     P1IFG
-
+#define JoyStickPB         BIT5
 
 // Stepmotor abstraction
 #define StepmotorPortOUT     P2OUT
@@ -60,7 +60,16 @@ extern void TIMER_A1_config(unsigned int counter);
 extern void StopAllTimers(void);
 extern void UART_init(void);
 
-
+extern void EnterLPM(void);
+extern void ClearRXIFG(void);
+extern void EnableRXIE(void);
+extern void DisableRXIE(void);
+extern void ClearTXIFG(void);
+extern void EnableTXIE(void);
+extern void DisableTXIE(void);
+extern void DisableJoystickInt(void);
+extern void EnableJoystickInt(void);
+extern void ClearJoystickIFG(void);
 
 
 #endif

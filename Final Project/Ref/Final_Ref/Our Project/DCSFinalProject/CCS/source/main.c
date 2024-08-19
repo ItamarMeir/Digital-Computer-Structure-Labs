@@ -23,12 +23,7 @@ void main(void){
 	case state0: //   StepperUsingJoyStick
 	    switch(stateStepp){
             case stateAutoRotate:
-                Stepper_clockwise(200);
-                while (rotation == Clockwise)
-                {
-                    EnterLPM(); // Sleep
-                }  
-                
+                Activate_Stepper(200, Clockwise);
                 break;
 
             case stateJSRotate:

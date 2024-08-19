@@ -6,6 +6,7 @@
 extern void JoyStickADC_Painter();
 extern void JoyStickADC_Steppermotor();
 extern void Stepper_clockwise(long);
+extern void Activate_Stepper(long, int);
 extern void Stepper_counter_clockwise(long);
 extern void blinkRGB();
 extern void clear_counters();

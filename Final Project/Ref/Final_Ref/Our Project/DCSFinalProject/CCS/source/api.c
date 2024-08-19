@@ -250,6 +250,18 @@ void ClearLEDsRGB(){
 //     START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
 //     StepmotorPortOUT = 0x02; // out = 0010
 // }
+void Activate_Stepper(long speed_Hz, int Rot_state){
+    int speed_clk;
+    // 1 step clockwise of stepper - 50Hz
+    //speed_clk = 131072/speed_Hz;
+    speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
+    START_TIMERA0(speed_clk);
+    while (rotation == Rot_state)
+        {
+             EnterLPM(); // Sleep
+        }  
+                
+}
 
 void Stepper_clockwise(long speed_Hz){
     int speed_clk;
@@ -257,6 +269,8 @@ void Stepper_clockwise(long speed_Hz){
     //speed_clk = 131072/speed_Hz;
     speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
     START_TIMERA0(speed_clk);
+   
+                
 }
 
 //-------------------------------------------------------------

@@ -10,6 +10,8 @@
 extern enum FSMstate state;   // global variable
 extern enum Stepperstate stateStepp;
 extern enum SYSmode lpm_mode; // global variable
+extern enum RotationState rotation;
+
 extern unsigned int delay_time;
 extern int startRotateLEDs;
 extern int* rotateLEDs;

@@ -269,7 +269,7 @@ void delay(unsigned int t){  //
 #pragma vector = TIMER0_A0_VECTOR // For delay
 __interrupt void TimerA_ISR (void)
 {
-    if (stateStepp == stateAutoRotate){
+    if (rotation == Clockwise){
         switch (step_index){
             case 0:
                 StepmotorPortOUT = 0x01; // out = 0001
@@ -285,6 +285,89 @@ __interrupt void TimerA_ISR (void)
                 break;
         }
         step_index = (step_index + 1) % 4;
+        LPM0_EXIT;
+    }
+    else if (rotation == CounterClockwise)
+    {
+        switch (step_index){
+            case 0:
+                StepmotorPortOUT = 0x08; // out = 1000
+                
+                break;
+            case 1:
+                StepmotorPortOUT = 0x01; // out = 0001
+                
+                break;
+            case 2:
+                StepmotorPortOUT = 0x02; // out = 0010
+                break;
+            case 3:
+                StepmotorPortOUT = 0x04; // out = 0100
+                break;
+        }
+        step_index = (step_index + 1) % 4;
+        LPM0_EXIT;
+
+    }
+    else if (rotation == halfClockwise)
+    {
+        switch (step_index){
+            case 0:
+                StepmotorPortOUT = 0x08; // out = 1000
+                break;
+            case 1:
+                StepmotorPortOUT = 0x0C; // out = 1100
+                break;
+            case 2:
+                StepmotorPortOUT = 0x04; // out = 0100
+                break;
+            case 3:
+                StepmotorPortOUT = 0x06; // out = 0110
+                break;
+            case 4:
+                StepmotorPortOUT = 0x02; // out = 0010
+                break;
+            case 5:
+                StepmotorPortOUT = 0x03; // out = 0011
+                break;
+            case 6:
+                StepmotorPortOUT = 0x01; // out = 0001
+                break;
+            case 7:
+                StepmotorPortOUT = 0x09; // out = 1001
+                break;
+        }
+        }
+
+    else if (rotation == halfCounterClockwise)
+    {
+        switch (step_index){
+            case 0:
+                StepmotorPortOUT = 0x09; // out = 1001    
+                break;
+            case 1:
+                StepmotorPortOUT = 0x01; // out = 0001
+                break;
+            case 2:
+                 StepmotorPortOUT = 0x03; // out = 0011
+                break;
+            case 3:
+                StepmotorPortOUT = 0x02; // out = 0010
+                break;
+            case 4:
+                StepmotorPortOUT = 0x06; // out = 0110
+                break;
+            case 5:
+                StepmotorPortOUT = 0x04; // out = 0100
+                break;
+            case 6:
+                StepmotorPortOUT = 0x0C; // out = 1100
+                break;
+            case 7:
+                StepmotorPortOUT = 0x08; // out = 1000
+                break;
+        }
+        step_index = (step_index + 1) % 8;
         LPM0_EXIT;
     }
     else{
@@ -513,8 +596,8 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was c
     else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
 
-    else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
-    else if (stringFromPC[0] == 'M'){ stateStepp = stateDefault; rotateIFG = 0; j = 0;}// Stop Rotate
+    else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotation = Clockwise; rotateIFG = 1; j = 0;}// Auto Rotate
+    else if (stringFromPC[0] == 'M'){ stateStepp = stateDefault; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
     else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
 
 

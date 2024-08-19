@@ -5,6 +5,7 @@
 
 enum FSMstate state;
 enum Stepperstate stateStepp;
+enum RotationState rotation;
 enum SYSmode lpm_mode;
 
 
@@ -23,12 +24,17 @@ void main(void){
 	    switch(stateStepp){
             case stateAutoRotate:
                 Stepper_clockwise(200);
+                while (rotation == Clockwise)
+                {
+                    EnterLPM(); // Sleep
+                }  
+                
                 break;
 
             case stateJSRotate:
                 counter = 514;
                 StepperUsingJoyStick();
-                
+
                 ClearJoystickIFG();
                 ClearTXIFG();
                 DisableJoystickInt();

@@ -29,13 +29,16 @@ void main(void){
 
             case stateJSRotate:
                 //counter = 514;
-                StepperUsingJoyStick();
+                // StepperUsingJoyStick();
 
-                 ClearJoystickIFG();
-                 ClearTXIFG();
-                 DisableJoystickInt();
-                 DisableTXIE();
+                //  ClearJoystickIFG();
+                //  ClearTXIFG();
+                //  DisableJoystickInt();
+                //  DisableTXIE();
                 //GotoAngle(45);
+                lcd_init();
+                lcd_clear();
+                lcd_puts("Hello World");
                 stateStepp = stateDefault;
                 break;
             case stateDefault:

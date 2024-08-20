@@ -386,7 +386,7 @@ class GUI:
             sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
             return
         if not self.debug_mode:
-            self.serial_comm.send_to_MSP('c')
+            self.serial_comm.send_to_MSP('C')
         self.show_window(4)
         while True:
             event, _ = self.window.read()

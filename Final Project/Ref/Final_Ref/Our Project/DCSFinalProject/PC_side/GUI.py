@@ -14,91 +14,86 @@ import pyautogui
 
 # Class to handle the paint application using Tkinter
 class Paint:
-    DEFAULT_PEN_SIZE = 5.0
-    DEFAULT_COLOR = 'black'
+    PEN_SIZE = 5.0
+    COLOR = 'black'
 
-    def __init__(self):
-        # Initialize Tkinter window and UI setup
-        self.root = Tk()
+    def __init__(self, parent_frame):
+        self.parent_frame = parent_frame
         self.setup_ui()
         self.setup()
-        self.root.mainloop()
 
     def setup_ui(self):
+        # Create a frame for the settings
+        self.settings_frame = Frame(self.parent_frame)
+        self.settings_frame.pack(side=TOP, fill=X, padx=5, pady=5)
+
         # Setup the UI components for the painting application
-        self.pen_button = Button(self.root, text='pen', command=self.use_pen)
-        self.pen_button.grid(row=0, column=0)
+        self.pen_button = Button(self.settings_frame, text='Pen', command=self.use_pen)
+        self.pen_button.pack(side=LEFT, padx=2)
 
-        self.brush_button = Button(self.root, text='Back', command=self.close_painter)
-        self.brush_button.grid(row=0, column=1)
+        self.color_button = Button(self.settings_frame, text='Color', command=self.choose_color)
+        self.color_button.pack(side=LEFT, padx=2)
 
-        self.color_button = Button(self.root, text='color', command=self.choose_color)
-        self.color_button.grid(row=0, column=2)
+        self.eraser_button = Button(self.settings_frame, text='Eraser', command=self.use_eraser)
+        self.eraser_button.pack(side=LEFT, padx=2)
 
-        self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser)
-        self.eraser_button.grid(row=0, column=3)
+        self.erase_all_button = Button(self.settings_frame, text='Erase All', command=self.erase_all)
+        self.erase_all_button.pack(side=LEFT, padx=2)
 
-        self.choose_size_button = Scale(self.root, from_=6, to=10, orient=HORIZONTAL)
-        self.choose_size_button.grid(row=0, column=4)
+        self.choose_size_button = Scale(self.settings_frame, from_=2, to=10, orient=HORIZONTAL, label='Size')
+        self.choose_size_button.pack(side=RIGHT, padx=2)
 
-        self.c = Canvas(self.root, bg='white', width=600, height=600)
-        self.c.grid(row=1, columnspan=5)
+
+        # Create the canvas (increased size)
+        self.c = Canvas(self.parent_frame, bg='white', width=800, height=800)
+        self.c.pack(expand=YES, fill=BOTH)
 
     def setup(self):
-        # Initialize painting settings
         self.old_x = None
         self.old_y = None
         self.line_width = self.choose_size_button.get()
-        self.color = self.DEFAULT_COLOR
+        self.color = self.COLOR
         self.eraser_on = False
         self.active_button = self.pen_button
-        self.c.bind('<Motion>', self.paint)
+        self.c.bind('<B1-Motion>', self.paint)
         self.c.bind('<ButtonRelease-1>', self.reset)
 
     def use_pen(self):
-        # Set painting mode to pen
         self.activate_button(self.pen_button)
 
     def choose_color(self):
-        # Open color picker dialog and set selected color
         self.eraser_on = False
         self.color = askcolor(color=self.color)[1]
 
     def use_eraser(self):
-        # Set painting mode to eraser
         self.activate_button(self.eraser_button, eraser_mode=True)
 
+    def erase_all(self):
+        self.c.delete("all")
+
     def activate_button(self, some_button, eraser_mode=False):
-        # Activate the selected tool (pen or eraser)
         self.active_button.config(relief=RAISED)
         some_button.config(relief=SUNKEN)
         self.active_button = some_button
         self.eraser_on = eraser_mode
 
     def paint(self, event):
-        # Handle painting or erasing based on current mode
-        global state
-        if state == 0 and self.old_x and self.old_y:  # paint
+        self.line_width = self.choose_size_button.get()
+        paint_color = 'white' if self.eraser_on else self.color
+        if self.old_x and self.old_y:
             self.c.create_line(self.old_x, self.old_y, event.x, event.y,
-                               width=self.line_width, fill=self.color,
-                               capstyle=ROUND, smooth=TRUE, splinesteps=36)
-        elif state == 1 and self.old_x and self.old_y:  # erase
-            self.c.create_line(self.old_x, self.old_y, event.x, event.y,
-                               width=self.line_width, fill='white',
+                               width=self.line_width, fill=paint_color,
                                capstyle=ROUND, smooth=TRUE, splinesteps=36)
         self.old_x = event.x
         self.old_y = event.y
 
     def reset(self, event):
-        # Reset drawing coordinates on mouse release
         self.old_x, self.old_y = None, None
 
     def close_painter(self):
-        # Close the paint application
-        global PaintActive
-        PaintActive = 0
-        self.root.destroy()
+        self.parent_frame.pack_forget()
 
+    
 # Class to handle serial communication
 class SerialCommunication:
     def __init__(self, port='COM5', baudrate=9600):
@@ -154,6 +149,7 @@ class GUI:
         self.burn_index = 0
         self.state = 2  # Start at neutral state
         self.PaintActive = 0
+        self.paint_app = None
 
     def setup_gui(self):
         # Setup the GUI layout and components using PySimpleGUI
@@ -162,40 +158,69 @@ class GUI:
         # Main layout
         layout_main = [
             [sg.Text("Motor-Based Machine Control System", size=(35, 2), justification='center', font=('Helvetica', 20))],
-            [sg.Button("Manual Control", key='_ManualStepper_', size=(20, 2), font=('Helvetica', 12))],
-            [sg.Button("Joystick Painter", key='_Painter_', size=(20, 2), font=('Helvetica', 12))],
-            [sg.Button("Stepper Calibration", key='_Calib_', size=(20, 2), font=('Helvetica', 12))],
-            [sg.Button("Script Mode", key='_Script_', size=(20, 2), font=('Helvetica', 12))],
-            [sg.Text("Select Port:", font=('Helvetica', 12)), 
-             sg.Combo(self.get_available_ports(), key='_PORT_', enable_events=True, font=('Helvetica', 12))],
-            [sg.Button("Connect", key='_CONNECT_', size=(10, 1), font=('Helvetica', 12))]
+
+            [sg.Push(), 
+             sg.Button("Manual Control", key='_ManualStepper_', size=(20, 1), font=('Helvetica', 12)), 
+             sg.Push(),
+             sg.Button("Joystick Painter", key='_Painter_', size=(20, 1), font=('Helvetica', 12)), 
+             sg.Push()],
+
+            [sg.Push(), 
+             sg.Button("Stepper Calibration", key='_Calib_', size=(20, 1), font=('Helvetica', 12)),
+             sg.Push(), 
+             sg.Button("Script Mode", key='_Script_', size=(20, 1), font=('Helvetica', 12)),
+             sg.Push()],
+
+            [sg.Push(),
+             sg.Text("Select Port:", font=('Helvetica', 12)), 
+             sg.Combo(self.get_available_ports(), key='_PORT_', enable_events=True, font=('Helvetica', 12)),
+             sg.Button("Connect", key='_CONNECT_', size=(10, 1), font=('Helvetica', 12)),
+             sg.Push()]
         ]
 
         # Manual stepper control layout
         layout_manualstepper = [
-            [sg.Text("Manual Stepper Control", size=(35, 2), justification='center', font=('Helvetica', 20))],
-            [sg.Button("Rotate", key='_Rotation_', size=(15, 2), font=('Helvetica', 12)),
-             sg.Button("Stop", key='_Stop_', size=(15, 2), font=('Helvetica', 12))],
-            [sg.Button("Joystick Control", key='_JoyStickCrtl_', size=(20, 2), font=('Helvetica', 12))],
+            [sg.Text("Manual Control", size=(35, 2), justification='center', font=('Helvetica', 20))],
+            
+            [sg.Push(),
+             sg.Button("Rotate", key='_Rotation_', size=(20, 1), font=('Helvetica', 12)),
+             sg.Push(),
+             sg.Button("Stop", key='_Stop_', size=(20, 1), font=('Helvetica', 12)),
+             sg.Push()],
+            
+            [sg.Push(),
+             sg.Button("Joystick Control", key='_JoyStickCrtl_', size=(20, 1), font=('Helvetica', 12)),
+             sg.Push()],
+
             [sg.Button("Back", key='_BackMenu_', size=(10, 1), font=('Helvetica', 12), pad=(10, 20))]
         ]
 
         # Painter layout
         layout_painter = [
             [sg.Text("Joystick PC Painter", size=(35, 2), justification='center', font=('Helvetica', 20))],
-            [sg.Canvas(size=(500, 500), background_color='white', key='canvas')],
+            [sg.Frame('', [[sg.Canvas(size=(100,100), key='_PAINT_CANVAS_')]])],
             [sg.Button("Back", key='_BackMenu_', size=(10, 1), font=('Helvetica', 12), pad=(10, 20))]
         ]
 
         # Calibration layout
         layout_calib = [
-            [sg.Text("Stepper Motor Calibration", size=(35, 2), justification='center', font=('Helvetica', 20))],
-            [sg.Button("Start Rotation", key='_Rotation_', size=(15, 2), font=('Helvetica', 12)),
-             sg.Button("Stop Rotation", key='_Stop_', size=(15, 2), font=('Helvetica', 12))],
-            [sg.Text("Counter:", justification='right', size=(10, 1), font=('Helvetica', 12)),
-             sg.Text("", size=(20, 1), key="Counter", font=('Helvetica', 12))],
-            [sg.Text("Phi:", justification='right', size=(10, 1), font=('Helvetica', 12)),
-             sg.Text("", size=(20, 1), key="Phi", font=('Helvetica', 12))],
+            [sg.Text("Motor Calibration", size=(35, 2), justification='center', font=('Helvetica', 20))],
+            
+            [sg.Push(),
+             sg.Button("Start Rotation", key='_Rotation_', size=(20, 1), font=('Helvetica', 12)),
+             sg.Push(),
+             sg.Button("Stop Rotation", key='_Stop_', size=(20, 1), font=('Helvetica', 12)),
+             sg.Push()],
+
+            [sg.Column([[sg.Text("Counter:", font=('Helvetica', 12), justification='right'),
+                         sg.Text("", key="Counter", font=('Helvetica', 12), justification='left')
+                         ]], justification='center', element_justification='center', pad=(10, 20))],
+
+            
+            [sg.Column([[sg.Text("Phi:", font=('Helvetica', 12), justification='right'),
+                         sg.Text("", key="Counter", font=('Helvetica', 12), justification='left')
+                         ]], justification='center', element_justification='center', pad=(10, 20))],
+             
             [sg.Button("Back", key='_BackMenu_', size=(10, 1), font=('Helvetica', 12), pad=(10, 20))]
         ]
 
@@ -242,7 +267,7 @@ class GUI:
                    sg.Column(layout_calc, key='COL6', visible=False)]]
 
         # Create the main window
-        self.window = sg.Window(title='Motor Control System', layout=layout, size=(800, 600), resizable=True)
+        self.window = sg.Window(title='Motor Control System', layout=layout, resizable=True)
 
     def get_available_ports(self):
         # Return a list of available serial ports
@@ -278,7 +303,7 @@ class GUI:
                 self.handle_execute_file()
             elif event == '_Clear_':
                 self.handle_clear_executed_list()
-            elif event == '_BackMenu_':
+            elif event.startswith('_BackMenu_'):
                 self.show_window(1)
             elif event == '_BackScript_':
                 self.show_window(5)
@@ -307,25 +332,49 @@ class GUI:
         self.show_window(2)
         while True:
             event, _ = self.window.read()
-            if event == "_BackMenu_":
+            if event.startswith("_BackMenu_"):
+                self.show_window(1)
                 break
-            elif event == "_Rotation_":
+            elif event == sg.WIN_CLOSED:
+                break
+
+            elif event.startswith("_Rotation_"):
                 self.serial_comm.send_to_MSP('A')
-            elif event == "_Stop_":
+            elif event.startswith("_Stop_"):
                 self.serial_comm.send_to_MSP('M')
-            elif event == "_JoyStickCrtl_":
+            elif event.startswith("_JoyStickCrtl_"):
                 self.serial_comm.send_to_MSP('J')
+            
+
+    # def handle_painter(self):
+    #     # Handle painter mode and start the paint application in a separate thread
+    #     if not self.serial_comm and not self.debug_mode:
+    #         sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
+    #         return
+    #     self.PaintActive = 1
+    #     if not self.debug_mode:
+    #         self.serial_comm.send_to_MSP('P')
+    #     paint_thread = threading.Thread(target=self.start_painter)
+    #     paint_thread.start()
 
     def handle_painter(self):
-        # Handle painter mode and start the paint application in a separate thread
         if not self.serial_comm and not self.debug_mode:
             sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
             return
         self.PaintActive = 1
         if not self.debug_mode:
             self.serial_comm.send_to_MSP('P')
-        paint_thread = threading.Thread(target=self.start_painter)
-        paint_thread.start()
+        self.show_window(3)
+        
+        # Create the Paint application if it doesn't exist
+        if not self.paint_app:
+            canvas = self.window['_PAINT_CANVAS_'].TKCanvas
+            frame = canvas.master
+            self.paint_app = Paint(frame)
+
+        # Show the Paint application
+        frame = self.paint_app.c.master
+        frame.pack(expand=YES, fill=BOTH)
 
     def start_painter(self):
         # Start the painting application
@@ -340,20 +389,25 @@ class GUI:
             self.serial_comm.send_to_MSP('c')
         self.show_window(4)
         while True:
-            event, _ = self.window.read(timeout=100)
-            if event == "_BackMenu_":
+            event, _ = self.window.read()
+            if event.startswith("_BackMenu_"):
+                self.show_window(1)
                 break
-            elif event == "_Rotation_":
+            elif event == sg.WIN_CLOSED:
+                break
+
+            elif event.startswith("_Rotation_"):
                 self.serial_comm.send_to_MSP('A')
-            elif event == "_Stop_":
+            elif event.startswith("_Stop_"):
                 self.serial_comm.send_to_MSP('M')
             
             # Update calibration data
-            calib_data = self.serial_comm.read_from_MSP('calib', None)
-            if calib_data:
-                counter, phi = calib_data.strip().split(',')
-                self.window['Counter'].update(counter)
-                self.window['Phi'].update(phi)
+            if not self.debug_mode:
+                calib_data = self.serial_comm.read_from_MSP('calib', None)
+                if calib_data:
+                    counter, phi = calib_data.strip().split(',')
+                    self.window['Counter'].update(counter)
+                    self.window['Phi'].update(phi)
 
     def handle_script_mode(self):
         # Handle script mode selection
@@ -363,6 +417,7 @@ class GUI:
         if not self.debug_mode:
             self.serial_comm.send_to_MSP('s')
         self.show_window(5)
+        
 
     def handle_folder_selection(self, values):
         # Handle folder selection for script files
@@ -429,6 +484,11 @@ class GUI:
         for i in range(1, 7):
             self.window[f'COL{i}'].update(visible=False)
         self.window[f'COL{window_number}'].update(visible=True)
+
+        # Hide the Paint application when switching to other windows
+        if window_number != 3 and self.paint_app:
+            frame = self.paint_app.c.master
+            frame.pack_forget()
 
 if __name__ == "__main__":
     debug_mode = True

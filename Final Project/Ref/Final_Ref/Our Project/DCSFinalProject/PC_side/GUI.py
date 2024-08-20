@@ -431,6 +431,6 @@ class GUI:
         self.window[f'COL{window_number}'].update(visible=True)
 
 if __name__ == "__main__":
-    debug_mode = True
+    debug_mode = False
     gui = GUI()
     gui.run()

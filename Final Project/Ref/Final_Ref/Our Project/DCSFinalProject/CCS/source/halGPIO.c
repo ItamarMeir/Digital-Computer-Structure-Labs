@@ -30,7 +30,11 @@ int counter = 514;
 char step_str[4];
 char finish_str[3] = "FIN";
 int curr_counter = 0;
+int max_counter = 0;
 short finishIFG = 0;
+int curr_angle = 0;
+double phi = 0;
+
 //--------------------------------------------------------------------
 //             System Configuration  
 //--------------------------------------------------------------------
@@ -269,45 +273,57 @@ void delay(unsigned int t){  //
 #pragma vector = TIMER0_A0_VECTOR // For delay
 __interrupt void TimerA_ISR (void)
 {
+    counter++;
+   // if (counter == count)
     if (rotation == Clockwise){
-        if (state == state2){counter++;} // for calibration mode
+
 
         switch (step_index){
             case 0:
-                StepmotorPortOUT = 0x01; // out = 0001
-                break;
-            case 1:
                 StepmotorPortOUT = 0x08; // out = 1000
                 break;
+            case 1:
+                StepmotorPortOUT = 0x01; // out = 0001
+                
+                break;
             case 2:
-                StepmotorPortOUT = 0x04; // out = 0100
+                StepmotorPortOUT = 0x02; // out = 0010
                 break;
             case 3:
-                StepmotorPortOUT = 0x02; // out = 0010
+                StepmotorPortOUT = 0x04; // out = 0100
                 break;
         }
         step_index = (step_index + 1) % 4;
+        curr_counter++;
+        if (curr_counter >= max_counter && state != state2){
+            if (curr_counter == max_counter){curr_counter = 0;} // reset counter
+            else {curr_counter = 0.5;} // Half step - reset counter
+            
+        }
         LPM0_EXIT;
     }
     else if (rotation == CounterClockwise)
     {
         switch (step_index){
             case 0:
-                StepmotorPortOUT = 0x08; // out = 1000
-                
+                StepmotorPortOUT = 0x01; // out = 0001
                 break;
             case 1:
-                StepmotorPortOUT = 0x01; // out = 0001
-                
+                StepmotorPortOUT = 0x08; // out = 1000
                 break;
             case 2:
-                StepmotorPortOUT = 0x02; // out = 0010
+                StepmotorPortOUT = 0x04; // out = 0100
                 break;
             case 3:
-                StepmotorPortOUT = 0x04; // out = 0100
+                StepmotorPortOUT = 0x02; // out = 0010
                 break;
         }
         step_index = (step_index + 1) % 4;
+        curr_counter--;
+        if (curr_counter <= 0 && state != state2){
+            if (curr_counter == 0) {curr_counter = max_counter;}    // reset counter
+            else {curr_counter = max_counter - 0.5;}    // Half step - reset counter
+        }
         LPM0_EXIT;
 
     }
@@ -339,7 +355,14 @@ __interrupt void TimerA_ISR (void)
                 StepmotorPortOUT = 0x09; // out = 1001
                 break;
         }
+        step_index = (step_index + 1) % 8;
+        curr_counter+=0.5;
+        if (curr_counter == max_counter && state != state2){
+            curr_counter = 0;
         }
+        LPM0_EXIT;
+        
+    }
 
     else if (rotation == halfCounterClockwise)
     {
@@ -370,10 +393,16 @@ __interrupt void TimerA_ISR (void)
                 break;
         }
         step_index = (step_index + 1) % 8;
+        curr_counter-=0.5;
+        if (curr_counter < 0 && state != state2){
+            curr_counter = max_counter;
+        }
         LPM0_EXIT;
     }
     else{
+        if (curr_counter == max_counter){curr_counter = 0;}
         StopAllTimers();
+        step_index = 0;
         LPM0_EXIT;
     }
 }
@@ -598,7 +627,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Calibration mode
     else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
 
-    else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotation = Clockwise; rotateIFG = 1; j = 0;}// Auto Rotate
+    else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
     else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
     else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
 

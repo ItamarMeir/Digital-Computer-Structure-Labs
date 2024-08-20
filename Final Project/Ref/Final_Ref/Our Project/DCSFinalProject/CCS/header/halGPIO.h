@@ -35,7 +35,10 @@ extern unsigned int tx_index;
 #define half_sec 500;
 #define clk_tmp 131; // ( (2^20) / 8 )*(10^-3) to convert ms to counter value for TACCR0
 extern int curr_counter;
+extern int max_counter;
 extern int step_index;
+extern int curr_angle;
+extern double phi;
 
 extern void sysConfig(void);
 extern void print2RGB(char);

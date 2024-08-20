@@ -143,3 +143,12 @@ void EnableJoystickInt(void){
 void ClearJoystickIFG(void){
     JoyStickIntPend &= ~JoyStickPB; // Clear Joystick pending interrupt
 }
+
+void DisableADC(void){
+    ADC10CTL0 &= ~ENC;                       // Disable ADC
+}
+
+void EnableADC(short* DataBufferStart){
+        ADC10SA = *DataBufferStart;                        // Data buffer start
+        ADC10CTL0 |= ENC + ADC10SC;                     // Sampling and conversion start
+}

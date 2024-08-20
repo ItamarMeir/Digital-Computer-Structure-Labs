@@ -274,7 +274,7 @@ void delay(unsigned int t){  //
 __interrupt void TimerA_ISR (void)
 {
     counter++;
-    if (counter == count)
+   // if (counter == count)
     if (rotation == Clockwise){
 
 

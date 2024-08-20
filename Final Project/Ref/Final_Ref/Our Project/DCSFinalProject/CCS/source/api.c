@@ -301,7 +301,7 @@ void GotoAngle(int angle){
         START_TIMERA0(speed_clk);
         int count_until = (int)(((double)(angle - curr_angle)) / phi);
         int i = 0;
-        for (counter <= count_until)
+        while (counter <= count_until)
             {
                 EnterLPM(); // Sleep
             }  

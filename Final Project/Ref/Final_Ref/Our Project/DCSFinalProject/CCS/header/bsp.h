@@ -12,7 +12,17 @@
 
 
 
-//#define   LEDs_SHOW_RATE   0xFFFF  // 62_5ms
+// LCDs abstraction
+#define LCD_DATA_WRITE     P2OUT
+#define LCD_DATA_DIR       P2DIR
+#define LCD_DATA_READ      P2IN
+#define LCD_DATA_SEL       P2SEL
+#define LCD_CTL_SEL        P1SEL
+#define LCD_CTL_DIR        P1DIR
+#define LCD_CTL_OUT        P1OUT
+#define LCD_EN_PIN         BIT0
+#define LCD_RS_PIN         BIT6
+#define LCD_RW_PIN         BIT7
 
 
 

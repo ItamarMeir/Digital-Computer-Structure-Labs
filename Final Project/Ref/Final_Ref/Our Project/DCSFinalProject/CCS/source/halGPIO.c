@@ -193,6 +193,128 @@ void timer_call_counter(){
         __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ int until Byte RXed
     }
 }
+
+//---------------------------------------------------------------------
+//            LCD
+//---------------------------------------------------------------------
+//******************************************************************
+// send a command to the LCD
+//******************************************************************
+void lcd_cmd(unsigned char c){
+
+    LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
+
+    if (LCD_MODE == FOURBIT_MODE)
+    {
+        LCD_DATA_WRITE &= ~OUTPUT_DATA;// clear bits before new write
+        LCD_DATA_WRITE |= ((c >> 4) & 0x0F) << LCD_DATA_OFFSET;
+        lcd_strobe();
+        LCD_DATA_WRITE &= ~OUTPUT_DATA;
+        LCD_DATA_WRITE |= (c & (0x0F)) << LCD_DATA_OFFSET;
+        lcd_strobe();
+    }
+    else
+    {
+        LCD_DATA_WRITE = c;
+        lcd_strobe();
+    }
+}
+//******************************************************************
+// send data to the LCD
+//******************************************************************
+void lcd_data(unsigned char c){
+
+    LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
+
+    LCD_DATA_WRITE &= ~OUTPUT_DATA;
+    LCD_RS(1);
+    if (LCD_MODE == FOURBIT_MODE)
+    {
+            LCD_DATA_WRITE &= ~OUTPUT_DATA;
+            LCD_DATA_WRITE |= ((c >> 4) & 0x0F) << LCD_DATA_OFFSET;
+            lcd_strobe();
+            LCD_DATA_WRITE &= (0xF0 << LCD_DATA_OFFSET) | (0xF0 >> 8 - LCD_DATA_OFFSET);
+            LCD_DATA_WRITE &= ~OUTPUT_DATA;
+            LCD_DATA_WRITE |= (c & 0x0F) << LCD_DATA_OFFSET;
+            lcd_strobe();
+    }
+    else
+    {
+            LCD_DATA_WRITE = c;
+            lcd_strobe();
+    }
+
+    LCD_RS(0);
+}
+//******************************************************************
+// write a string of chars to the LCD
+//******************************************************************
+void lcd_puts(const char * s){
+    int i = 0;
+    while(*s){              // write data to LCD up to null
+        lcd_data(*s++);     // Write current char and increment pointer
+        i++;                // increment the counter
+        if(i == 16 || i == 48){     // check if the counter is equal to 16 or 48
+            lcd_new_line;           // move to the next line
+        }
+        if(i == 32 || i == 64){         // check if the counter is equal to 32 or 64
+            en_keypad_interrupts();   // enable keypad interrupts
+            enterLPM(mode0);
+            disable_keypad_interrupts();    // disable keypad interrupts
+            if(Key == 14){          // check if the key pressed is '#'
+                lcd_clear();
+            }
+        }
+    }
+}
+
+//******************************************************************
+// Initialise the LCD
+//******************************************************************
+void lcd_init(){
+
+    char init_value;
+
+    if (LCD_MODE == FOURBIT_MODE) init_value = 0x3 << LCD_DATA_OFFSET;
+    else init_value = 0x3F;
+
+    LCD_RS_DIR(OUTPUT_PIN);
+    LCD_EN_DIR(OUTPUT_PIN);
+    LCD_RW_DIR(OUTPUT_PIN);
+    LCD_DATA_DIR |= OUTPUT_DATA;
+    LCD_RS(0);
+    LCD_EN(0);
+    LCD_RW(0);
+
+    DelayMs(15);
+    LCD_DATA_WRITE &= ~OUTPUT_DATA;
+    LCD_DATA_WRITE |= init_value;
+    lcd_strobe();
+    DelayMs(5);
+    LCD_DATA_WRITE &= ~OUTPUT_DATA;
+    LCD_DATA_WRITE |= init_value;
+    lcd_strobe();
+    DelayUs(200);
+    LCD_DATA_WRITE &= ~OUTPUT_DATA;
+    LCD_DATA_WRITE |= init_value;
+    lcd_strobe();
+
+    if (LCD_MODE == FOURBIT_MODE){
+        LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
+        LCD_DATA_WRITE &= ~OUTPUT_DATA;
+        LCD_DATA_WRITE |= 0x2 << LCD_DATA_OFFSET; // Set 4-bit mode
+        lcd_strobe();
+        lcd_cmd(0x28); // Function Set
+    }
+    else lcd_cmd(0x3C); // 8bit,two lines,5x10 dots
+
+    lcd_cmd(0xF); //Display On, Cursor On, Cursor Blink
+    lcd_cmd(0x1); //Display Clear
+    lcd_cmd(0x6); //Entry Mode
+    lcd_cmd(0x80); //Initialize DDRAM address to zero
+    lcd_cmd(0x0C); // remove curser
+}
+
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
 //---------------------------------------------------------------------

@@ -10,8 +10,6 @@
 #define     LOW     0
 
 
-
-
 // LCDs abstraction
 #define LCD_DATA_WRITE     P2OUT
 #define LCD_DATA_DIR       P2DIR
@@ -25,17 +23,6 @@
 #define LCD_RW_PIN         BIT7
 
 
-
-// RGB abstraction  P1.0, P1.6, P1.7
-#define RGBArrPortOut       P1OUT
-#define RGBArrPortDir       P1DIR
-#define RGBArrPortSEL       P1SEL
-
-// LEDS abstraction P2.4-P2.7
-#define LEDsArrPortOut      P2OUT
-#define LEDsArrPortSel      P2SEL
-#define LEDsArrPortDir      P2DIR
-
 // Joystick abstraction
 #define JoyStickPortOUT     P1OUT
 #define JoyStickPortSEL     P1SEL
@@ -44,7 +31,7 @@
 #define JoyStickIntEdgeSel  P1IES
 #define JoyStickIntEN       P1IE
 #define JoyStickIntPend     P1IFG
-#define JoyStickPB         BIT5
+#define JoyStickPB          BIT5
 
 // Stepmotor abstraction
 #define StepmotorPortOUT     P2OUT
@@ -55,20 +42,36 @@
 //#define StepmotorIntEN       P2IE
 //#define StepmotorIntPend     P2IFG
 
+// General bits abstraction
+#define BIT0                 0x01
+#define BIT1                 0x02
+#define BIT2                 0x04
+#define BIT3                 0x08
+#define BIT4                 0x10
+#define BIT5                 0x20
+#define BIT6                 0x40
+#define BIT7                 0x80
 
+#define TXLED                BIT0
+#define RXLED                BIT6
+#define TXD                  BIT2
+#define RXD                  BIT1
 
-#define TXLED BIT0
-#define RXLED BIT6
-#define TXD BIT2
-#define RXD BIT1
+#define TXBuffer             UCA0TXBUF
+#define RXBuffer             UCA0RXBUF
 
 #define ADC_wait while (ADC10CTL1 & ADC10BUSY);   // Wait if ADC10 core is active
+
+
 
 extern void GPIOconfig(void);
 extern void ADCconfig(void);
 extern void TIMER_A0_config(unsigned int counter);
 extern void TIMER_A1_config(unsigned int counter);
 extern void StopAllTimers(void);
+extern void StopTimerA0(void);
+extern void StopTimerA1(void);
+extern void Reset_overflow(void);
 extern void UART_init(void);
 
 extern void EnterLPM(void);

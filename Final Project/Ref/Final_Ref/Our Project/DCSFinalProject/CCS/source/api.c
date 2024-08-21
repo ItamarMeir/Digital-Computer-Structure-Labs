@@ -11,228 +11,53 @@ int16_t Vry = 0;
 int step_index = 0;
 
 //-------------------------------------------------------------
-//                StepperUsingJoyStick
+//                Stepper Using JoyStick
 //-------------------------------------------------------------
-void JoyStickADC_Painter(){
-    JoyStickIntEN &= ~BIT5; // allow interrupt only in the end of cycle
-    i = 0;
-    if(!stateIFG) { //send data
-        ADC10CTL0 &= ~ENC;
-        while (ADC10CTL1 & ADC10BUSY);               // Wait if ADC10 core is active
-        ADC10SA = &Vr;                        // Data buffer start
-        ADC10CTL0 |= ENC + ADC10SC; // Sampling and conversion start
-        __bis_SR_register(LPM0_bits + GIE);        // LPM0, ADC10_ISR will force exit
+void StepperUsingJoyStick(){
+    uint32_t counter_phi;
+    uint32_t phi;
+    uint32_t temp;
+//    curr_counter = 0;
+    EnableJoystickInt();
+    EnableTXIE();
+    while (counter != 0 && state==state0 && stateStepp==stateJSRotate){
+        JoyStickADC_Steppermotor();
+        if (!( Vr[1] > 400 && Vr[1] < 600 && Vr[0] > 400 && Vr[0] < 600)){
+            Vrx = Vr[1] - 512;
+            Vry = Vr[0] - 512;
 
-        UCA0TXBUF = Vr[i] & 0xFF;
-        MSBIFG = 1;
-        IE2 |= UCA0TXIE;
-        __bis_SR_register(LPM0_bits + GIE);        // LPM0, will exit when finish tx
+            phi = atan2_fp(Vry, Vrx);
+            temp = phi * counter;
 
+            if (270 < phi) {
+//            if (0 < Vrx && Vry < 0) {
+                counter_phi = ((counter * 7) / 4) - (temp / 360);  // ((630-phi)/360)*counter;
+                }
+            else {
+                counter_phi = ((counter * 3) / 4) - (temp / 360);  // ((270-phi)/360)*counter;
+                }
+            if ((int)(curr_counter - counter_phi) < 0) {
+                Stepper_clockwise(600);
+                curr_counter++;
+            }
+            else {
+                Stepper_counter_clockwise(600);
+                curr_counter--;
+            }
+        }
     }
 
-    else if (stateIFG) { //send state
-        UCA0TXBUF = state_changed[i] & 0xFF;
-        MSBIFG = 1;
-        IE2 |= UCA0TXIE;
-        __bis_SR_register(LPM0_bits + GIE);        // LPM0, will exit when finish tx
-
-
-        START_TIMERA0(5000); // wait for PC to get and sync after all the debounce and interrupt delay
-        JoyStickIntPend &= ~BIT5;
-
-    }
-
-    JoyStickIntEN |= BIT5; // allow interrupt only in the end of cycle
 }
 //-------------------------------------------------------------
 //                StepperUsingJoyStick
 //-------------------------------------------------------------
 void JoyStickADC_Steppermotor(){
         DisableADC();                     // Disable ADC
-        ADC_wait;              // Wait if ADC10 core is active
-        EnableADC(Vr);                        // Start ADC
-        EnterLPM();        // LPM0, ADC10_ISR will force exit
-
-}
-//-----------For Flash-------------------------------------
-void ScriptFunc() {
-
-    if(FlashBurnIFG){
-        FlashBurnIFG=0;
-        FCTL2 = FWKEY + FSSEL0 + FN1;             // MCLK/3 for Flash Timing Generator
-   //     ScriptData();
-        file.file_size[file.num_of_files - 1] = strlen(file_content) - 1;
-        write_Seg();
-        send_finish_to_PC(); // send ACK to PC
-        IE2 |= UCA0RXIE;
-    }
-    if(ExecuteFlag){
-        ExecuteFlag=0;
-        flag_script = 1;
-        delay_time = 500;  // delay default time
-        ExecuteScript();
-        send_finish_to_PC(); // finish script
-    }
-    __bis_SR_register(LPM0_bits + GIE);
+        ADC_wait;                         // Wait if ADC10 core is active
+        EnableADC(Vr);                    // Start ADC
+        EnterLPM();                       // LPM0, ADC10_ISR will force exit
 }
 
-//---------------Execute Script--------------------------------
-void ExecuteScript(void)
-{
-    char *Flash_ptrscript;                         // Segment pointer
-    char OPCstr[10], Operand1Flash[20], Operand2Flash[20];
-    unsigned int Oper2ToInt, X, start, stop, y;
-    if (flag_script)
-        Flash_ptrscript = file.file_ptr[file.num_of_files - 1];
-    flag_script = 0;
-  //  IE2 != ~UCA0RXIE; // Now added by mg
-   // for (y = 0; y <= file.file_size[file.num_of_files - 1];)
-    for (y = 0; y < 64;)
-    {
-        OPCstr[0] = *Flash_ptrscript++;
-        OPCstr[1] = *Flash_ptrscript++;
-        y = y + 2;
-        switch (OPCstr[1])
-        {
-        case '1':
-            Operand1Flash[0] = *Flash_ptrscript++;
-            Operand1Flash[1] = *Flash_ptrscript++;
-            y = y + 2;
-//            sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
-            Oper2ToInt = hex2int(Operand1Flash);
-            while (Oper2ToInt > 0)
-            {
-                blinkRGB();    //blink RGB LED
-                Oper2ToInt--;
-            }
-            break;
-
-        case '2':
-            Operand1Flash[0] = *Flash_ptrscript++;
-            Operand1Flash[1] = *Flash_ptrscript++;
-            y = y + 2;
-      //      sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
-            Oper2ToInt = hex2int(Operand1Flash);
-            while (Oper2ToInt)
-            {
-                rlc_leds(rotateLEDs);           //rotate left
-                Oper2ToInt--;
-            }
-            break;
-        case '3':
-            Operand1Flash[0] = *Flash_ptrscript++;
-            Operand1Flash[1] = *Flash_ptrscript++;
-            y = y + 2;
-         //   sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
-            Oper2ToInt = hex2int(Operand1Flash);
-            while (Oper2ToInt)
-            {
-                rrc_leds(rotateLEDs);         //rotate right
-                Oper2ToInt--;
-            }
-            break;
-        case '4':
-            Operand1Flash[0] = *Flash_ptrscript++;
-            Operand1Flash[1] = *Flash_ptrscript++;
-            y = y + 2;
-       //     sscanf(Oper1fFromFlash, "%2x", &delay_time); //set delay
-            delay_time = hex2int(Operand1Flash);
-            delay_time = delay_time * 10 ; //its in unit of 10ms
-            break;
-        case '5':
-            ClearLEDsRGB();
-            break;
-        case '6': //point stepper motor to degree p
-            Operand1Flash[0] = *Flash_ptrscript++;
-            Operand1Flash[1] = *Flash_ptrscript++;
-            y = y + 2;
-        //    sscanf(Oper1fFromFlash, "%2x", &X);
-            X = hex2int(Operand1Flash);
-            motorGoToPosition(X, OPCstr[1]);
-
-            break;
-        case '7': //scan area between angle l to r
-            Operand1Flash[0] = *Flash_ptrscript++;
-            Operand1Flash[1] = *Flash_ptrscript++;
-            y = y + 2;
-            Operand2Flash[0] = *Flash_ptrscript++;
-            Operand2Flash[1] = *Flash_ptrscript++;
-            y = y + 2;
-        //    sscanf(Oper1fFromFlash, "%2x", &X);
-            X = hex2int(Operand1Flash);
-            start = X;
-            motorGoToPosition(X, OPCstr[1]);
-       //     sscanf(Oper2fFromFlash, "%2x", &X);
-            X = hex2int(Operand2Flash);
-            stop = X;
-            motorGoToPosition(X, OPCstr[1]);
-
-            break;
-        case '8': // go sleep
-//            state = state0;
-            break;
-
-        }
-    }
-}
-//-------------------------------------------------------------
-//*************************************************************
-//****************Script Functions*****************************
-//-------------------------------------------------------------
-//                1. Blink RGB
-//-------------------------------------------------------------
-void blinkRGB(){
-    int colors[] = {0b000, 0b001, 0b01000000, 0b01000001, 0b10000000, 0b10000001, 0b11000000, 0b11000001}; // According the P1 pins
-    unsigned int i = 0;
-    for(i=0; i<8;){
-        print2RGB(colors[i]);
-        timer_call_counter();
-        i = (i + 1) % 9;
-    }
-}
-//-------------------------------------------------------------
-//                2. Rotate left LEDS
-//-------------------------------------------------------------
-void rlc_leds(int* rotateLEDs){
-        unsigned int i;
-    LEDsArrPortOut = 0x00;
-    for(i=0; i<4; i++){
-        print2LEDs(*rotateLEDs);
-        *rotateLEDs = (*rotateLEDs*2)%255;
-        if (*rotateLEDs == 1)
-            *rotateLEDs = 0x10;
-     //   START_TIMERA0(65000);  // Timer stopped working
-        timer_call_counter();
-    }
-}
-
-//-------------------------------------------------------------
-//                3. Rotate right LEDS
-//-------------------------------------------------------------
-void rrc_leds(int* rotateLEDs){
-        unsigned int i;
-    LEDsArrPortOut = 0x00;
-    *rotateLEDs = 128;
-    for(i=0; i<4; i++){
-        print2LEDs(*rotateLEDs);
-        *rotateLEDs = (*rotateLEDs/2)%255;
-        if (*rotateLEDs == 1)
-            *rotateLEDs = 0x10;
-     //   START_TIMERA0(40000);
-        timer_call_counter();
-    }
-}
-
-//-------------------------------------------------------------
-//                5. Clear all LEDS+RGB
-//-------------------------------------------------------------
-void ClearLEDsRGB(){
-    LEDsArrPortOut &= ~0xF0;
-    RGBArrPortOut &= ~(BIT7 + BIT6 + BIT0);
-}
-
-//*************************************************************
-//*************************************************************
 //-------------------------------------------------------------
 //                Stepper clockwise
 //-------------------------------------------------------------
@@ -249,6 +74,7 @@ void ClearLEDsRGB(){
 //     START_TIMERA0(speed_clk); // (2^20/8)*(1/50[Hz]) = 2621
 //     StepmotorPortOUT = 0x02; // out = 0010
 // }
+
 void Activate_Stepper(long speed_Hz, int Rot_state){
     int speed_clk;
     // 1 step clockwise of stepper - 50Hz
@@ -260,8 +86,7 @@ void Activate_Stepper(long speed_Hz, int Rot_state){
     while (rotation == Rot_state)
         {
              EnterLPM(); // Sleep
-        }  
-                
+        }           
 }
 
 
@@ -331,45 +156,282 @@ void calibrate(){
     EnterLPM(); // Sleep
     curr_counter = 0;
 }
+// //-------------------------------------------------------------
+// //                Stepper Motor Calibration
+// //-------------------------------------------------------------
+// void calibrate(){
+//     max_counter = counter;
+//     curr_counter = 0;
+//     int2str(counter_str, (int)counter);
+//   //  sprintf(counter_str, "%d", counter);
+//     phi = 360.0 / max_counter;
+//     send_to_PC(counter_str);
+//     EnterLPM(); // Sleep
+//     curr_counter = 0;
+// }
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
-//-------------------------------------------------------------
-//                Stepper Using JoyStick
-//-------------------------------------------------------------
-void StepperUsingJoyStick(){
-    uint32_t counter_phi;
-    uint32_t phi;
-    uint32_t temp;
-//    curr_counter = 0;
-    EnableJoystickInt();
-    EnableTXIE();
-    while (counter != 0 && state==state0 && stateStepp==stateJSRotate){
-        JoyStickADC_Steppermotor();
-        if (!( Vr[1] > 400 && Vr[1] < 600 && Vr[0] > 400 && Vr[0] < 600)){
-            Vrx = Vr[1] - 512;
-            Vry = Vr[0] - 512;
 
-            phi = atan2_fp(Vry, Vrx);
-            temp = phi * counter;
 
-            if (270 < phi) {
-//            if (0 < Vrx && Vry < 0) {
-                counter_phi = ((counter * 7) / 4) - (temp / 360);  // ((630-phi)/360)*counter;
-                }
-            else {
-                counter_phi = ((counter * 3) / 4) - (temp / 360);  // ((270-phi)/360)*counter;
-                }
-            if ((int)(curr_counter - counter_phi) < 0) {
-                Stepper_clockwise(600);
-                curr_counter++;
-            }
-            else {
-                Stepper_counter_clockwise(600);
-                curr_counter--;
-            }
-        }
+
+//-------------------------------------------------------------
+//
+//-------------------------------------------------------------
+void JoyStickADC_Painter(){
+    JoyStickIntEN &= ~BIT5; // allow interrupt only in the end of cycle
+    i = 0;
+    if(!stateIFG) { //send data
+        ADC10CTL0 &= ~ENC;
+        while (ADC10CTL1 & ADC10BUSY);               // Wait if ADC10 core is active
+        ADC10SA = &Vr;                        // Data buffer start
+        ADC10CTL0 |= ENC + ADC10SC; // Sampling and conversion start
+        __bis_SR_register(LPM0_bits + GIE);        // LPM0, ADC10_ISR will force exit
+
+        UCA0TXBUF = Vr[i] & 0xFF;
+        MSBIFG = 1;
+        IE2 |= UCA0TXIE;
+        __bis_SR_register(LPM0_bits + GIE);        // LPM0, will exit when finish tx
+
     }
 
+    else if (stateIFG) { //send state
+        UCA0TXBUF = state_changed[i] & 0xFF;
+        MSBIFG = 1;
+        IE2 |= UCA0TXIE;
+        __bis_SR_register(LPM0_bits + GIE);        // LPM0, will exit when finish tx
+
+
+        START_TIMERA0(5000); // wait for PC to get and sync after all the debounce and interrupt delay
+        JoyStickIntPend &= ~BIT5;
+
+    }
+
+    JoyStickIntEN |= BIT5; // allow interrupt only in the end of cycle
 }
+
+
+
+//-----------For Flash-------------------------------------
+void ScriptFunc() {
+
+    if(FlashBurnIFG){
+        FlashBurnIFG=0;
+        FCTL2 = FWKEY + FSSEL0 + FN1;             // MCLK/3 for Flash Timing Generator
+   //     ScriptData();
+        file.file_size[file.num_of_files - 1] = strlen(file_content) - 1;
+        write_Seg();
+        send_finish_to_PC(); // send ACK to PC
+        IE2 |= UCA0RXIE;
+    }
+    if(ExecuteFlag){
+        ExecuteFlag=0;
+        flag_script = 1;
+        delay_time = 500;  // delay default time
+        ExecuteScript();
+        send_finish_to_PC(); // finish script
+    }
+    __bis_SR_register(LPM0_bits + GIE);
+}
+
+//---------------Execute Script--------------------------------
+void ExecuteScript(void)
+{
+    char *Flash_ptrscript;                         // Segment pointer
+    char OPCstr[10], Operand1Flash[20], Operand2Flash[20];
+    unsigned int Oper2ToInt, X, start, stop, y;
+    if (flag_script)
+        Flash_ptrscript = file.file_ptr[file.num_of_files - 1];
+    flag_script = 0;
+  //  IE2 != ~UCA0RXIE; // Now added by mg
+   // for (y = 0; y <= file.file_size[file.num_of_files - 1];)
+    for (y = 0; y < 64;)
+    {
+        OPCstr[0] = *Flash_ptrscript++;
+        OPCstr[1] = *Flash_ptrscript++;
+        y = y + 2;
+        switch (OPCstr[1])
+        {
+        case '1':
+            Operand1Flash[0] = *Flash_ptrscript++;
+            Operand1Flash[1] = *Flash_ptrscript++;
+            y = y + 2;
+//            sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
+            Oper2ToInt = hex2int(Operand1Flash);
+            while (Oper2ToInt > 0)
+            {
+                // blinkRGB();    //blink RGB LED
+                Oper2ToInt--;
+            }
+            break;
+
+        case '2':
+            Operand1Flash[0] = *Flash_ptrscript++;
+            Operand1Flash[1] = *Flash_ptrscript++;
+            y = y + 2;
+      //      sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
+            Oper2ToInt = hex2int(Operand1Flash);
+            while (Oper2ToInt)
+            {
+                // rlc_leds(rotateLEDs);           //rotate left
+                Oper2ToInt--;
+            }
+            break;
+        case '3':
+            Operand1Flash[0] = *Flash_ptrscript++;
+            Operand1Flash[1] = *Flash_ptrscript++;
+            y = y + 2;
+         //   sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
+            Oper2ToInt = hex2int(Operand1Flash);
+            while (Oper2ToInt)
+            {
+                // rrc_leds(rotateLEDs);         //rotate right
+                Oper2ToInt--;
+            }
+            break;
+        case '4':
+            Operand1Flash[0] = *Flash_ptrscript++;
+            Operand1Flash[1] = *Flash_ptrscript++;
+            y = y + 2;
+       //     sscanf(Oper1fFromFlash, "%2x", &delay_time); //set delay
+            delay_time = hex2int(Operand1Flash);
+            delay_time = delay_time * 10 ; //its in unit of 10ms
+            break;
+        case '5':
+            // ClearLEDsRGB();
+            break;
+        case '6': //point stepper motor to degree p
+            Operand1Flash[0] = *Flash_ptrscript++;
+            Operand1Flash[1] = *Flash_ptrscript++;
+            y = y + 2;
+        //    sscanf(Oper1fFromFlash, "%2x", &X);
+            X = hex2int(Operand1Flash);
+            motorGoToPosition(X, OPCstr[1]);
+
+            break;
+        case '7': //scan area between angle l to r
+            Operand1Flash[0] = *Flash_ptrscript++;
+            Operand1Flash[1] = *Flash_ptrscript++;
+            y = y + 2;
+            Operand2Flash[0] = *Flash_ptrscript++;
+            Operand2Flash[1] = *Flash_ptrscript++;
+            y = y + 2;
+        //    sscanf(Oper1fFromFlash, "%2x", &X);
+            X = hex2int(Operand1Flash);
+            start = X;
+            motorGoToPosition(X, OPCstr[1]);
+       //     sscanf(Oper2fFromFlash, "%2x", &X);
+            X = hex2int(Operand2Flash);
+            stop = X;
+            motorGoToPosition(X, OPCstr[1]);
+
+            break;
+        case '8': // go sleep
+//            state = state0;
+            break;
+
+        }
+    }
+}
+
+//-------------------------------------------------------------
+//                Script Mode Functions 
+//-------------------------------------------------------------
+
+static int delay_value = 200; // Default delay value in units of 10ms
+
+
+//-------------------------------------------------------------
+//                Count up
+//-------------------------------------------------------------
+// Function to increment display from 0 to x with delay
+void inc_lcd(int x) {
+    unsigned int i;
+    for (i = 0; i <= x; i++) {
+        char buffer[16]; // Assuming a 16-character wide display
+        sprintf(buffer, "%d", i);
+        lcd_clear();
+        lcd_puts(buffer); // Display the value onto the LCD
+        timer_delay(delay_value * 10); // Timer-based delay
+    }
+}
+//-------------------------------------------------------------
+//                Count down
+//-------------------------------------------------------------
+// Function to decrement display from x to 0 with delay
+void dec_lcd(int x) {
+    unsigned int i;
+    for (i = x; i >= 0; i--) {
+        char buffer[16];
+        sprintf(buffer, "%d", i);
+        lcd_clear();
+        lcd_puts(buffer); // Display the value onto the LCD
+        timer_delay(delay_value * 10); // Timer-based delay
+    }
+}
+//-------------------------------------------------------------
+//                Rotate Right LCD
+//-------------------------------------------------------------
+// Function to rotate right on LCD with a single character (ASCII)
+void rra_lcd(char x) {
+    unsigned int i;
+    unsigned int j;
+    lcd_home();   // Start at the beginning of the screen
+    lcd_clear();  // Clear the display
+
+    for (i = 0; i < 32; i++) {  // Loop through all 32 positions (0 to 31)
+        lcd_home();  // Reset cursor to the home position
+
+        // Move the cursor to the desired position
+        for (j = 0; j < i; j++) {
+            if (j == 15) lcd_new_line;  // Move to the second line after the first 16 positions
+            else lcd_cursor_right();  // Move cursor right for each step
+        }
+        lcd_data(x);  // Display the character at the current position
+        timer_delay(delay_value * 10);  // Timer-based delay for each step
+        lcd_clear();  // Clear the display before the next shift
+    }
+}
+//-------------------------------------------------------------
+//               Set Delay
+//-------------------------------------------------------------
+// Function to set the delay value for other operations
+void set_delay(int d) {
+    delay_value = d;
+}
+//-------------------------------------------------------------
+//                Clear LCD
+//-------------------------------------------------------------
+// Function to clear all LEDs (or LCD screen)
+void clear_LCD() {
+    lcd_clear(); // Clear display command
+}
+
+
+
+// Function to move stepper motor to a specific degree
+void stepper_deg(int p) {
+    GotoAngle(p); // Move stepper motor to the specified degree
+    char buffer[16];
+    sprintf(buffer, "Angle: %d", p);
+    lcd_puts(buffer); // Display the degree onto the LCD
+}
+
+// Function to scan between two degrees using stepper motor and display on LCD
+void stepper_scan(int l, int r) {
+    unsigned int i;
+    for (i = l; i <= r; i++) {
+        GotoAngle(i); // Move stepper motor incrementally between l and r
+        char buffer[16];
+        sprintf(buffer, "Angle: %d", i);
+        lcd_puts(buffer); // Display degree on LCD screen
+        timer_delay(delay_value * 10); // Timer-based delay
+    }
+}
+
+// Function to put the MCU into sleep mode
+void sleep_mcu() {
+    EnterLPM(); // Enter low-power mode
+}
+
 

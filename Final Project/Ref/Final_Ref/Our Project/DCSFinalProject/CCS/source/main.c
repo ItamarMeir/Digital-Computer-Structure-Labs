@@ -24,7 +24,7 @@ void main(void){
 	case state0: //   StepperUsingJoyStick
 	    switch(stateStepp){
             case stateAutoRotate:
-                Activate_Stepper(200, CounterClockwise);
+                Activate_Stepper(500, halfCounterClockwise);
                 break;
 
             case stateJSRotate:
@@ -39,6 +39,8 @@ void main(void){
                 lcd_init();
                 lcd_clear();
                 lcd_puts("Hello World");
+                lcd_clear();
+                rra_lcd('x');
                 stateStepp = stateDefault;
                 break;
             case stateDefault:

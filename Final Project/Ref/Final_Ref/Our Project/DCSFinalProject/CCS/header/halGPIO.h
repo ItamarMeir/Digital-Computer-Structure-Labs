@@ -32,8 +32,8 @@ extern int rotateIFG;
 extern char counter_str[];
 extern unsigned int i;
 extern unsigned int tx_index;
-#define half_sec 500;
-#define clk_tmp 131; // ( (2^20) / 8 )*(10^-3) to convert ms to counter value for TACCR0
+#define clk_tmp 131            // (2^20) / (8 * 10^ 3) to convert ms to counter value for TACCR0
+#define max_timer_count 65535  // Maximum value the timer can handle (16-bit)
 extern int curr_counter;
 extern int max_counter;
 extern int step_index;
@@ -41,22 +41,24 @@ extern int curr_angle;
 extern double phi;
 
 extern void sysConfig(void);
-extern void print2RGB(char);
-extern void print2LEDs(unsigned char);
-extern void SetByteToPort(char);
-extern void clrPortByte(char);
+// extern void print2RGB(char);
+// extern void print2LEDs(unsigned char);
+// extern void SetByteToPort(char);
+// extern void clrPortByte(char);
 extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 
 extern void disable_interrupts();
 extern void timer_call_counter();
+extern void timer_delay();
 extern void START_TIMERA0(unsigned int counter);
 extern void START_TIMERA1(unsigned int counter);
 extern float angle(float X, float Y);
 extern void  motorGoToPosition(uint32_t stepper_degrees, char script_state);
 extern int16_t atan2_fp(int16_t y_fp, int16_t x_fp);
 extern void send_finish_to_PC();
+extern void send_to_PC(const char *str);
 extern uint32_t hex2int(char *hex);
 
 extern __interrupt void Timer_A0(void);
@@ -128,16 +130,3 @@ extern void lcd_init();
 extern void lcd_strobe();
 extern void DelayMs(unsigned int);
 extern void DelayUs(unsigned int);
-/*
- *  Delay functions for HI-TECH C on the PIC18
- *
- *  Functions available:
- *      DelayUs(x)  Delay specified number of microseconds
- *      DelayMs(x)  Delay specified number of milliseconds
-*/
-
-
-
-
-
-

@@ -5,10 +5,6 @@
 //-----------------------------------------------------------------------------
 void GPIOconfig(void){
   WDTCTL = WDTHOLD | WDTPW;		// Stop WDT
-  // LEDs Configuration
-  LEDsArrPortDir |= 0xF0;
-  LEDsArrPortOut |= 0x00;
-  LEDsArrPortSel &= ~0xF0;
 
   // JoyStick Configuration  P1.3 - Vrx; P1.4 - Vry; P1.5 - PB
   // P1.3-P1.4 - X(Don't care) for Sel, Dir According the dataSheet For A3,A4 input Select For ADC
@@ -23,42 +19,54 @@ void GPIOconfig(void){
   StepmotorPortSEL &= ~(BIT0+BIT1+BIT2+BIT3);  // P2.0-P2.3 Sel = '0'
   StepmotorPortDIR |= BIT0+BIT1+BIT2+BIT3;  // P2.0-P2.3 output = '1'
 
-  // RBG Configuration
-  RGBArrPortDir |= BIT7 + BIT6 + BIT0;
-  RGBArrPortOut |= BIT7 + BIT6 + BIT0;
-  RGBArrPortSEL &= ~(BIT7 + BIT6 + BIT0);
-
-
-
+    // LCD configuration
+  LCD_DATA_WRITE &= ~0xFF;
+  LCD_DATA_DIR |= BIT7 + BIT6 + BIT5 + BIT4;    // P2.4-P2.7 To Output ('1')
+  LCD_DATA_SEL &= ~(BIT7 + BIT6 + BIT5 + BIT4);   // Bit clear P2.4-P2.7
+  LCD_CTL_SEL  &= ~(BIT7 + BIT6 + BIT0);   // Bit clear P1.7, P1.6, P1.0
 
   _BIS_SR(GIE);                     // enable interrupts globally
+}
+
+//-------------------------------------------------------------------------------------
+//            Timer A0  configuration
+//-------------------------------------------------------------------------------------
+void TIMER_A0_config(unsigned int counter){
+    TACCR0 = counter;                      // Set the counter value for Timer A0
+    TACCTL0 = CCIE;                        // Enable capture/compare interrupt for Timer A0
+    TA0CTL = TASSEL_2 + MC_1 + ID_3;       // Select SMCLK (TASSEL_2), Up mode (MC_1), and Divider /8 (ID_3)
+    TA0CTL |= TACLR;                       // Clear the timer
+}
+//-------------------------------------------------------------------------------------
+//            Timer A1  configuration
+//-------------------------------------------------------------------------------------
+void TIMER_A1_config(unsigned int counter) {
+    TA1CCR0 = counter;                      // Set the counter value for Timer A1
+    TA1CCTL0 = CCIE;                        // Enable capture/compare interrupt for Timer A1
+    TA1CTL = TASSEL_2 + MC_1 + ID_3;        // Select SMCLK (TASSEL_2), Up mode (MC_1), and Divider /8 (ID_3)
+    TA1CTL |= TACLR;                        // Clear the timer
+}
+//-------------------------------------------------------------------------------------
+//            Stop A0 Timer
+//-------------------------------------------------------------------------------------
+void StopTimerA0(void) {
+    TA0CTL = MC_0;     // Halt Timer A0 by setting mode control to "Stop"
+    TA0CTL &= ~TAIFG;  // Clear any pending Timer A0 interrupt flags
+}
+//-------------------------------------------------------------------------------------
+//            Stop A1 Timer
+//-------------------------------------------------------------------------------------
+void StopTimerA1(void) {
+    TA1CTL = MC_0;     // Halt Timer A1 by setting mode control to "Stop"
+    TA1CTL &= ~TAIFG;  // Clear any pending Timer A1 interrupt flags
 }
 //-------------------------------------------------------------------------------------
 //            Stop All Timers
 //-------------------------------------------------------------------------------------
-void StopAllTimers(void){
-    TACTL = MC_0; // halt timer A
-
+void StopAllTimers(void) {
+    StopTimerA0();  // Halt Timer A0
+    StopTimerA1();  // Halt Timer A1
 }
-
-//-------------------------------------------------------------------------------------
-//            Timer A  configuration
-//-------------------------------------------------------------------------------------
-void TIMER_A0_config(unsigned int counter){
-    TACCR0 = counter; // (2^20/8)*345m = 45219 -> 0xB0A3
-    TACCTL0 = CCIE;
-    TA0CTL = TASSEL_2 + MC_1 + ID_3;  //  select: 2 - SMCLK ; control: 1 - Up ; divider: 3 - /8
-    TA0CTL |= TACLR;
-}
-
-////-------------------------------------------------------------------------------------
-////            Timer A1  configuration
-////-------------------------------------------------------------------------------------
-//void TIMER_A1_config(unsigned int counter){
-//    TA1CCR0 = counter; // (2^20/8)*345m = 45219 -> 0xB0A3
-//    TA1CCTL0 = CCIE;
-//    TA1CTL = TASSEL_2 + MC_1 + ID_3;  //  select: 2 - SMCLK ; control: 1 - Up ; divider: 3 - /8
-//}
 
 //-------------------------------------------------------------------------------------
 //                              UART init
@@ -151,4 +159,10 @@ void DisableADC(void){
 void EnableADC(short* DataBufferStart){
         ADC10SA = *DataBufferStart;                        // Data buffer start
         ADC10CTL0 |= ENC + ADC10SC;                     // Sampling and conversion start
+}
+
+void Reset_overflow(void) {
+    if (TA1CTL & TAIFG) {  // Check if the overflow flag is set
+        TA1CTL &= ~TAIFG;  // Clear the overflow flag
+    }
 }

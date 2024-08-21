@@ -8,13 +8,14 @@ extern void JoyStickADC_Steppermotor();
 extern void Stepper_clockwise(long);
 extern void Activate_Stepper(long, int);
 extern void Stepper_counter_clockwise(long);
-extern void blinkRGB();
+// extern void blinkRGB();
 extern void clear_counters();
 extern void change_delay_time();
 extern void calibrate();
 extern void ScriptFunc();
 extern void ExecuteScript();
-extern void ClearLEDsRGB();
+extern void inc_lcd(int);
+extern void rra_lcd(char);
 extern void GotoAngle(int);
 
 extern int16_t Vrx;

@@ -1,6 +1,8 @@
 #ifndef _bsp_H_
 #define _bsp_H_
+#include <stdint.h>
 
+#define Q8_8 256  // Scaling factor for Q8.8 format
 #include  <msp430g2553.h>          // MSP430x2xx
 //#include  <msp430xG46x.h>  // MSP430x4xx
 
@@ -41,6 +43,11 @@
 //#define StepmotorIntEdgeSel  P2IES
 //#define StepmotorIntEN       P2IE
 //#define StepmotorIntPend     P2IFG
+
+// ADC abstraction
+#define Vx_Pin                 BIT3
+#define Vy_Pin                 BIT4
+#define DTC_transfers          0x02
 
 // General bits abstraction
 #define BIT0                 0x01
@@ -84,7 +91,7 @@ extern void DisableTXIE(void);
 extern void DisableJoystickInt(void);
 extern void EnableJoystickInt(void);
 extern void ClearJoystickIFG(void);
-extern void EnableADC(short* DataBufferStart);
+
 
 #endif
 

@@ -57,6 +57,8 @@
 #define ADC_CTL1           ADC10CTL1
 #define ADC_AE0            ADC10AE0
 #define ADC_MEM            ADC10MEM
+#define Vx_Pin             BIT3
+#define Vy_Pin             BIT4
 
 // Buzzer abstraction
 #define BuzzPortSel        P2SEL

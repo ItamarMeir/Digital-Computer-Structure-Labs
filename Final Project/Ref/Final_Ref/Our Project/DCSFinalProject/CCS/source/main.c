@@ -22,25 +22,25 @@ void main(void){
 	switch(state){
 
 	case state0: //   StepperUsingJoyStick
+        JoyStickRestVr();    // Calibrate Joystick rest values
 	    switch(stateStepp){
             case stateAutoRotate:
                 Activate_Stepper(500, halfCounterClockwise);
                 break;
 
             case stateJSRotate:
-                //counter = 514;
-                // StepperUsingJoyStick();
-
-                //  ClearJoystickIFG();
-                //  ClearTXIFG();
-                //  DisableJoystickInt();
-                //  DisableTXIE();
-                //GotoAngle(45);
-                lcd_init();
-                lcd_clear();
-                lcd_puts("Hello World");
-                lcd_clear();
-                rra_lcd('x');
+                JoyStickADC_Steppermotor();
+                counter = 514;
+                 StepperUsingJoyStick();
+                 ClearJoystickIFG();
+                 ClearTXIFG();
+                 DisableJoystickInt();
+                 DisableTXIE();
+                // lcd_clear();
+                // lcd_puts("Hello World");
+                // delay(20000);
+                // lcd_clear();
+                // rra_lcd('x');
                 stateStepp = stateDefault;
                 break;
             case stateDefault:
@@ -55,8 +55,9 @@ void main(void){
 	    break;
 
 	case state1: // Paint
-	    JoyStickIntEN |= BIT5;
+	  //  JoyStickIntEN |= BIT5;
 	 //   IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
+        JoyStickRestVr();   // Calibrate Joystick rest values
 	    while (state == state1){
 	        JoyStickADC_Painter();
 	    }
@@ -73,7 +74,7 @@ void main(void){
 
             case stateAutoRotate: // start rotate
                 counter = 0;
-                Activate_Stepper(200, Clockwise); 
+                Activate_Stepper(800, Clockwise); 
                 break;
 
             case stateStopRotate: // stop and set phi

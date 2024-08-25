@@ -103,12 +103,19 @@ void UART_init(void){
 
 //-------------------------------------------------------------------------------------
 //            ADC configuration
-//-------------------------------------------------------------------------------------
-void ADCconfig(void){
-    ADC10CTL1 = INCH_4 + CONSEQ_1 + ADC10SSEL_3;            // A4/A3 highest highest channel for a sequence of conversions
-    ADC10CTL0 = ADC10SHT_3 + MSC + ADC10ON + ADC10IE;
-    ADC10DTC1 = 0x02;                         // 2 conversions
-    ADC10AE0 |= 0x18;                         // P1.3-4 ADC10 option select
+//-----------------------------------------------------------------------------------
+void ADCconfig(void){       // Vy P1.4(A4), Vx P1.3(A3)
+    ADC10CTL0 = ADC10SHT_3 + MSC + ADC10ON + ADC10IE;   // Sample and hold time - 64 CLKs (prevent noise), Multiple sample and conversion, 
+                                                        // ADC ON, ADC interrupt enable
+    ADC10CTL0 &= ~ADC10IFG;                           // Clear ADC interrupt flag
+    ADC10CTL0 &= ~ENC;                                // Disable ADC
+
+    ADC10CTL1 = INCH_4 + CONSEQ_1 + ADC10SSEL_3;            // INCH4 - A4 highest highest channel for a sequence of conversions, 
+                                                            // Sequence of channels one conversion, SMCLK
+
+    ADC10AE0 = Vx_Pin + Vy_Pin;                         // P1.3-4 ADC10 option select
+    ADC10DTC1 = DTC_transfers;                         // (=2) conversions for each block transfer, reduce noise.
+    
 }
 
 
@@ -154,12 +161,10 @@ void ClearJoystickIFG(void){
 
 void DisableADC(void){
     ADC10CTL0 &= ~ENC;                       // Disable ADC
+    ADC_wait;                         // Wait if ADC10 core is active
 }
 
-void EnableADC(short* DataBufferStart){
-        ADC10SA = *DataBufferStart;                        // Data buffer start
-        ADC10CTL0 |= ENC + ADC10SC;                     // Sampling and conversion start
-}
+
 
 void Reset_overflow(void) {
     if (TA1CTL & TAIFG) {  // Check if the overflow flag is set

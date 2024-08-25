@@ -34,7 +34,8 @@ int max_counter = 0;
 short finishIFG = 0;
 int curr_angle = 0;
 double phi = 0;
-
+unsigned int JoyStickCounter = 0;
+short Vr_rest_value[2] = {512, 512};
 //--------------------------------------------------------------------
 //             System Configuration  
 //--------------------------------------------------------------------
@@ -201,6 +202,36 @@ void timer_delay(unsigned int delay_value) {
     // Stop the timer after the delay is complete
     StopTimerA1();
 }
+
+// Fixed-point multiplication
+int16_t fixed_mul(int16_t a, int16_t b) {
+    return (int16_t)(((int32_t)a * b) / Q8_8);
+}
+
+// Fixed-point division
+int16_t fixed_div(int16_t a, int16_t b) {
+    
+    // Convert Q8.8 to Q16.16 by shifting left by 8 bits
+    uint32_t a_long = (uint32_t)a << 8;
+
+    // Perform the division
+    uint32_t result_long = a_long / b;
+
+    // Convert back to Q8.8 by taking the lower 16 bits
+    uint16_t result = (uint16_t)result_long;
+
+    return result;
+}
+
+// Fixed-point multiplication for uint16_t
+long fixed_mul_u(long a, long b) {
+    return (long)(((a >> 8) * (b >> 8)) >> 0);
+}
+
+// Fixed-point division for uint16_t
+long fixed_div_u(long a, long b) {
+    return (long)(((a) << 7)/(b) << 9);
+}
 //------------------------------------------------------------------------
 //                      ATAN2- Fixed point - returns degrees
 //------------------------------------------------------------------------
@@ -345,7 +376,7 @@ __interrupt void TimerA_ISR(void)
 {
     // Increment the global counter
     counter++;
-
+    //JoyStickCounter++;
     // Handle Full-Step Rotation (Clockwise or CounterClockwise)
     if (rotation == Clockwise || rotation == CounterClockwise) {
         // Full-step sequence
@@ -567,7 +598,15 @@ __interrupt void Timer1_A0_ISR (void)
 #pragma vector = ADC10_VECTOR
 __interrupt void ADC10_ISR (void)
 {
+    // Clear the interrupt flag
+    ADC10CTL0 &= ~ADC10IFG;
+    // Exit the LPM0 mode
    LPM0_EXIT;
+}
+
+void EnableADC(short* DataBufferStart){
+        ADC10SA = DataBufferStart;                        // Data buffer start (start address of the buffer)
+        ADC10CTL0 |= ENC + ADC10SC;                     // Sampling and conversion start
 }
 //*********************************************************************
 //                         RX ISR
@@ -649,6 +688,74 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 
 
     LPM0_EXIT;
+}
+
+//***********************************TX ISR******************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=USCIAB0TX_VECTOR
+__interrupt void USCI0TX_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    if(state == state3 && finishIFG == 1){  // For script
+        UCA0TXBUF = finish_str[tx_index++];                 // TX next character
+
+        if (tx_index == sizeof step_str - 1) {   // TX over?
+            tx_index=0;
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            stateStepp = stateDefault;
+            LPM0_EXIT;
+        }
+    }
+
+    if (state == state3 && finishIFG == 0){  // For script
+        UCA0TXBUF = step_str[tx_index++];                 // TX next character
+
+        if (tx_index == sizeof step_str - 1) {   // TX over?
+            tx_index=0;
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            stateStepp = stateDefault;
+            LPM0_EXIT;
+        }
+    }
+    else if (state==state2 && stateStepp==stateStopRotate){
+        UCA0TXBUF = counter_str[tx_index++];                 // TX next character
+
+        if (tx_index == sizeof counter_str - 1) {   // TX over?
+            tx_index=0;
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            stateStepp = stateDefault;
+            LPM0_EXIT;
+        }
+    }
+    else if (stateIFG && state == state1){  // Send Push Button state
+        if(MSBIFG) UCA0TXBUF = (state_changed[i++]>>8) & 0xFF;
+        else UCA0TXBUF = state_changed[i] & 0xFF;
+        MSBIFG ^= 1;
+
+        if (i == 2) {  // TX over?
+            i=0;
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            START_TIMERA0(10000);
+            stateIFG = 0;
+            LPM0_EXIT;
+        }
+    }
+    else if(!stateIFG && state == state1){ //send data for painter!!
+        if(MSBIFG) UCA0TXBUF = (Vr[i++]>>8) & 0xFF;
+        else UCA0TXBUF = Vr[i] & 0xFF;
+        MSBIFG ^= 1;
+
+        if (i == 2) {  // TX over?
+            i=0;
+            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            START_TIMERA0(10000);
+            LPM0_EXIT;
+        }
+    }
 }
 //*********************************************************************
 //                        Port1 ISR

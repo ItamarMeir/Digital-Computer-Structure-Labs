@@ -28,6 +28,9 @@ extern void stopDMA();
 extern void triggerDMA();
 extern void en_keypad_interrupts();
 extern void disable_keypad_interrupts();
+extern int16_t fixed_mul(int16_t, int16_t);
+extern int16_t fixed_div(int16_t, int16_t);
+
 
 extern __interrupt void PBs_handler(void);
 

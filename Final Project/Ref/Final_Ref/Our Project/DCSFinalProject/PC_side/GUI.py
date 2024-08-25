@@ -218,7 +218,7 @@ class GUI:
 
             
             [sg.Column([[sg.Text("Phi:", font=('Helvetica', 12), justification='right'),
-                         sg.Text("", key="Counter", font=('Helvetica', 12), justification='left')
+                         sg.Text("", key="Phi", font=('Helvetica', 12), justification='left')
                          ]], justification='center', element_justification='center', pad=(10, 20))],
              
             [sg.Button("Back", key='_BackMenu_', size=(10, 1), font=('Helvetica', 12), pad=(10, 20))]
@@ -405,9 +405,12 @@ class GUI:
             if not self.debug_mode:
                 calib_data = self.serial_comm.read_from_MSP('calib', None)
                 if calib_data:
-                    counter, phi = calib_data.strip().split(',')
+                    counter = calib_data.strip()
+                    tmp_counter = int(counter)
+                    phi = 360 / tmp_counter
+                    phi_str = f"{phi:.3f}"
                     self.window['Counter'].update(counter)
-                    self.window['Phi'].update(phi)
+                    self.window['Phi'].update(phi_str)
 
     def handle_script_mode(self):
         # Handle script mode selection

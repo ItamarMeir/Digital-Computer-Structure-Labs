@@ -7,6 +7,16 @@
 
 #define MULTIPLY_FP_RESOLUTION_BITS 15 // For atan2-fixed point
 
+typedef signed int fix;
+#define multfix(a,b) ((fix)(((signed long long)(a) * (signed long long)(b)) >> 15))
+#define divfix(a,b) ((fix)(((signed long long)(a) << 15) / (b)))
+#define int2fix(a) ((fix)((a) << 15))
+#define fix2int(a) ((int)((a) >> 15))
+#define float2fix(a) ((fix)((a) * 32768.0))
+#define fix2float(a) ((float)(a) / 32768.0)
+#define sqrtfix(a) (float2fix(sqrt(fix2float(a))))
+
+
 extern enum FSMstate state;   // global variable
 extern enum Stepperstate stateStepp;
 extern enum SYSmode lpm_mode; // global variable
@@ -39,7 +49,11 @@ extern int max_counter;
 extern int step_index;
 extern int curr_angle;
 extern double phi;
+extern short Vr_rest_value[];
 
+extern unsigned int JoyStickCounter;
+#define JoyStick_Stepper_Rotate 60
+extern void EnableADC(short* DataBufferStart);
 extern void sysConfig(void);
 // extern void print2RGB(char);
 // extern void print2LEDs(unsigned char);
@@ -57,6 +71,10 @@ extern void START_TIMERA1(unsigned int counter);
 extern float angle(float X, float Y);
 extern void  motorGoToPosition(uint32_t stepper_degrees, char script_state);
 extern int16_t atan2_fp(int16_t y_fp, int16_t x_fp);
+extern int16_t fixed_mul(int16_t a, int16_t b);
+extern int16_t fixed_div(int16_t a, int16_t b);
+extern long fixed_mul_u(long a, long b);
+extern long fixed_div_u(long a, long b);
 extern void send_finish_to_PC();
 extern void send_to_PC(const char *str);
 extern uint32_t hex2int(char *hex);

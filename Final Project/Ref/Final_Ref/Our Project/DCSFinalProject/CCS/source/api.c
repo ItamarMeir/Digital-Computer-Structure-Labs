@@ -9,7 +9,8 @@ int flag_script = 1;
 int16_t Vrx = 0;
 int16_t Vry = 0;
 int step_index = 0;
-
+unsigned int JoyStick_Error = 0;
+int AVG_Vr[2] = {0, 0};
 //-------------------------------------------------------------
 //                Stepper Using JoyStick
 //-------------------------------------------------------------
@@ -17,43 +18,74 @@ void StepperUsingJoyStick(){
     uint32_t counter_phi;
     uint32_t phi;
     uint32_t temp;
+    unsigned int rotation_speed[] = {200, 600, 800, 1200 };
+    unsigned int selected_speed = 0;
+
 //    curr_counter = 0;
-    EnableJoystickInt();
-    EnableTXIE();
+    //EnableJoystickInt(); // Enabling PB of Joystick
+   // EnableTXIE();
     while (counter != 0 && state==state0 && stateStepp==stateJSRotate){
-        JoyStickADC_Steppermotor();
-        if (!( Vr[1] > 400 && Vr[1] < 600 && Vr[0] > 400 && Vr[0] < 600)){
-            Vrx = Vr[1] - 512;
-            Vry = Vr[0] - 512;
+        AVG_Vr[0] = 0;
+        AVG_Vr[1] = 0;
+        int i;
+        for (i = 0; i < Number_of_Samples; i++){
+            JoyStickADC_Steppermotor();
+            AVG_Vr[0] += Vr[0];
+            AVG_Vr[1] += Vr[1];
+        }
+        AVG_Vr[0] /= Number_of_Samples;
+        AVG_Vr[1] /= Number_of_Samples;
+
+        // if (AVG_Vr[1] > Vr_rest_value[1] + JoyStick_Error){
+        //     rotation = Clockwise;
+        //     }
+        // else if (AVG_Vr[1] < Vr_rest_value[1] - JoyStick_Error){rotation = CounterClockwise;}
+        // else {rotation = stop;}
+        // selected_speed = rotation_speed[((AVG_Vr[0] * 2) / Vr_rest_value[0])];
+    
+    // If the joystick is not in the rest position (considering the error)
+        if (!(AVG_Vr[0]<Vr_rest_value[0] + JoyStick_Error && AVG_Vr[0]>Vr_rest_value[0] - JoyStick_Error &&
+             AVG_Vr[1]<Vr_rest_value[1] + JoyStick_Error && AVG_Vr[1]>Vr_rest_value[1] - JoyStick_Error)){
+           
+            Vrx = Vr[1] - Vr_rest_value[1];
+            Vry = Vr[0] - Vr_rest_value[0];
 
             phi = atan2_fp(Vry, Vrx);
             temp = phi * counter;
 
             if (270 < phi) {
-//            if (0 < Vrx && Vry < 0) {
-                counter_phi = ((counter * 7) / 4) - (temp / 360);  // ((630-phi)/360)*counter;
+               if (0 < Vrx && Vry < 0) {
+                    counter_phi = ((counter * 7) / 4) - (temp / 360);  // ((630-phi)/360)*counter;
+                    }
+                else {
+                    counter_phi = ((counter * 3) / 4) - (temp / 360);  // ((270-phi)/360)*counter;
+                    }
+                if ((int)(curr_counter - counter_phi) < 0) {
+                    Stepper_clockwise(600);
+                    curr_counter++;
                 }
-            else {
-                counter_phi = ((counter * 3) / 4) - (temp / 360);  // ((270-phi)/360)*counter;
+                else {
+                    Stepper_counter_clockwise(600);
+                    curr_counter--;
                 }
-            if ((int)(curr_counter - counter_phi) < 0) {
-                Stepper_clockwise(600);
-                curr_counter++;
-            }
-            else {
-                Stepper_counter_clockwise(600);
-                curr_counter--;
+        }
+
+        if (rotation != stop){
+            
+            START_TIMERA0(selected_speed);
+            while (JoyStickCounter < JoyStick_Stepper_Rotate)
+            {
+                EnterLPM(); // Sleep      
             }
         }
     }
-
+}
 }
 //-------------------------------------------------------------
 //                StepperUsingJoyStick
 //-------------------------------------------------------------
-void JoyStickADC_Steppermotor(){
+void JoyStickADC_Steppermotor(){  // Sample the Joystick and save the values in Vr[]
         DisableADC();                     // Disable ADC
-        ADC_wait;                         // Wait if ADC10 core is active
         EnableADC(Vr);                    // Start ADC
         EnterLPM();                       // LPM0, ADC10_ISR will force exit
 }
@@ -76,13 +108,13 @@ void JoyStickADC_Steppermotor(){
 // }
 
 void Activate_Stepper(long speed_Hz, int Rot_state){
-    int speed_clk;
+    //
     // 1 step clockwise of stepper - 50Hz
     //speed_clk = 131072/speed_Hz;
-    speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
+    //speed_clk = 50; //(2^20/8)*(1/200[Hz]) = 655
     rotation = Rot_state;
     step_index = 0;
-    START_TIMERA0(speed_clk);
+    START_TIMERA0(speed_Hz);
     while (rotation == Rot_state)
         {
              EnterLPM(); // Sleep
@@ -141,20 +173,49 @@ void GotoAngle(int angle){
             }  
     }                
 }
+
 //-------------------------------------------------------------
 //                Stepper Motor Calibration
 //-------------------------------------------------------------
 void calibrate(){
+    //int temp = 360;
+    int tmp = 360; // 360 degrees in fixed point
+    fix overalldeg = int2fix((int)(360)); // 360 degrees in fixed point
     max_counter = counter;
     curr_counter = 0;
     int2str(counter_str, (int)counter);
-  //  sprintf(counter_str, "%d", counter);
+    sprintf(counter_str, "%d", counter);
     tx_index = 0;
-    phi = 360.0 / max_counter;
+    phi = 360.0 / (double)(max_counter);
     UCA0TXBUF = counter_str[tx_index++];
     EnableTXIE();                      // Enable USCI_A0 TX interrupt
     EnterLPM(); // Sleep
     curr_counter = 0;
+}
+
+void JoyStickRestVr(){
+    Vr_rest_value[0] = 0;
+    Vr_rest_value[1] = 0;
+    int i;
+    for (i = 0; i < Number_of_Samples; i++){
+        JoyStickADC_Steppermotor();
+        Vr_rest_value[0] += Vr[0];
+        Vr_rest_value[1] += Vr[1];
+    }
+    Vr_rest_value[0] /= Number_of_Samples;
+    Vr_rest_value[1] /= Number_of_Samples;
+
+    AVG_Vr[0] = 0;
+    AVG_Vr[1] = 0;
+    for (i = 0; i < Number_of_Samples; i++){
+        JoyStickADC_Steppermotor();
+        AVG_Vr[0] += Vr[0];
+        AVG_Vr[1] += Vr[1];
+    }
+    AVG_Vr[0] /= Number_of_Samples;
+    AVG_Vr[1] /= Number_of_Samples;
+
+    JoyStick_Error =  (ABS(AVG_Vr[0] - Vr_rest_value[0]) + ABS(AVG_Vr[1] - Vr_rest_value[1]));
 }
 // //-------------------------------------------------------------
 // //                Stepper Motor Calibration
@@ -172,8 +233,6 @@ void calibrate(){
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
-
-
 
 //-------------------------------------------------------------
 //

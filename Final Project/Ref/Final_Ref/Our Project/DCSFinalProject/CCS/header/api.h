@@ -17,12 +17,14 @@ extern void ExecuteScript();
 extern void inc_lcd(int);
 extern void rra_lcd(char);
 extern void GotoAngle(int);
-
+extern void JoyStickRestVr();
 extern int16_t Vrx;
 extern int16_t Vry;
 extern int step_index;
 
 
+#define Number_of_Samples 4
+#define ABS(x) ((x) < 0 ? -(x) : (x))
 
 
 

@@ -11,7 +11,10 @@
         "xstring": "c",
         "iosfwd": "c",
         "xlocbuf": "c",
-        "random": "c"
+        "random": "c",
+        "halgpio.h": "c",
+        "flash.h": "c",
+        "cstdlib": "c"
     },
     "C_Cpp.dimInactiveRegions": false,
     "python.analysis.typeCheckingMode": "off"

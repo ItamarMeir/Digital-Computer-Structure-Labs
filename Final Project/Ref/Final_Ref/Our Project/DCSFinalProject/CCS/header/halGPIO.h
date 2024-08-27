@@ -50,15 +50,11 @@ extern int step_index;
 extern int curr_angle;
 extern double phi;
 extern short Vr_rest_value[];
+extern short finishIFG;
 
 extern unsigned int JoyStickCounter;
 #define JoyStick_Stepper_Rotate 60
-extern void EnableADC(short* DataBufferStart);
 extern void sysConfig(void);
-// extern void print2RGB(char);
-// extern void print2LEDs(unsigned char);
-// extern void SetByteToPort(char);
-// extern void clrPortByte(char);
 extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
@@ -76,8 +72,9 @@ extern int16_t fixed_div(int16_t a, int16_t b);
 extern long fixed_mul_u(long a, long b);
 extern long fixed_div_u(long a, long b);
 extern void send_finish_to_PC();
-extern void send_to_PC(const char *str);
+extern void send_to_PC(const char *input_str);
 extern uint32_t hex2int(char *hex);
+extern void SampleJoystick(void);
 
 extern __interrupt void Timer_A0(void);
 extern __interrupt void Timer_A1(void);

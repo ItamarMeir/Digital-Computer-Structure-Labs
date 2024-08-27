@@ -122,6 +122,7 @@ class SerialCommunication:
 
     def read_from_MSP(self, state, size):
         try:
+            final_message = ""
             # Read data from the serial port based on the current state
             while self.ser.in_waiting > 0:
                 if state == 'Painter':
@@ -132,8 +133,11 @@ class SerialCommunication:
                 elif state == 'script':
                     final_message = self.ser.read(size=size).decode('utf-8')
                 else:
-                    final_message = self.ser.readline().decode('utf-8')
-                return final_message
+                    message = self.ser.read().decode('utf-8')
+                    if message == '\0':
+                        break
+                    final_message += message
+            return final_message
         except serial.SerialException as e:
             print(f"Error reading from MSP: {e}")
             raise
@@ -400,17 +404,17 @@ class GUI:
                 self.serial_comm.send_to_MSP('A')
             elif event.startswith("_Stop_"):
                 self.serial_comm.send_to_MSP('M')
-            
-            # Update calibration data
-            if not self.debug_mode:
-                calib_data = self.serial_comm.read_from_MSP('calib', None)
-                if calib_data:
-                    counter = calib_data.strip()
-                    tmp_counter = int(counter)
-                    phi = 360 / tmp_counter
-                    phi_str = f"{phi:.3f}"
-                    self.window['Counter'].update(counter)
-                    self.window['Phi'].update(phi_str)
+                time.sleep(0.2) 
+                # Update calibration data
+                if not self.debug_mode:
+                    calib_data = self.serial_comm.read_from_MSP('calib', None)
+                    if calib_data:
+                        counter = calib_data.strip()
+                        tmp_counter = int(counter)
+                        phi = 360 / tmp_counter
+                        phi_str = f"{phi:.3f}"
+                        self.window['Counter'].update(counter)
+                        self.window['Phi'].update(phi_str)
 
     def handle_script_mode(self):
         # Handle script mode selection
@@ -423,11 +427,23 @@ class GUI:
         
 
     def handle_folder_selection(self, values):
-        # Handle folder selection for script files
         folder = values['_Folder_']
+        print(f"Selected folder: {folder}")  # Debugging step to check the folder path
+
         if folder:
-            file_list = [f for f in os.listdir(folder) if f.endswith('.txt')]
-            self.window['_FileList_'].update(file_list)
+            try:
+                # Verify the folder contents
+                print(f"Contents of the folder: {os.listdir(folder)}")  # Print the folder contents for debugging
+
+                # List all files with .txt extension in the selected folder
+                file_list = [f for f in os.listdir(folder) if f.lower().endswith('.txt')]
+                print(f"Filtered .txt files: {file_list}")  # Debugging step to see the filtered files
+                self.window['_FileList_'].update(file_list)
+            except Exception as e:
+                sg.popup_error(f"Error loading files: {str(e)}", font=('Helvetica', 12))
+        else:
+            sg.popup_error("Please select a valid folder", font=('Helvetica', 12))
+
 
     def handle_file_selection(self, values):
         # Display selected file content

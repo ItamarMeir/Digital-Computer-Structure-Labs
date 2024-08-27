@@ -22,15 +22,36 @@ void main(void){
 	switch(state){
 
 	case state0: //   StepperUsingJoyStick
-        JoyStickRestVr();    // Calibrate Joystick rest values
+        //JoyStickRestVr();    // Calibrate Joystick rest values
 	    switch(stateStepp){
             case stateAutoRotate:
                 Activate_Stepper(500, halfCounterClockwise);
                 break;
 
             case stateJSRotate:
-                JoyStickADC_Steppermotor();
-                counter = 514;
+                // while(1){
+                //     SampleJoystick();
+                //     //int angle = calculateJoystickAngle((int)Vr[1], (int)Vr[0]);
+
+                //     lcd_clear();
+                //     lcd_puts("x:");
+
+                //     // Convert Vr[1] (short) to a string
+                //     char x_str[10];
+                //     sprintf(x_str, "%d", (int)Vr[1]);
+                //     lcd_puts(x_str);
+
+                //     lcd_new_line; // This is a function, so add parentheses
+
+                //     lcd_puts("y:");
+
+                //     // Convert Vr[0] (short) to a string
+                //     char y_str[10];
+                //     sprintf(y_str, "%d", (int)Vr[0]);
+                //     lcd_puts(y_str);
+
+                //     timer_delay(500);
+                // }
                  StepperUsingJoyStick();
                  ClearJoystickIFG();
                  ClearTXIFG();
@@ -57,7 +78,7 @@ void main(void){
 	case state1: // Paint
 	  //  JoyStickIntEN |= BIT5;
 	 //   IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
-        JoyStickRestVr();   // Calibrate Joystick rest values
+        //JoyStickRestVr();   // Calibrate Joystick rest values
 	    while (state == state1){
 	        JoyStickADC_Painter();
 	    }
@@ -84,7 +105,7 @@ void main(void){
         break;
 
 	case state3:  //Script
-        IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt
+        EnableRXIE();                          // Enable USCI_A0 RX interrupt
 	    while ( state == state3){
 	        ScriptFunc();
 	    }

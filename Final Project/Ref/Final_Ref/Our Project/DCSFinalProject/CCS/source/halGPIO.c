@@ -16,6 +16,8 @@ unsigned int delay_time = 500;
 const unsigned int timer_half_sec = 65535;
 unsigned int i = 0;
 unsigned int tx_index;
+unsigned int tx_length = 0;
+const char *tx_str;
 char counter_str[4];
 short Vr[] = {0, 0}; //Vr[0]=Vry , Vr[1]=Vrx
 const short state_changed[] = {1000, 1000}; // send if button pressed - state changed
@@ -49,24 +51,26 @@ void sysConfig(void){
 //--------------------------------------------------------------------
 //              General Function to Send Data to PC
 //--------------------------------------------------------------------
-void send_to_PC(const char *data_str) {
+void send_to_PC(const char *input_str) {
+    tx_str = input_str;             // Set the global pointer to the input string
     tx_index = 0;
-    TXBuffer = data_str[tx_index++];
-    EnableTXIE;                             // Enable USCI_A0 TX interrupt
-    __bis_SR_register(LPM0_bits + GIE);     // Enter low-power mode with interrupts enabled
-    timer_delay(100);                       // Start timer (adjust delay as needed)
+    tx_length = strlen(input_str);  // Determine the length of the input string
+    TXBuffer = tx_str[tx_index++];  // Send the first character
+    EnableTXIE();                   // Enable USCI_A0 TX interrupt
+    EnterLPM();                     // Enter low-power mode with interrupts enabled
 }
 //--------------------------------------------------------------------
 //              Send FINISH to PC
 //--------------------------------------------------------------------
 void send_finish_to_PC(){
     finishIFG = 1;
-    tx_index = 0;
-    TXBuffer = finish_str[tx_index++];
-    EnableTXIE;                        // Enable USCI_A0 TX interrupt
-    __bis_SR_register(LPM0_bits + GIE); // Sleep
-    timer_delay(100);
-    // START_TIMERA0(10000);
+    // tx_index = 0;
+    // TXBuffer = finish_str[tx_index++];
+    // EnableTXIE;                        // Enable USCI_A0 TX interrupt
+    // __bis_SR_register(LPM0_bits + GIE); // Sleep
+    // timer_delay(100);
+    // // START_TIMERA0(10000);
+    send_to_PC(finish_str);
     finishIFG = 0;
 }
 
@@ -74,18 +78,31 @@ void send_finish_to_PC(){
 //              Send degree to PC
 //--------------------------------------------------------------------
 void send_degree_to_PC(){
-    tx_index = 0;
-    TXBuffer = step_str[tx_index++];
-    EnableTXIE;                        // Enable USCI_A0 TX interrupt
-    __bis_SR_register(LPM0_bits + GIE); // Sleep
-    timer_delay(100);
-    // START_TIMERA0(10000);
+    // tx_index = 0;
+    // TXBuffer = step_str[tx_index++];
+    // EnableTXIE;                        // Enable USCI_A0 TX interrupt
+    // __bis_SR_register(LPM0_bits + GIE); // Sleep
+    // timer_delay(100);
+    // // START_TIMERA0(10000);
+    send_to_PC(step_str);
 }
-
+//--------------------------------------------------------------------
+//              Sample Joystick
+//-------------------------------------------------------------------
+void SampleJoystick(void) {
+    DisableADC();                   // Ensure ADC is disabled before starting
+    EnableADC(Vr);                  // Start ADC sampling and conversion
+    EnterLPM();                     // Enter LPM0, will exit after ISR
+}
 //---------------------------------------------------------------------
 //            General Function
 //---------------------------------------------------------------------
-
+//---------------------------------------------------------------------
+//            Convert Integer to String
+//---------------------------------------------------------------------
+// void int2str(char *str, unsigned int num) {
+//     sprintf(str, "%u", num);  // Use sprintf for easier and safer conversion
+// }
 //-----------------------------------------------------------------------
 //                  inn to str
 //-----------------------------------------------------------------------
@@ -179,6 +196,42 @@ void motorGoToPosition(uint32_t stepper_degrees, char script_state){
         send_degree_to_PC();
     }
 }
+// //---------------------------------------------------------------------
+// //                  Motor Go To Position- NEW
+// //---------------------------------------------------------------------
+// void motorGoToPosition(uint32_t stepper_degrees, char script_state) {
+//     uint32_t step_counts = (stepper_degrees * counter) / 360;
+//     int diff = step_counts - curr_counter;
+
+//     if (diff >= 0) {  // Move Clockwise
+//         for (int clicks_cnt = 0; clicks_cnt < diff; clicks_cnt++) {
+//             curr_counter++;
+//             Stepper_clockwise(150);
+//             START_TIMERA0(10000);
+//             if (script_state == '6') {
+//                 int2str(step_str, curr_counter);
+//                 send_degree_to_PC();
+//             }
+//         }
+//     } else {  // Move Counter-Clockwise
+//         for (int clicks_cnt = diff; clicks_cnt < 0; clicks_cnt++) {
+//             curr_counter--;
+//             Stepper_counter_clockwise(150);
+//             START_TIMERA0(10000);
+//             if (script_state == '6') {
+//                 int2str(step_str, curr_counter);
+//                 send_degree_to_PC();
+//             }
+//         }
+//     }
+
+//     if (script_state == '7') {
+//         int2str(step_str, curr_counter);
+//         send_degree_to_PC();
+//     }
+//     strcpy(step_str, "FFFF");  // Add finish flag
+//     send_degree_to_PC();
+// }
 
 //------------------------------------------------------------------------
 //                      Timer Delay in ms
@@ -187,21 +240,19 @@ void timer_delay(unsigned int delay_value) {
     unsigned int max_timer_time = 500;  // 0.5 sec delay per overflow based on up mode
     unsigned int full_intervals = delay_value / max_timer_time; // Number of 0.5 second intervals
     unsigned int final_count = (delay_value % max_timer_time) * clk_tmp;  // Remaining time count
-
     // Run the full intervals using the overflow flag
     while (full_intervals > 0) {
         START_TIMERA1(max_timer_count);  // Start Timer A1 for the maximum count and enter LPM0
         full_intervals--;
     }
-
     // Run the final interval if there are remaining cycles
     if (final_count > 0) {
         START_TIMERA1(final_count);   // Start Timer A1 for the remaining cycles and enter LPM0
     }
-
     // Stop the timer after the delay is complete
     StopTimerA1();
 }
+
 
 // Fixed-point multiplication
 int16_t fixed_mul(int16_t a, int16_t b) {
@@ -325,14 +376,14 @@ void disable_interrupts(){
 //---------------------------------------------------------------------
 void START_TIMERA0(unsigned int counter){
     TIMER_A0_config(counter);
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+    EnterLPM();       // Enter LPM0 w/ interrupt
 }
 //---------------------------------------------------------------------
 //            Start TimerA1 With counter
 //---------------------------------------------------------------------
 void START_TIMERA1(unsigned int counter){
     TIMER_A1_config(counter);
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+    EnterLPM();       // Enter LPM0 w/ interrupt
 }
 // -----------------------------------------------------------------
 //                     Polling delays
@@ -444,6 +495,7 @@ __interrupt void TimerA_ISR(void)
         step_index = 0;
         LPM0_EXIT;
     }
+    LPM0_EXIT;
 }
 //*********************************************************************
 //                  TIMER1_A0 ISR - Delay
@@ -454,160 +506,16 @@ __interrupt void Timer1_A0_ISR (void)
     Reset_overflow();  // Reset the overflow flag
     LPM0_EXIT;  
 }
-// //*********************************************************************
-// //                        TIMER 0 A0 ISR
-// //*********************************************************************
-// #pragma vector = TIMER0_A0_VECTOR // For Motor
-// __interrupt void TimerA_ISR (void)
-// {
-//     counter++;
-//     if (rotation == Clockwise){
-//         switch (step_index){
-//             case 0:
-//                 StepmotorPortOUT = 0x08; // out = 1000
-//                 break;
-//             case 1:
-//                 StepmotorPortOUT = 0x01; // out = 0001
-//                 break;
-//             case 2:
-//                 StepmotorPortOUT = 0x02; // out = 0010
-//                 break;
-//             case 3:
-//                 StepmotorPortOUT = 0x04; // out = 0100
-//                 break;
-//         }
-//         step_index = (step_index + 1) % 4;
-//         curr_counter++;
-//         if (curr_counter >= max_counter && state != state2){
-//             if (curr_counter == max_counter){curr_counter = 0;} // reset counter
-//             else {curr_counter = 0.5;} // Half step - reset counter
-            
-//         }
-//         LPM0_EXIT;
-//     }
-//     else if (rotation == CounterClockwise)
-//     {
-//         switch (step_index){
-//             case 0:
-//                 StepmotorPortOUT = 0x01; // out = 0001
-//                 break;
-//             case 1:
-//                 StepmotorPortOUT = 0x08; // out = 1000
-//                 break;
-//             case 2:
-//                 StepmotorPortOUT = 0x04; // out = 0100
-//                 break;
-//             case 3:
-//                 StepmotorPortOUT = 0x02; // out = 0010
-//                 break;
-//         }
-//         step_index = (step_index + 1) % 4;
-//         curr_counter--;
-//         if (curr_counter <= 0 && state != state2){
-//             if (curr_counter == 0) {curr_counter = max_counter;}    // reset counter
-//             else {curr_counter = max_counter - 0.5;}    // Half step - reset counter
-//         }
-//         LPM0_EXIT;
-
-//     }
-//     else if (rotation == halfClockwise)
-//     {
-//         switch (step_index){
-//             case 0:
-//                 StepmotorPortOUT = 0x08; // out = 1000
-//                 break;
-//             case 1:
-//                 StepmotorPortOUT = 0x0C; // out = 1100
-//                 break;
-//             case 2:
-//                 StepmotorPortOUT = 0x04; // out = 0100
-//                 break;
-//             case 3:
-//                 StepmotorPortOUT = 0x06; // out = 0110
-//                 break;
-//             case 4:
-//                 StepmotorPortOUT = 0x02; // out = 0010
-//                 break;
-//             case 5:
-//                 StepmotorPortOUT = 0x03; // out = 0011
-//                 break;
-//             case 6:
-//                 StepmotorPortOUT = 0x01; // out = 0001
-//                 break;
-//             case 7:
-//                 StepmotorPortOUT = 0x09; // out = 1001
-//                 break;
-//         }
-//         step_index = (step_index + 1) % 8;
-//         curr_counter+=0.5;
-//         if (curr_counter == max_counter && state != state2){
-//             curr_counter = 0;
-//         }
-//         LPM0_EXIT;
-        
-//     }
-
-//     else if (rotation == halfCounterClockwise)
-//     {
-//         switch (step_index){
-//             case 0:
-//                 StepmotorPortOUT = 0x09; // out = 1001    
-//                 break;
-//             case 1:
-//                 StepmotorPortOUT = 0x01; // out = 0001
-//                 break;
-//             case 2:
-//                  StepmotorPortOUT = 0x03; // out = 0011
-//                 break;
-//             case 3:
-//                 StepmotorPortOUT = 0x02; // out = 0010
-//                 break;
-//             case 4:
-//                 StepmotorPortOUT = 0x06; // out = 0110
-//                 break;
-//             case 5:
-//                 StepmotorPortOUT = 0x04; // out = 0100
-//                 break;
-//             case 6:
-//                 StepmotorPortOUT = 0x0C; // out = 1100
-//                 break;
-//             case 7:
-//                 StepmotorPortOUT = 0x08; // out = 1000
-//                 break;
-//         }
-//         step_index = (step_index + 1) % 8;
-//         curr_counter-=0.5;
-//         if (curr_counter < 0 && state != state2){
-//             curr_counter = max_counter;
-//         }
-//         LPM0_EXIT;
-//     }
-//     else{
-//         if (curr_counter == max_counter){curr_counter = 0;}
-//         StopAllTimers();
-//         step_index = 0;
-//         LPM0_EXIT;
-//     }
-// }
-
-
-
 //*********************************************************************
 //                         ADC10 ISR
 //*********************************************************************
 #pragma vector = ADC10_VECTOR
 __interrupt void ADC10_ISR (void)
 {
-    // Clear the interrupt flag
-    ADC10CTL0 &= ~ADC10IFG;
-    // Exit the LPM0 mode
-   LPM0_EXIT;
+    ClearADCIFG();    // Clear the interrupt flag
+    LPM0_EXIT;     // Exit the LPM0 mode
 }
 
-void EnableADC(short* DataBufferStart){
-        ADC10SA = DataBufferStart;                        // Data buffer start (start address of the buffer)
-        ADC10CTL0 |= ENC + ADC10SC;                     // Sampling and conversion start
-}
 //*********************************************************************
 //                         RX ISR
 //*********************************************************************
@@ -689,8 +597,31 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 
     LPM0_EXIT;
 }
+// //*********************************************************************
+// //                         TX ISR
+// //*********************************************************************
+// #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+// #pragma vector=USCIAB0TX_VECTOR
+// __interrupt void USCI0TX_ISR(void)
+// #elif defined(__GNUC__)
+// void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
+// #else
+// #error Compiler not supported!
+// #endif
+// {
+//     if (tx_index < tx_length) {
+//         TXBuffer = tx_str[tx_index++];  // TX next character
+//     } else {
+//         tx_index = 0;  // Reset index for the next transmission
+//         DisableTXIE();  // Disable USCI_A0 TX interrupt
+//         stateStepp = stateDefault;  // Reset state
+//         LPM0_EXIT;  // Exit low-power mode
+//     }
 
-//***********************************TX ISR******************************************
+// }
+//*********************************************************************
+//                         TX ISR
+//*********************************************************************
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCIAB0TX_VECTOR
 __interrupt void USCI0TX_ISR(void)
@@ -705,7 +636,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 
         if (tx_index == sizeof step_str - 1) {   // TX over?
             tx_index=0;
-            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            DisableTXIE;                       // Disable USCI_A0 TX interrupt
             stateStepp = stateDefault;
             LPM0_EXIT;
         }
@@ -716,19 +647,19 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 
         if (tx_index == sizeof step_str - 1) {   // TX over?
             tx_index=0;
-            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            DisableTXIE;                       // Disable USCI_A0 TX interrupt
             stateStepp = stateDefault;
             LPM0_EXIT;
         }
     }
     else if (state==state2 && stateStepp==stateStopRotate){
-        UCA0TXBUF = counter_str[tx_index++];                 // TX next character
-
-        if (tx_index == sizeof counter_str - 1) {   // TX over?
-            tx_index=0;
-            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
-            stateStepp = stateDefault;
-            LPM0_EXIT;
+        if (tx_index < tx_length) {
+            TXBuffer = tx_str[tx_index++];  // TX next character
+        } else {
+            tx_index = 0;  // Reset index for the next transmission
+            DisableTXIE();  // Disable USCI_A0 TX interrupt
+            stateStepp = stateDefault;  // Reset state
+            LPM0_EXIT;  // Exit low-power mode
         }
     }
     else if (stateIFG && state == state1){  // Send Push Button state
@@ -738,7 +669,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 
         if (i == 2) {  // TX over?
             i=0;
-            IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
+            DisableTXIE;                       // Disable USCI_A0 TX interrupt
             START_TIMERA0(10000);
             stateIFG = 0;
             LPM0_EXIT;

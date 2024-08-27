@@ -1,31 +1,28 @@
-#ifndef _bsp_H_
-#define _bsp_H_
+#ifndef _BSP_H_
+#define _BSP_H_
+
 #include <stdint.h>
+#include <msp430g2553.h>  // MSP430x2xx
 
-#define Q8_8 256  // Scaling factor for Q8.8 format
-#include  <msp430g2553.h>          // MSP430x2xx
-//#include  <msp430xG46x.h>  // MSP430x4xx
+// General Definitions
+#define Q8_8                256  // Scaling factor for Q8.8 format
+#define debounceVal         2000
+#define HIGH                1
+#define LOW                 0
 
+// LCD Abstraction
+#define LCD_DATA_WRITE      P2OUT
+#define LCD_DATA_DIR        P2DIR
+#define LCD_DATA_READ       P2IN
+#define LCD_DATA_SEL        P2SEL
+#define LCD_CTL_SEL         P1SEL
+#define LCD_CTL_DIR         P1DIR
+#define LCD_CTL_OUT         P1OUT
+#define LCD_EN_PIN          BIT0
+#define LCD_RS_PIN          BIT6
+#define LCD_RW_PIN          BIT7
 
-#define   debounceVal      2000
-#define     HIGH    1
-#define     LOW     0
-
-
-// LCDs abstraction
-#define LCD_DATA_WRITE     P2OUT
-#define LCD_DATA_DIR       P2DIR
-#define LCD_DATA_READ      P2IN
-#define LCD_DATA_SEL       P2SEL
-#define LCD_CTL_SEL        P1SEL
-#define LCD_CTL_DIR        P1DIR
-#define LCD_CTL_OUT        P1OUT
-#define LCD_EN_PIN         BIT0
-#define LCD_RS_PIN         BIT6
-#define LCD_RW_PIN         BIT7
-
-
-// Joystick abstraction
+// Joystick Abstraction
 #define JoyStickPortOUT     P1OUT
 #define JoyStickPortSEL     P1SEL
 #define JoyStickPortDIR     P1DIR
@@ -35,42 +32,24 @@
 #define JoyStickIntPend     P1IFG
 #define JoyStickPB          BIT5
 
-// Stepmotor abstraction
-#define StepmotorPortOUT     P2OUT
-#define StepmotorPortSEL     P2SEL
-#define StepmotorPortDIR     P2DIR
-//#define StepmotorPortIN      P2IN
-//#define StepmotorIntEdgeSel  P2IES
-//#define StepmotorIntEN       P2IE
-//#define StepmotorIntPend     P2IFG
+// Stepper Motor Abstraction
+#define StepmotorPortOUT    P2OUT
+#define StepmotorPortSEL    P2SEL
+#define StepmotorPortDIR    P2DIR
 
-// ADC abstraction
-#define Vx_Pin                 BIT3
-#define Vy_Pin                 BIT4
-#define DTC_transfers          0x02
+// ADC Abstraction
+#define Vx_Pin              BIT3
+#define Vy_Pin              BIT4
 
-// General bits abstraction
-#define BIT0                 0x01
-#define BIT1                 0x02
-#define BIT2                 0x04
-#define BIT3                 0x08
-#define BIT4                 0x10
-#define BIT5                 0x20
-#define BIT6                 0x40
-#define BIT7                 0x80
+// UART Definitions
+#define TXLED               BIT0
+#define RXLED               BIT6
+#define TXD                 BIT2
+#define RXD                 BIT1
+#define TXBuffer            UCA0TXBUF
+#define RXBuffer            UCA0RXBUF
 
-#define TXLED                BIT0
-#define RXLED                BIT6
-#define TXD                  BIT2
-#define RXD                  BIT1
-
-#define TXBuffer             UCA0TXBUF
-#define RXBuffer             UCA0RXBUF
-
-#define ADC_wait while (ADC10CTL1 & ADC10BUSY);   // Wait if ADC10 core is active
-
-
-
+// Function Declarations
 extern void GPIOconfig(void);
 extern void ADCconfig(void);
 extern void TIMER_A0_config(unsigned int counter);
@@ -91,9 +70,13 @@ extern void DisableTXIE(void);
 extern void DisableJoystickInt(void);
 extern void EnableJoystickInt(void);
 extern void ClearJoystickIFG(void);
+extern void EnableADC(short* DataBufferStart);
+extern void DisableADC(void);
+extern void ClearADCIFG(void);
+extern short readADC(int channel);
+extern void configureFlashTiming(void);
 
 
-#endif
 
 
-
+#endif  // _BSP_H_

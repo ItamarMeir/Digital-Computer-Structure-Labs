@@ -48,16 +48,17 @@ extern int curr_counter;
 extern int max_counter;
 extern int step_index;
 extern int curr_angle;
-extern double phi;
+extern int delta_phi;
 extern short Vr_rest_value[];
 extern short finishIFG;
 
 extern unsigned int JoyStickCounter;
-#define JoyStick_Stepper_Rotate 60
+#define JoyStick_Stepper_Rotate 40
 extern void sysConfig(void);
 extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
+//extern void GotoAngle(int angle);
 
 extern void disable_interrupts();
 extern void timer_call_counter();

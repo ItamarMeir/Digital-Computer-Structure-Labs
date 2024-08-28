@@ -16,20 +16,20 @@ extern void ScriptFunc();
 extern void ExecuteScript();
 extern void inc_lcd(int);
 extern void rra_lcd(char);
-// extern void GotoAngle(int);
+extern void GotoAngle(unsigned long int);
 extern void JoyStickRestVr();
 extern int16_t Vrx;
 extern int16_t Vry;
 extern int step_index;
 extern int calculateJoystickAngle(int x, int y);
 extern void rotateMotorUsingJoystick(int x, int y);
-
-
+extern void Activate_Stepper_Clicks(int clicks, int speed_Hz, int Rot_state);
+extern void stepper_scan(int l, int r);
 extern char x;
 extern char y;
 
 #define ALPHA 0.1
-#define Number_of_Samples 4
+#define Number_of_Samples 1
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 #define CENTER_X 460          // Center position for X-axis

@@ -32,10 +32,10 @@ int counter = 514;
 char step_str[4];
 char finish_str[3] = "FIN";
 int curr_counter = 0;
-int max_counter = 0;
+int max_counter = 2117;
 short finishIFG = 0;
 int curr_angle = 0;
-double phi = 0;
+int delta_phi = 17;
 unsigned int JoyStickCounter = 0;
 short Vr_rest_value[2] = {512, 512};
 //--------------------------------------------------------------------
@@ -58,6 +58,8 @@ void send_to_PC(const char *input_str) {
     TXBuffer = tx_str[tx_index++];  // Send the first character
     EnableTXIE();                   // Enable USCI_A0 TX interrupt
     EnterLPM();                     // Enter low-power mode with interrupts enabled
+    DisableTXIE();
+    ClearTXIFG();
 }
 //--------------------------------------------------------------------
 //              Send FINISH to PC
@@ -426,6 +428,7 @@ void delay(unsigned int t){
 __interrupt void TimerA_ISR(void)
 {
     // Increment the global counter
+    JoyStickCounter ++;
     counter++;
     //JoyStickCounter++;
     // Handle Full-Step Rotation (Clockwise or CounterClockwise)
@@ -693,14 +696,21 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 //*********************************************************************
 #pragma vector=PORT1_VECTOR
   __interrupt void Joystick_handler(void){
-      DisableTXIE();                       // Disable USCI_A0 TX interrupt
       delay(debounceVal);
 
-      if(JoyStickIntPend & BIT5){          // PB at P1.5
-          stateIFG = 1;                    // Set joystick flag 
+      if(JoyStickIntPend & BIT5){          // PB at P1.5           
           JoyStickIntPend &= ~BIT5;
+          if (stateStepp == stateDefault){
+            stateStepp = stateAutoRotate;
+        }
+        else if (stateStepp == stateAutoRotate){
+            StopTimerA0();
+            rotation = stop;
+            stateStepp = stateStopRotate;
+        }
+          LPM0_EXIT;
       }
-      EnableTXIE();                       // Enable USCI_A0 TX interrupt
+     
 }
 //---------------------------------------------------------------------
 //                           LCD

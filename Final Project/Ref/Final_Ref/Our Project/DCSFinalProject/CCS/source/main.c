@@ -16,60 +16,32 @@ void main(void){
   stateStepp = stateDefault;
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();     // Configure GPIO, Init ADC
+  DisableTXIE();  // Disable USCI_A0 TX interrupt
+  ClearTXIFG();   // Clear USCI_A0 TX interrupt flag
 
 
   while(1){
 	switch(state){
-
 	case state0: //   StepperUsingJoyStick
-        //JoyStickRestVr();    // Calibrate Joystick rest values
+        
 	    switch(stateStepp){
-            case stateAutoRotate:
-                Activate_Stepper(500, halfCounterClockwise);
+            case stateAutoRotate: 
+                stepper_scan(0, 283);
+                //Activate_Stepper_Clicks(max_counter/4, 500, Clockwise); // Rotate stepper motor
+                //Activate_Stepper(500, Clockwise); // Rotate stepper motor
                 break;
-
+        
             case stateJSRotate:
-                // while(1){
-                //     SampleJoystick();
-                //     //int angle = calculateJoystickAngle((int)Vr[1], (int)Vr[0]);
-
-                //     lcd_clear();
-                //     lcd_puts("x:");
-
-                //     // Convert Vr[1] (short) to a string
-                //     char x_str[10];
-                //     sprintf(x_str, "%d", (int)Vr[1]);
-                //     lcd_puts(x_str);
-
-                //     lcd_new_line; // This is a function, so add parentheses
-
-                //     lcd_puts("y:");
-
-                //     // Convert Vr[0] (short) to a string
-                //     char y_str[10];
-                //     sprintf(y_str, "%d", (int)Vr[0]);
-                //     lcd_puts(y_str);
-
-                //     timer_delay(500);
-                // }
+                 JoyStickRestVr();    // Calibrate Joystick rest values
                  StepperUsingJoyStick();
                  ClearJoystickIFG();
-                 ClearTXIFG();
                  DisableJoystickInt();
-                 DisableTXIE();
-                // lcd_clear();
-                // lcd_puts("Hello World");
-                // delay(20000);
-                // lcd_clear();
-                // rra_lcd('x');
-                stateStepp = stateDefault;
                 break;
             case stateDefault:
                 EnterLPM();       // Enter LPM0 w/ int until Byte RXed
                 break;
             
             case stateStopRotate:
-                curr_angle = (int)(360/((double)(max_counter)/ (double)(curr_counter)));
                 EnterLPM(); 
                 break;
             }
@@ -87,19 +59,23 @@ void main(void){
 
 	case state2: // Calibrate
         EnableRXIE();                          // Enable USCI_A0 RX interrupt
-
         switch(stateStepp){
             case stateDefault:
+                EnableJoystickInt();
                 EnterLPM();       // Enter LPM0 w/ int until Byte RXed
+                //stateStepp = stateAutoRotate;
                 break;
 
             case stateAutoRotate: // start rotate
                 counter = 0;
-                Activate_Stepper(800, Clockwise); 
+                Activate_Stepper(500, Clockwise);
+                //stateStepp = stateStopRotate;
                 break;
 
             case stateStopRotate: // stop and set phi
+                DisableJoystickInt();
                 calibrate();
+                stateStepp = stateDefault;
                 break;
             }
         break;

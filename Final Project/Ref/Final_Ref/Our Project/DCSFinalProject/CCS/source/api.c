@@ -64,16 +64,9 @@ static int delay_value = 200; // Default delay value in units of 10ms
 // }
       
 void StepperUsingJoyStick(){
-    uint32_t counter_phi;
-    uint32_t phi;
-    uint32_t temp;
-    unsigned int rotation_speed[] = {200, 600, 800, 1200 };
-    unsigned int selected_speed = 0;
-
-//    curr_counter = 0;
-    //EnableJoystickInt(); // Enabling PB of Joystick
-   // EnableTXIE();
-    while (counter != 0 && state==state0 && stateStepp==stateJSRotate){
+    short phi_calculated;
+    curr_counter = 0;
+    while (state==state0 && stateStepp==stateJSRotate){
         AVG_Vr[0] = 0;
         AVG_Vr[1] = 0;
         int i;
@@ -85,51 +78,24 @@ void StepperUsingJoyStick(){
         AVG_Vr[0] /= Number_of_Samples;
         AVG_Vr[1] /= Number_of_Samples;
 
-        // if (AVG_Vr[1] > Vr_rest_value[1] + JoyStick_Error){
-        //     rotation = Clockwise;
-        //     }
-        // else if (AVG_Vr[1] < Vr_rest_value[1] - JoyStick_Error){rotation = CounterClockwise;}
-        // else {rotation = stop;}
-        // selected_speed = rotation_speed[((AVG_Vr[0] * 2) / Vr_rest_value[0])];
-    
-    // If the joystick is not in the rest position (considering the error)
-        if (!(AVG_Vr[0]<Vr_rest_value[0] + JoyStick_Error && AVG_Vr[0]>Vr_rest_value[0] - JoyStick_Error &&
-             AVG_Vr[1]<Vr_rest_value[1] + JoyStick_Error && AVG_Vr[1]>Vr_rest_value[1] - JoyStick_Error)){
-           
-            Vrx = Vr[1] - Vr_rest_value[1];
-            Vry = Vr[0] - Vr_rest_value[0];
-
-            phi = atan2_fp(Vry, Vrx);
-            temp = phi * counter;
-
-            if (270 < phi) {
-               if (0 < Vrx && Vry < 0) {
-                    counter_phi = ((counter * 7) / 4) - (temp / 360);  // ((630-phi)/360)*counter;
-                    }
-                else {
-                    counter_phi = ((counter * 3) / 4) - (temp / 360);  // ((270-phi)/360)*counter;
-                    }
-                if ((int)(curr_counter - counter_phi) < 0) {
-                    Stepper_clockwise(600);
-                    curr_counter++;
-                }
-                else {
-                    Stepper_counter_clockwise(600);
-                    curr_counter--;
-                }
-        }
-
-        if (rotation != stop){
-            
-            START_TIMERA0(selected_speed);
-            while (JoyStickCounter < JoyStick_Stepper_Rotate)
-            {
-                EnterLPM(); // Sleep      
-            }
+        if(ABS(AVG_Vr[0] - Vr_rest_value[0]) > 20*JoyStick_Error || ABS(AVG_Vr[1] - Vr_rest_value[1]) > 20*JoyStick_Error){
+            //phi_calculated = SCALE_FACTOR * (unsigned long)calculateJoystickAngle((int)AVG_Vr[1], (int)AVG_Vr[0]);
+            short Vrx = AVG_Vr[1] - Vr_rest_value[1];
+            short Vry = AVG_Vr[0] - Vr_rest_value[0];
+            phi_calculated = atan2_fp(Vry, Vrx);
+            char phi[10];
+            int2str(phi, phi_calculated);
+            lcd_clear();
+            lcd_puts("Angle: ");
+            lcd_puts(phi);
+            GotoAngle((unsigned long) phi_calculated * (unsigned long)SCALE_FACTOR);
         }
     }
-}
-}
+        clear_LCD();
+        
+    }
+
+
 //-------------------------------------------------------------
 //              Activate Joy Stick
 //-------------------------------------------------------------
@@ -138,48 +104,89 @@ void JoyStickADC_Steppermotor(){  // Sample the Joystick and save the values in 
     EnableADC(Vr);                    // Start ADC
     EnterLPM();                       // LPM0, ADC10_ISR will force exit
 }
-// //-------------------------------------------------------------
-// //               Joy Stick Angle - Optional
-// //-------------------------------------------------------------
+//-------------------------------------------------------------
+//               Joy Stick Angle - Optional
+//-------------------------------------------------------------
 // int calculateJoystickAngle(int x, int y) {
 //     // Adjust the X and Y values relative to the joystick center
-//     x -= CENTER_X;
-//     y -= CENTER_Y;
+//     x -= Vr_rest_value[1]; //CENTER_X;
+//     y -= Vr_rest_value[0]; //CENTER_Y;
 
 //     // Handle cases where the joystick is within the neutral dead zone
 //     if (x >= -DEAD_ZONE && x <= DEAD_ZONE) {
-//         if (y > DEAD_ZONE) return 90;   // Joystick pushed straight up
-//         if (y < -DEAD_ZONE) return 270; // Joystick pushed straight down
+//         if (y > DEAD_ZONE) return 0;   // Joystick pushed straight up
+//         if (y < -DEAD_ZONE) return 180; // Joystick pushed straight down
 //         return 0;                       // Joystick is near the center
 //     }
 
 //     if (y >= -DEAD_ZONE && y <= DEAD_ZONE) {
-//         if (x > DEAD_ZONE) return 0;    // Joystick pushed straight right
-//         if (x < -DEAD_ZONE) return 180; // Joystick pushed straight left
+//         if (x > DEAD_ZONE) return 90;    // Joystick pushed straight right
+//         if (x < -DEAD_ZONE) return 270; // Joystick pushed straight left
 //     }
 
 //     // Scale the adjusted X and Y values for precision
-//     int scaled_x = (x * SCALE_FACTOR) / (MAX_VALUE - (CENTER_X - DEAD_ZONE));
-//     int scaled_y = (y * SCALE_FACTOR) / (MAX_VALUE - (CENTER_Y - DEAD_ZONE));
+//     // unsigned long scaled_x = ((unsigned long)x * (unsigned long)SCALE_FACTOR) / (unsigned long)(MAX_VALUE - (Vr_rest_value[1] - DEAD_ZONE));
+//     // unsigned long scaled_y = ((unsigned long)y * (unsigned long)SCALE_FACTOR) / (unsigned long)(MAX_VALUE - (Vr_rest_value[0] - DEAD_ZONE));
+//     // long scaled_x = ((long)x * (long)SCALE_FACTOR) / (unsigned long)Vr_rest_value[1];
+//     // long scaled_y = ((long)y * (long)SCALE_FACTOR) / (unsigned long)Vr_rest_value[0];
 
-//     // Calculate an approximate angle using integer math
-//     int angle = (scaled_y * 100) / scaled_x;  // Approximation of tan(y/x) * 100
+//     // // Calculate an approximate angle using integer math
+//     // unsigned long angle = (scaled_y * (unsigned long)100) / scaled_x;  // Approximation of tan(y/x) * 100
 
-//     // Determine the correct quadrant and adjust the angle accordingly
-//     int degrees;
-//     if (scaled_x > 0 && scaled_y >= 0) {
-//         degrees = (angle * 57) / 100;              // First quadrant
-//     } else if (scaled_x > 0 && scaled_y < 0) {
-//         degrees = 360 + (angle * 57) / 100;        // Fourth quadrant
-//     } else if (scaled_x < 0 && scaled_y >= 0) {
-//         degrees = 180 - (angle * 57) / 100;        // Second quadrant
-//     } else {
-//         degrees = 180 + (angle * 57) / 100;        // Third quadrant
-//     }
+//     // // Determine the correct quadrant and adjust the angle accordingly
+//     // unsigned long degrees;
+//     // if (scaled_x > 0 && scaled_y >= 0) {
+//     //     degrees = (angle * (unsigned long)57) / 100;              // First quadrant
+//     // } else if (scaled_x > 0 && scaled_y < 0) {
+//     //     degrees = (unsigned long)360 + (angle * (unsigned long)57) / 100;        // Fourth quadrant
+//     // } else if (scaled_x < 0 && scaled_y >= 0) {
+//     //     degrees = (unsigned long)180 - (angle * (unsigned long)57) / 100;        // Second quadrant
+//     // } else {
+//     //     degrees = (unsigned long)180 + (angle * (unsigned long)57) / 100;        // Third quadrant
+//     // }
 
-//     // Ensure the angle is within the range of 0 to 360 degrees
-//     return degrees % 360;
-// }
+
+
+// // int calculateJoystickAngle(int x, int y) {
+// //     // Adjust the X and Y values relative to the joystick center
+// //     x -= CENTER_X;
+// //     y -= CENTER_Y;
+
+// //     // Handle cases where the joystick is within the neutral dead zone
+// //     if (x >= -DEAD_ZONE && x <= DEAD_ZONE) {
+// //         if (y > DEAD_ZONE) return 90;   // Joystick pushed straight up
+// //         if (y < -DEAD_ZONE) return 270; // Joystick pushed straight down
+// //         return 0;                       // Joystick is near the center
+// //     }
+
+// //     if (y >= -DEAD_ZONE && y <= DEAD_ZONE) {
+// //         if (x > DEAD_ZONE) return 0;    // Joystick pushed straight right
+// //         if (x < -DEAD_ZONE) return 180; // Joystick pushed straight left
+// //     }
+
+// //     // Scale the adjusted X and Y values for precision
+// //     int scaled_x = (x * SCALE_FACTOR) / (MAX_VALUE - (CENTER_X - DEAD_ZONE));
+// //     int scaled_y = (y * SCALE_FACTOR) / (MAX_VALUE - (CENTER_Y - DEAD_ZONE));
+
+// //     // Calculate an approximate angle using integer math
+// //     int angle = (scaled_y * 100) / scaled_x;  // Approximation of tan(y/x) * 100
+
+// //     // Determine the correct quadrant and adjust the angle accordingly
+// //     int degrees;
+// //     if (scaled_x > 0 && scaled_y >= 0) {
+// //         degrees = (angle * 57) / 100;              // First quadrant
+// //     } else if (scaled_x > 0 && scaled_y < 0) {
+// //         degrees = 360 + (angle * 57) / 100;        // Fourth quadrant
+// //     } else if (scaled_x < 0 && scaled_y >= 0) {
+// //         degrees = 180 - (angle * 57) / 100;        // Second quadrant
+// //     } else {
+// //         degrees = 180 + (angle * 57) / 100;        // Third quadrant
+// //     }
+
+// //     // Ensure the angle is within the range of 0 to 360 degrees
+// //     return degrees % 360;
+// // }
+//
 //-------------------------------------------------------------
 //                Stepper Motor Calibration
 //-------------------------------------------------------------
@@ -188,6 +195,7 @@ void calibrate(){
     curr_counter = 0;
     sprintf(counter_str, "%d", max_counter);
     send_to_PC(counter_str);
+    delta_phi = (unsigned long)360 * (unsigned long)SCALE_FACTOR / (unsigned long)max_counter;
 }
 //-------------------------------------------------------------
 //              Activate Stepper Motor
@@ -215,32 +223,54 @@ void Stepper_counter_clockwise(int speed_Hz){
 //-------------------------------------------------------------
 //
 //-------------------------------------------------------------
-void GotoAngle(int angle){
-    curr_angle = (int)(360/((double)(max_counter)/ (double)(curr_counter)));
-    int speed_clk = 873; //(2^20/8)*(1/200[Hz]) = 655
-    step_index = 0;
-    counter = 0;
-    if (angle > curr_angle){
-        rotation = Clockwise;
-        START_TIMERA0(speed_clk);
-        int count_until = (int)(((double)(angle - curr_angle)) / phi);
-        int i = 0;
-        while (counter <= count_until)
-            {
-                EnterLPM(); // Sleep
-            }  
+void GotoAngle(unsigned long angle){ // assume input angle is scaled by SCALE_FACTOR and positive
+    unsigned long phi_current = ((unsigned long)curr_counter * (unsigned long)delta_phi) % (unsigned long)360000; // Current angle in scaled degrees
+    unsigned long mod_angle = angle % 360000;   // Wanted angle in scaled degrees
+    if (mod_angle == 0 && phi_current > 180000) mod_angle = 360000; // Special case for 0 degrees 
+    unsigned long abs_diff = 0; // Absolute difference between the current angle and the wanted angle
+    // ABS(phi_current - mod_angle)
+    if (mod_angle > phi_current){            
+        abs_diff = mod_angle - phi_current;     
     }
     else{
-        rotation = CounterClockwise;
-        START_TIMERA0(speed_clk);
-        int count_until = (int)(((double)(curr_angle - angle)) / phi);
-        while (counter <= count_until)
-            {
-                EnterLPM(); // Sleep
-            }  
-    }                
-}
+        abs_diff = phi_current - mod_angle;
+    }
 
+    //if (abs_diff < ((unsigned long)(100))) return; // Ignore small angle changes
+
+    unsigned int clicks_needed = (abs_diff / (unsigned long)delta_phi) % max_counter;   // Number of clicks needed to reach the wanted angle
+    int i = 0;
+    if (mod_angle > phi_current){               // Wanted angle is bigger than current angle
+        if (clicks_needed > max_counter / 2){   // The case where it is faster to go counter clockwise
+            Activate_Stepper_Clicks(max_counter - clicks_needed, 500, CounterClockwise);
+        }
+        else{                                // The case where it is faster to go clockwise
+            Activate_Stepper_Clicks(clicks_needed, 500, Clockwise);
+        }
+    }
+    else{                                    // Wanted angle is smaller than current angle
+        if (clicks_needed > max_counter / 2){  // The case where it is faster to go clockwise
+            Activate_Stepper_Clicks(max_counter - clicks_needed, 500, Clockwise);
+        }
+        else{                             // The case where it is faster to go counter clockwise
+            Activate_Stepper_Clicks(clicks_needed, 500, CounterClockwise);
+        }
+    }
+}
+//-------------------------------------------------------------
+// Input: number of clicks, speed in Hz, rotation state. Output: rotate stepper motor according to the input
+//-------------------------------------------------------------
+void Activate_Stepper_Clicks(int clicks, int speed_Hz, int Rot_state){  
+    if (clicks <= 0) return;
+    rotation = Rot_state;
+    int iter = 0;
+    START_TIMERA0(speed_Hz);
+    for (iter = 0; iter < clicks; iter++){
+        EnterLPM(); // Sleep
+    }
+    rotation = stop;
+    StopTimerA0();
+}
 
 //-------------------------------------------------------------
 //
@@ -267,7 +297,7 @@ void JoyStickRestVr(){
     AVG_Vr[0] /= Number_of_Samples;
     AVG_Vr[1] /= Number_of_Samples;
 
-    JoyStick_Error =  (ABS(AVG_Vr[0] - Vr_rest_value[0]) + ABS(AVG_Vr[1] - Vr_rest_value[1]));
+    JoyStick_Error =  2 + (ABS(AVG_Vr[0] - Vr_rest_value[0]) + ABS(AVG_Vr[1] - Vr_rest_value[1]))/2;
 }
 //-------------------------------------------------------------
 //
@@ -616,19 +646,43 @@ void stepper_deg(int p) {
 
 // Function to scan between two degrees using stepper motor and display on LCD
 void stepper_scan(int l, int r) {
-    unsigned int i;
-    for (i = l; i <= r; i++) {
-        GotoAngle(i); // Move stepper motor incrementally between l and r
-        char buffer[16];
-        sprintf(buffer, "Angle: %d", i);
-        lcd_puts(buffer); // Display degree on LCD screen
-        timer_delay(delay_value * 10); // Timer-based delay
+    // gotoAngle finds the shortest path to the desired angle therefore we need to adjust the angles to make sure the motor moves in the correct direction
+    char str_A[] = "I'm on my way!";
+    char str_B[] = "Scanning...";
+    char str_C[] = "Reached the first angle!";
+    char str_D[] = "Reached the second angle!";
+    
+    // sprintf(str_C, "Reached: %d [deg]", l);
+    // char str_D[10];
+    // sprintf(str_D, "Reached: %d [deg]", r);
+    lcd_clear();
+
+
+    lcd_puts(str_A); // Display scanning message on LCD
+    GotoAngle((unsigned long)l * (unsigned long)SCALE_FACTOR); // Move to the leftmost angle
+    timer_delay(delay_value * 5); // Timer-based delay
+    clear_LCD();
+    lcd_puts(str_C);    // Display the reached angle on LCD
+    timer_delay(delay_value * 20); // Timer-based delay
+    clear_LCD();
+    lcd_puts(str_B); // Display scanning message on LCD
+    timer_delay(delay_value * 5); // Timer-based delay
+    if (r - l > 180){
+        if (l < 90)
+            GotoAngle((unsigned long)90 * (unsigned long)SCALE_FACTOR);
+        else
+            GotoAngle((unsigned long)180 * (unsigned long)SCALE_FACTOR);
     }
-}
+    GotoAngle((unsigned long)r * (unsigned long)SCALE_FACTOR); // Move to the rightmost angle
+    lcd_clear();
+    lcd_puts(str_D);    // Display the reached angle on LCD
+    timer_delay(delay_value * 20); // Timer-based delay
+    clear_LCD();
+    
+    
+}   
 
 // Function to put the MCU into sleep mode
 void sleep_mcu() {
     EnterLPM(); // Enter low-power mode
 }
-
-

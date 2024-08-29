@@ -82,10 +82,19 @@ void main(void){
 
 	case state3:  //Script
         EnableRXIE();                          // Enable USCI_A0 RX interrupt
-	    while ( state == state3){
-	        ScriptFunc();
-	    }
-		break;
+        case stateStepp:
+            case stateDefault:
+                EnterLPM();       // Enter LPM0 w/ int until Byte RXed
+                break;
+
+            case stateAutoRotate: 
+                ScriptFunc();
+                break;
+
+            case stateStopRotate: 
+                
+                break;
+
 		
 	case state4: //
 

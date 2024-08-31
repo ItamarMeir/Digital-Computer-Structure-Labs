@@ -233,7 +233,7 @@ class GUI:
         # Script mode layout
         file_viewer = [
             [sg.Text("Script Files", font=('Helvetica', 16))],
-            [sg.Input(key='_Folder_', size=(25, 1), font=('Helvetica', 12)),
+            [sg.Input(key='_Folder_', enable_events=True, size=(25, 1), font=('Helvetica', 12)),
              sg.FolderBrowse(font=('Helvetica', 12))],
             [sg.Listbox(values=[], enable_events=True, size=(40, 20), key="_FileList_", font=('Helvetica', 12))],
             [sg.Button('Burn', key='_Burn_', size=(10, 1), font=('Helvetica', 12)),
@@ -442,11 +442,13 @@ class GUI:
         if folder:
             try:
                 # Verify the folder contents
-                print(f"Contents of the folder: {os.listdir(folder)}")  # Print the folder contents for debugging
+                folder_contents = os.listdir(folder)
+                print(f"Contents of the folder: {folder_contents}")  # Print the folder contents for debugging
 
                 # List all files with .txt extension in the selected folder
-                file_list = [f for f in os.listdir(folder) if f.lower().endswith('.txt')]
+                file_list = [f for f in folder_contents if f.lower().endswith('.txt')]
                 print(f"Filtered .txt files: {file_list}")  # Debugging step to see the filtered files
+
                 # Update the file list in the GUI
                 self.window['_FileList_'].update(file_list)
             except Exception as e:
@@ -529,7 +531,7 @@ class GUI:
             self.window[f'COL{i}'].update(visible=False)
         self.window[f'COL{window_number}'].update(visible=True)
 
-        # Hide the Paint application when switching to other windows
+        # Hide the Paint appslication when switching to other windows
         if window_number != 3 and self.paint_app:
             frame = self.paint_app.c.master
             frame.pack_forget()

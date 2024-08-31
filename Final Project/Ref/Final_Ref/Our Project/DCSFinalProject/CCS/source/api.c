@@ -295,22 +295,22 @@ void GotoAngleClockWise(unsigned long angle){ // assume input angle is scaled by
 }
 
 
-//-------------------------------------------------------------
-// Activate_Stepper_Clicks: Rotate stepper motor a specific number of clicks
-// Input: number of clicks, speed in Hz, rotation state.
-// Output: rotate stepper motor according to the input
-//-------------------------------------------------------------
-void Activate_Stepper_Clicks(int clicks, int speed_Hz, int Rot_state){  
-    if (clicks <= 0) return;
-    rotation = Rot_state;
-    int iter = 0;
-    START_TIMERA0(speed_Hz);
-    for (iter = 0; iter < clicks; iter++){
-        EnterLPM(); // Sleep
-    }
-    rotation = stop;
-    StopTimerA0();
-}
+// //-------------------------------------------------------------
+// // Activate_Stepper_Clicks: Rotate stepper motor a specific number of clicks
+// // Input: number of clicks, speed in Hz, rotation state.
+// // Output: rotate stepper motor according to the input
+// //-------------------------------------------------------------
+// void Activate_Stepper_Clicks(int clicks, int speed_Hz, int Rot_state){  
+//     if (clicks <= 0) return;
+//     rotation = Rot_state;
+//     int iter = 0;
+//     START_TIMERA0(speed_Hz);
+//     for (iter = 0; iter < clicks; iter++){
+//         EnterLPM(); // Sleep
+//     }
+//     rotation = stop;
+//     StopTimerA0();
+// }
 
 //-------------------------------------------------------------
 //                Joystick Calibration

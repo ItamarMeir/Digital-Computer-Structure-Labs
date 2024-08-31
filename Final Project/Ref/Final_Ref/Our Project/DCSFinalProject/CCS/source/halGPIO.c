@@ -739,21 +739,24 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 #pragma vector=PORT1_VECTOR
   __interrupt void Joystick_handler(void){
       delay(debounceVal);
-
-      if(JoyStickIntPend & BIT5){          // PB at P1.5           
-          JoyStickIntPend &= ~BIT5;
-          if (stateStepp == stateDefault){
-            stateStepp = stateAutoRotate;
+    if(JoyStickIntPend & BIT5){     // PB at P1.5
+        JoyStickIntPend &= ~BIT5;       // Clear the interrupt flag
+        if (state == state2){        
+            if (stateStepp == stateDefault){    // If the state is default
+                stateStepp = stateAutoRotate;   // Change the state to Auto Rotate
+            }
+            else if (stateStepp == stateAutoRotate){    // If the state is Auto Rotate
+                StopTimerA0();
+                rotation = stop;
+                stateStepp = stateStopRotate;
+            }  
         }
-        else if (stateStepp == stateAutoRotate){
-            StopTimerA0();
-            rotation = stop;
-            stateStepp = stateStopRotate;
+        else if (state == state1){
+            stateIFG = 1;
         }
-          LPM0_EXIT;
-      }
-     
-}
+    }
+    LPM0_EXIT;
+  }
 //---------------------------------------------------------------------
 //                           LCD
 //---------------------------------------------------------------------

@@ -82,7 +82,8 @@ void StepperUsingJoyStick(){
             //phi_calculated = SCALE_FACTOR * (unsigned long)calculateJoystickAngle((int)AVG_Vr[1], (int)AVG_Vr[0]);
             short Vrx = AVG_Vr[1] - Vr_rest_value[1];
             short Vry = AVG_Vr[0] - Vr_rest_value[0];
-            phi_calculated = atan2_fp(Vry, Vrx);
+            //phi_calculated = atan2_fp(Vry, Vrx);
+            phi_calculated = atan2_fixed_point(Vry, Vrx);
             char phi[10];
             int2str(phi, phi_calculated);
             lcd_clear();
@@ -221,7 +222,21 @@ void Stepper_counter_clockwise(int speed_Hz){
     Activate_Stepper(speed_Hz, CounterClockwise);
 }
 //-------------------------------------------------------------
-//
+//              Activate Stepper Motor # Clicks
+//-------------------------------------------------------------
+void Activate_Stepper_Clicks(int clicks, int speed_Hz, int Rot_state){  
+    if (clicks <= 0) return;
+    rotation = Rot_state;
+    int iter = 0;
+    START_TIMERA0(speed_Hz);
+    for (iter = 0; iter < clicks; iter++){
+        EnterLPM(); // Sleep
+    }
+    rotation = stop;
+    StopTimerA0();
+}
+//-------------------------------------------------------------
+//               Rotate Motor to Angle
 //-------------------------------------------------------------
 void GotoAngle(unsigned long angle){ // assume input angle is scaled by SCALE_FACTOR and positive
     unsigned long phi_current = ((unsigned long)curr_counter * (unsigned long)delta_phi) % (unsigned long)360000; // Current angle in scaled degrees
@@ -257,23 +272,9 @@ void GotoAngle(unsigned long angle){ // assume input angle is scaled by SCALE_FA
         }
     }
 }
-//-------------------------------------------------------------
-// Input: number of clicks, speed in Hz, rotation state. Output: rotate stepper motor according to the input
-//-------------------------------------------------------------
-void Activate_Stepper_Clicks(int clicks, int speed_Hz, int Rot_state){  
-    if (clicks <= 0) return;
-    rotation = Rot_state;
-    int iter = 0;
-    START_TIMERA0(speed_Hz);
-    for (iter = 0; iter < clicks; iter++){
-        EnterLPM(); // Sleep
-    }
-    rotation = stop;
-    StopTimerA0();
-}
 
 //-------------------------------------------------------------
-//
+//                Joystick Calibration
 //-------------------------------------------------------------
 void JoyStickRestVr(){
     Vr_rest_value[0] = 0;
@@ -633,9 +634,9 @@ void set_delay(int d) {
 void clear_LCD() {
     lcd_clear(); // Clear display command
 }
-
-
-
+//-------------------------------------------------------------
+//             Move Stepper Motor to Degree
+//-------------------------------------------------------------
 // Function to move stepper motor to a specific degree
 void stepper_deg(int p) {
     GotoAngle(p); // Move stepper motor to the specified degree
@@ -643,7 +644,9 @@ void stepper_deg(int p) {
     sprintf(buffer, "Angle: %d", p);
     lcd_puts(buffer); // Display the degree onto the LCD
 }
-
+//-------------------------------------------------------------
+//         Scan Stepper Motor from Degree1 to Degree2
+//-------------------------------------------------------------
 // Function to scan between two degrees using stepper motor and display on LCD
 void stepper_scan(int l, int r) {
     // gotoAngle finds the shortest path to the desired angle therefore we need to adjust the angles to make sure the motor moves in the correct direction
@@ -678,10 +681,10 @@ void stepper_scan(int l, int r) {
     lcd_puts(str_D);    // Display the reached angle on LCD
     timer_delay(delay_value * 20); // Timer-based delay
     clear_LCD();
-    
-    
 }   
-
+//-------------------------------------------------------------
+//                     Sleep Mode
+//-------------------------------------------------------------
 // Function to put the MCU into sleep mode
 void sleep_mcu() {
     EnterLPM(); // Enter low-power mode

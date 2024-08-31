@@ -288,6 +288,48 @@ long fixed_div_u(long a, long b) {
 //------------------------------------------------------------------------
 //                      ATAN2- Fixed point - returns degrees
 //------------------------------------------------------------------------
+int16_t atan2_fixed_point(int16_t y, int16_t x){
+    const int32_t COEFF_A = 45;
+    const int32_t COEFF_B = -56;  // Approximation of -56.24
+    const int32_t COEFF_C = 11;   // Approximation of 11.25
+    const int16_t RIGHT_ANGLE = 90;
+    const int16_t STRAIGHT_ANGLE = 180;
+    const int16_t FULL_CIRCLE = 360;
+
+    int16_t angle = 0;
+    int32_t ratio, ratio_cubed;
+    int16_t y_abs = (y < 0) ? -y : y;
+
+    // Handle special cases
+    if (y == 0) {
+        return (x >= 0) ? 0 : STRAIGHT_ANGLE;
+    }
+
+    if (x >= 0) {
+        // Quadrants I and IV
+        ratio = (((int32_t)(x - y_abs)) << FIXED_POINT_SHIFT) / ((int32_t)(x + y_abs));
+        
+        // Calculate ratio^3
+        ratio_cubed = ((ratio * ratio) >> FIXED_POINT_SHIFT) * ratio >> FIXED_POINT_SHIFT;
+        
+        // Calculate angle using polynomial approximation
+        angle = (int16_t)(COEFF_A + ((COEFF_B * ratio + COEFF_C * ratio_cubed) >> FIXED_POINT_SHIFT));
+    } else {
+        // Quadrants II and III
+        ratio = (((int32_t)(x + y_abs)) << FIXED_POINT_SHIFT) / ((int32_t)(y_abs - x));
+        
+        // Calculate ratio^3
+        ratio_cubed = ((ratio * ratio) >> FIXED_POINT_SHIFT) * ratio >> FIXED_POINT_SHIFT;
+        
+        // Calculate angle using polynomial approximation
+        angle = RIGHT_ANGLE + RIGHT_ANGLE + 
+                (int16_t)((COEFF_B * ratio + COEFF_C * ratio_cubed) >> FIXED_POINT_SHIFT);
+    }
+
+    // Adjust angle for quadrants III and IV
+    return (y < 0) ? (FULL_CIRCLE - angle) : angle;
+}
+//------------------------------------------------------------------------------------------
 int16_t atan2_fp(int16_t y_fp, int16_t x_fp)
 {
     int32_t coeff_1 = 45;

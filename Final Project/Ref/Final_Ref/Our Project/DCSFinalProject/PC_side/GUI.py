@@ -234,7 +234,8 @@ class GUI:
         file_viewer = [
             [sg.Text("Script Files", font=('Helvetica', 16))],
             [sg.Input(key='_Folder_', size=(25, 1), font=('Helvetica', 12)),
-             sg.FolderBrowse(font=('Helvetica', 12))],
+             sg.FolderBrowse(font=('Helvetica', 12)),
+             sg.Button('Select Folder', key='_Folder_', size=(10, 1), font=('Helvetica', 12))],
             [sg.Listbox(values=[], enable_events=True, size=(40, 20), key="_FileList_", font=('Helvetica', 12))],
             [sg.Button('Burn', key='_Burn_', size=(10, 1), font=('Helvetica', 12)),
              sg.Button('Back', key='_BackMenu_', size=(10, 1), font=('Helvetica', 12))],
@@ -287,31 +288,31 @@ class GUI:
             if event == sg.WIN_CLOSED:
                 break
 
-            if event == '_CONNECT_':
+            if event.startswith('_CONNECT_'):
                 self.handle_port_connection(values)
-            elif event == "_ManualStepper_":
+            elif event.startswith("_ManualStepper_"):
                 self.handle_manual_stepper()
-            elif event == "_Painter_":
+            elif event.startswith("_Painter_"):
                 self.handle_painter()
-            elif event == "_Calib_":
+            elif event.startswith("_Calib_"):
                 self.handle_calibration()
-            elif event == "_Script_":
+            elif event.startswith("_Script_"):
                 self.handle_script_mode()
-            elif event == '_Folder_':
+            elif event.startswith('_Folder_'):
                 self.handle_folder_selection(values)
-            elif event == '_FileList_':
+            elif event.startswith('_FileList_'):
                 self.handle_file_selection(values)
-            elif event == '_Burn_':
+            elif event.startswith('_Burn_'):
                 self.handle_burn_file(values)
-            elif event == '_ExecutedList_':
+            elif event.startswith('_ExecutedList_'):
                 self.handle_executed_file_selection(values)
-            elif event == '_Execute_':
+            elif event.startswith('_Execute_'):
                 self.handle_execute_file()
-            elif event == '_Clear_':
+            elif event.startswith('_Clear_'):
                 self.handle_clear_executed_list()
             elif event.startswith('_BackMenu_'):
                 self.show_window(1)
-            elif event == '_BackScript_':
+            elif event.startswith('_BackScript_'):
                 self.show_window(5)
 
         self.window.close()
@@ -422,117 +423,95 @@ class GUI:
                         self.window['Counter'].update(self.counter)
                         self.window['Phi'].update(self.phi_str)
 
-def handle_script_mode(self):
-    # Handle script mode selection
-    if not self.serial_comm and not self.debug_mode:
-        # Show an error popup if not connected to a port and not in debug mode
-        sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
-        return
-    if not self.debug_mode:
-        # Send 's' command to MSP if not in debug mode
-        self.serial_comm.send_to_MSP('s')
-    # Show the window corresponding to script mode
-    self.show_window(5)
+    def handle_script_mode(self):
+        # Handle script mode selection
+        if not self.serial_comm and not self.debug_mode:
+            # Show an error popup if not connected to a port and not in debug mode
+            sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
+            return
+        if not self.debug_mode:
+            # Send 's' command to MSP if not in debug mode
+            self.serial_comm.send_to_MSP('s')
+        # Show the window corresponding to script mode
+        self.show_window(5)
 
-def handle_folder_selection(self, values):
-    # Handle folder selection from the GUI
-    folder = values['_Folder_']
-    print(f"Selected folder: {folder}")  # Debugging step to check the folder path
-
-    if folder:
-        try:
-            # Verify the folder contents
-            print(f"Contents of the folder: {os.listdir(folder)}")  # Print the folder contents for debugging
-
-            # List all files with .txt extension in the selected folder
-            file_list = [f for f in os.listdir(folder) if f.lower().endswith('.txt')]
-            print(f"Filtered .txt files: {file_list}")  # Debugging step to see the filtered files
-            # Update the file list in the GUI
+    def handle_folder_selection(self, values):
+        # Handle folder selection for script files
+        folder = values['_Folder_']
+        if folder:
+            file_list = [f for f in os.listdir(folder) if f.endswith('.txt')]
             self.window['_FileList_'].update(file_list)
-        except Exception as e:
-            # Show an error popup if there's an issue loading files
-            sg.popup_error(f"Error loading files: {str(e)}", font=('Helvetica', 12))
-    else:
-        # Show an error popup if no valid folder is selected
-        sg.popup_error("Please select a valid folder", font=('Helvetica', 12))
 
-def handle_file_selection(self, values):
-    # Display selected file content
-    if values['_FileList_']:
-        filename = values['_FileList_'][0]
-        filepath = os.path.join(values['_Folder_'], filename)
-        with open(filepath, 'r') as file:
-            content = file.read()
-        # Update the file header and content in the GUI
-        self.window['_FileHeader_'].update(filename)
-        self.window['_FileContent_'].update(content)
+    def handle_file_selection(self, values):
+        # Display selected file content
+        if values['_FileList_']:
+            filename = values['_FileList_'][0]
+            filepath = os.path.join(values['_Folder_'], filename)
+            with open(filepath, 'r') as file:
+                content = file.read()
+            self.window['_FileHeader_'].update(filename)
+            self.window['_FileContent_'].update(content)
 
-def file_translator(file):
-    # Placeholder function for file translation
-    with open(file, 'rb') as f:
-        content = f.read()
-    return
+    def handle_burn_file(self, values):
+        # Handle burning of the selected file
+        if values['_FileList_']:
+            filename = values['_FileList_'][0]
+            filepath = os.path.join(values['_Folder_'], filename)
+            with open(filepath, 'rb') as file:
+                content = file.read()
+            # Send the file content to MSP for burning
+            self.serial_comm.send_to_MSP(content, file_option=True)
+            # Update the GUI to show the file was burned successfully
+            self.window['_ACK_'].update("File burned successfully!")
+            # Add the file to the executed list and update the GUI
+            self.execute_list.append(filename)
+            self.window['_ExecutedList_'].update(self.execute_list)
 
-def handle_burn_file(self, values):
-    # Handle burning of the selected file
-    if values['_FileList_']:
-        filename = values['_FileList_'][0]
-        filepath = os.path.join(values['_Folder_'], filename)
-        with open(filepath, 'rb') as file:
-            content = file.read()
-        # Send the file content to MSP for burning
-        self.serial_comm.send_to_MSP(content, file_option=True)
-        # Update the GUI to show the file was burned successfully
-        self.window['_ACK_'].update("File burned successfully!")
-        # Add the file to the executed list and update the GUI
-        self.execute_list.append(filename)
+    def handle_executed_file_selection(self, values):
+        # Handle selection of executed files for viewing
+        if values['_ExecutedList_']:
+            filename = values['_ExecutedList_'][0]
+            # Update the file name in the GUI and show the corresponding window
+            self.window['_FileName_'].update(filename)
+            self.show_window(6)
+
+    def handle_execute_file(self):
+        # Execute the selected file
+        filename = self.window['_FileName_'].get()
+        if filename:
+            # Send the execute command to MSP
+            self.serial_comm.send_to_MSP(f'e{self.burn_index}')
+            self.burn_index += 1
+            while True:
+                event, _ = self.window.read(timeout=100)
+                if event == "_BackScript_":
+                    break
+                elif event == "_Run_":
+                    # Send the run command to MSP
+                    self.serial_comm.send_to_MSP('R')
+                
+                # Update degree data from the serial port
+                script_data = self.serial_comm.read_from_MSP('script', 4)
+                if script_data:
+                    self.window['Degree'].update(script_data)
+
+    def handle_clear_executed_list(self):
+        # Clear the list of executed files
+        self.execute_list.clear()
+        self.burn_index = 0
+        # Update the executed list in the GUI
         self.window['_ExecutedList_'].update(self.execute_list)
 
-def handle_executed_file_selection(self, values):
-    # Handle selection of executed files for viewing
-    if values['_ExecutedList_']:
-        filename = values['_ExecutedList_'][0]
-        # Update the file name in the GUI and show the corresponding window
-        self.window['_FileName_'].update(filename)
-        self.show_window(6)
+    def show_window(self, window_number):
+        # Show the specified window and hide others
+        for i in range(1, 7):
+            self.window[f'COL{i}'].update(visible=False)
+        self.window[f'COL{window_number}'].update(visible=True)
 
-def handle_execute_file(self):
-    # Execute the selected file
-    filename = self.window['_FileName_'].get()
-    if filename:
-        # Send the execute command to MSP
-        self.serial_comm.send_to_MSP(f'e{self.burn_index}')
-        self.burn_index += 1
-        while True:
-            event, _ = self.window.read(timeout=100)
-            if event == "_BackScript_":
-                break
-            elif event == "_Run_":
-                # Send the run command to MSP
-                self.serial_comm.send_to_MSP('R')
-            
-            # Update degree data from the serial port
-            script_data = self.serial_comm.read_from_MSP('script', 4)
-            if script_data:
-                self.window['Degree'].update(script_data)
-
-def handle_clear_executed_list(self):
-    # Clear the list of executed files
-    self.execute_list.clear()
-    self.burn_index = 0
-    # Update the executed list in the GUI
-    self.window['_ExecutedList_'].update(self.execute_list)
-
-def show_window(self, window_number):
-    # Show the specified window and hide others
-    for i in range(1, 7):
-        self.window[f'COL{i}'].update(visible=False)
-    self.window[f'COL{window_number}'].update(visible=True)
-
-    # Hide the Paint application when switching to other windows
-    if window_number != 3 and self.paint_app:
-        frame = self.paint_app.c.master
-        frame.pack_forget()
+        # Hide the Paint application when switching to other windows
+        if window_number != 3 and self.paint_app:
+            frame = self.paint_app.c.master
+            frame.pack_forget()
 
 if __name__ == "__main__":
     debug_mode = False

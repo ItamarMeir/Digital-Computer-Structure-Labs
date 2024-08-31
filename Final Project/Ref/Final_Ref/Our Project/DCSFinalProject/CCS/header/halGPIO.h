@@ -6,6 +6,7 @@
 #include "stdint.h"
 
 #define MULTIPLY_FP_RESOLUTION_BITS 15 // For atan2-fixed point
+#define FIXED_POINT_SHIFT 15
 
 typedef signed int fix;
 #define multfix(a,b) ((fix)(((signed long long)(a) * (signed long long)(b)) >> 15))
@@ -68,6 +69,7 @@ extern void START_TIMERA1(unsigned int counter);
 extern float angle(float X, float Y);
 extern void  motorGoToPosition(uint32_t stepper_degrees, char script_state);
 extern int16_t atan2_fp(int16_t y_fp, int16_t x_fp);
+extern int16_t atan2_fixed_point(int16_t y, int16_t x);
 extern int16_t fixed_mul(int16_t a, int16_t b);
 extern int16_t fixed_div(int16_t a, int16_t b);
 extern long fixed_mul_u(long a, long b);

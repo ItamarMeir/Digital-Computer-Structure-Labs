@@ -105,18 +105,7 @@ void ADCconfig(void) {
     ADC10AE0 = Vx_Pin + Vy_Pin;                        // P1.3-4 ADC10 option select
     ADC10DTC1 = 0x02;                              // Set block transfer for noise reduction
 }
-// void ADCconfig(void) {
-//     ADC10CTL0 = SREF_0 + ADC10SHT_2 + ADC10ON;  // Vcc/Vss as reference, 16 clock cycles, ADC on
-//     ADC10CTL1 = INCH_3;                         // Start with the input channel 3 (P1.3)
-//     ADC10AE0 |= BIT3 + BIT4;                    // Enable analog input on P1.3 and P1.4
-// }
 
-// short readADC(int channel) {
-//     ADC10CTL1 = (channel << 12);                // Set the input channel (e.g., INCH_x)
-//     ADC10CTL0 |= ENC + ADC10SC;                 // Enable conversion and start conversion
-//     while (ADC10CTL1 & ADC10BUSY);              // Wait for conversion to finish
-//     return ADC10MEM;                            // Return the result
-// }
 //-----------------------------------------------------------------------------
 //            Flash Configuration
 //-----------------------------------------------------------------------------

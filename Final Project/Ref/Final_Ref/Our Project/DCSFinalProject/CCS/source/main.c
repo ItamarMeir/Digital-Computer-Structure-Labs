@@ -26,7 +26,7 @@ void main(void){
         
 	    switch(stateStepp){
             case stateAutoRotate: 
-                stepper_scan(0, 283);
+                stepper_scan(90, 30);
                 //Activate_Stepper_Clicks(max_counter/4, 500, Clockwise); // Rotate stepper motor
                 //Activate_Stepper(500, Clockwise); // Rotate stepper motor
                 break;
@@ -82,19 +82,10 @@ void main(void){
 
 	case state3:  //Script
         EnableRXIE();                          // Enable USCI_A0 RX interrupt
-        switch(stateStepp){
-            case stateDefault:
-                EnterLPM();       // Enter LPM0 w/ int until Byte RXed
-                break;
-
-            case stateAutoRotate: 
-                ScriptFunc();
-                break;
-
-            case stateStopRotate: 
-                
-                break;
-        }
+	    while ( state == state3){
+	        ScriptFunc();
+	    }
+		break;
 		
 	case state4: //
 

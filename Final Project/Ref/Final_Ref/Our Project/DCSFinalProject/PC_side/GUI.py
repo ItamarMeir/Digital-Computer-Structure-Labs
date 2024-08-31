@@ -233,7 +233,7 @@ class GUI:
         # Script mode layout
         file_viewer = [
             [sg.Text("Script Files", font=('Helvetica', 16))],
-            [sg.Input(key='_Folder_', size=(25, 1), font=('Helvetica', 12)),
+            [sg.Input(key='_Folder_', enable_events=True, size=(25, 1), font=('Helvetica', 12)),
              sg.FolderBrowse(font=('Helvetica', 12)),
              sg.Button('Select Folder', key='_Folder_', size=(10, 1), font=('Helvetica', 12))],
             [sg.Listbox(values=[], enable_events=True, size=(40, 20), key="_FileList_", font=('Helvetica', 12))],
@@ -435,37 +435,59 @@ class GUI:
         # Show the window corresponding to script mode
         self.show_window(5)
 
-    def handle_folder_selection(self, values):
-        # Handle folder selection for script files
-        folder = values['_Folder_']
-        if folder:
-            file_list = [f for f in os.listdir(folder) if f.endswith('.txt')]
+def handle_folder_selection(self, values):
+    # Handle folder selection from the GUI
+    folder = values['_Folder_']
+    print(f"Selected folder: {folder}")  # Debugging step to check the folder path
+
+    if folder:
+        try:
+            # Verify the folder contents
+            print(f"Contents of the folder: {os.listdir(folder)}")  # Print the folder contents for debugging
+
+            # List all files with .txt extension in the selected folder
+            file_list = [f for f in os.listdir(folder) if f.lower().endswith('.txt')]
+            print(f"Filtered .txt files: {file_list}")  # Debugging step to see the filtered files
+            # Update the file list in the GUI
             self.window['_FileList_'].update(file_list)
+        except Exception as e:
+            # Show an error popup if there's an issue loading files
+            sg.popup_error(f"Error loading files: {str(e)}", font=('Helvetica', 12))
+    else:
+        # Show an error popup if no valid folder is selected
+        sg.popup_error("Please select a valid folder", font=('Helvetica', 12))
 
-    def handle_file_selection(self, values):
-        # Display selected file content
-        if values['_FileList_']:
-            filename = values['_FileList_'][0]
-            filepath = os.path.join(values['_Folder_'], filename)
-            with open(filepath, 'r') as file:
-                content = file.read()
-            self.window['_FileHeader_'].update(filename)
-            self.window['_FileContent_'].update(content)
+def handle_file_selection(self, values):
+    # Display selected file content
+    if values['_FileList_']:
+        filename = values['_FileList_'][0]
+        filepath = os.path.join(values['_Folder_'], filename)
+        with open(filepath, 'r') as file:
+            content = file.read()
+        # Update the file header and content in the GUI
+        self.window['_FileHeader_'].update(filename)
+        self.window['_FileContent_'].update(content)
 
-    def handle_burn_file(self, values):
-        # Handle burning of the selected file
-        if values['_FileList_']:
-            filename = values['_FileList_'][0]
-            filepath = os.path.join(values['_Folder_'], filename)
-            with open(filepath, 'rb') as file:
-                content = file.read()
-            # Send the file content to MSP for burning
-            self.serial_comm.send_to_MSP(content, file_option=True)
-            # Update the GUI to show the file was burned successfully
-            self.window['_ACK_'].update("File burned successfully!")
-            # Add the file to the executed list and update the GUI
-            self.execute_list.append(filename)
-            self.window['_ExecutedList_'].update(self.execute_list)
+def file_translator(file):
+    # Placeholder function for file translation
+    with open(file, 'rb') as f:
+        content = f.read()
+    return
+
+def handle_burn_file(self, values):
+    # Handle burning of the selected file
+    if values['_FileList_']:
+        filename = values['_FileList_'][0]
+        filepath = os.path.join(values['_Folder_'], filename)
+        with open(filepath, 'rb') as file:
+            content = file.read()
+        # Send the file content to MSP for burning
+        self.serial_comm.send_to_MSP(content, file_option=True)
+        # Update the GUI to show the file was burned successfully
+        self.window['_ACK_'].update("File burned successfully!")
+        # Add the file to the executed list and update the GUI
+        self.execute_list.append(filename)
+        self.window['_ExecutedList_'].update(self.execute_list)
 
     def handle_executed_file_selection(self, values):
         # Handle selection of executed files for viewing
@@ -508,10 +530,10 @@ class GUI:
             self.window[f'COL{i}'].update(visible=False)
         self.window[f'COL{window_number}'].update(visible=True)
 
-        # Hide the Paint application when switching to other windows
-        if window_number != 3 and self.paint_app:
-            frame = self.paint_app.c.master
-            frame.pack_forget()
+    # Hide the Paint application when switching to other windows
+    if window_number != 3 and self.paint_app:
+        frame = self.paint_app.c.master
+        frame.pack_forget()
 
 if __name__ == "__main__":
     debug_mode = False

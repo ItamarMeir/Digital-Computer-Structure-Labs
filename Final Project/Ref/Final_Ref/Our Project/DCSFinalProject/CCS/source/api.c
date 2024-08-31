@@ -221,24 +221,26 @@ void Stepper_counter_clockwise(int speed_Hz){
     Activate_Stepper(speed_Hz, CounterClockwise);
 }
 //-------------------------------------------------------------
-//
+//GotoAngle: Rotate stepper motor to a specific angle
+// Input: scaled angle in degrees (0 to 360000)
+// Output: rotate stepper motor to the specified angle 
 //-------------------------------------------------------------
 void GotoAngle(unsigned long angle){ // assume input angle is scaled by SCALE_FACTOR and positive
     unsigned long phi_current = ((unsigned long)curr_counter * (unsigned long)delta_phi) % (unsigned long)360000; // Current angle in scaled degrees
     unsigned long mod_angle = angle % 360000;   // Wanted angle in scaled degrees
     if (mod_angle == 0 && phi_current > 180000) mod_angle = 360000; // Special case for 0 degrees 
-    unsigned long abs_diff = 0; // Absolute difference between the current angle and the wanted angle
+    unsigned long diff = 0; // Absolute difference between the current angle and the wanted angle
     // ABS(phi_current - mod_angle)
     if (mod_angle > phi_current){            
-        abs_diff = mod_angle - phi_current;     
+        diff = mod_angle - phi_current;     
     }
     else{
-        abs_diff = phi_current - mod_angle;
+        diff = phi_current - mod_angle;
     }
 
-    //if (abs_diff < ((unsigned long)(100))) return; // Ignore small angle changes
+    //if (diff < ((unsigned long)(100))) return; // Ignore small angle changes
 
-    unsigned int clicks_needed = (abs_diff / (unsigned long)delta_phi) % max_counter;   // Number of clicks needed to reach the wanted angle
+    unsigned int clicks_needed = (diff / (unsigned long)delta_phi) % max_counter;   // Number of clicks needed to reach the wanted angle
     int i = 0;
     if (mod_angle > phi_current){               // Wanted angle is bigger than current angle
         if (clicks_needed > max_counter / 2){   // The case where it is faster to go counter clockwise
@@ -257,8 +259,33 @@ void GotoAngle(unsigned long angle){ // assume input angle is scaled by SCALE_FA
         }
     }
 }
+
 //-------------------------------------------------------------
-// Input: number of clicks, speed in Hz, rotation state. Output: rotate stepper motor according to the input
+// GotoAngleClockWise: Rotate stepper motor to a specific angle in Clockwise direction
+// Input: scaled angle in degrees (0 to 360000).
+// Output: rotate stepper motor to the specified angle in Clockwise direction
+//-------------------------------------------------------------
+void GotoAngleClockWise(unsigned long angle){ // assume input angle is scaled by SCALE_FACTOR and positive
+    unsigned long phi_current = ((unsigned long)curr_counter * (unsigned long)delta_phi) % (unsigned long)360000; // Current angle in scaled degrees
+    unsigned long mod_angle = angle % 360000;   // Wanted angle in scaled degrees
+    if (mod_angle == 0 && phi_current > 180000) mod_angle = 360000; // Special case for 0 degrees 
+    unsigned long diff = 0; // difference between the current angle and the wanted angle
+    
+    if (mod_angle > phi_current){       // if the wanted angle is bigger than the current angle       
+        diff = mod_angle - phi_current;     
+    }
+    else{                            // if the wanted angle is smaller than the current angle
+        diff = (unsigned long)360000 - (mod_angle - phi_current);
+    }
+    unsigned int clicks_needed = (diff / (unsigned long)delta_phi) % max_counter;   // Number of clicks needed to reach the wanted angle
+    Activate_Stepper_Clicks(clicks_needed, 500, Clockwise);
+}
+
+
+//-------------------------------------------------------------
+// Activate_Stepper_Clicks: Rotate stepper motor a specific number of clicks
+// Input: number of clicks, speed in Hz, rotation state.
+// Output: rotate stepper motor according to the input
 //-------------------------------------------------------------
 void Activate_Stepper_Clicks(int clicks, int speed_Hz, int Rot_state){  
     if (clicks <= 0) return;
@@ -638,7 +665,7 @@ void clear_LCD() {
 
 // Function to move stepper motor to a specific degree
 void stepper_deg(int p) {
-    GotoAngle(p); // Move stepper motor to the specified degree
+    GotoAngle((unsigned long)p * (unsigned long)SCALE_FACTOR); // Move stepper motor to the specified degree
     char buffer[16];
     sprintf(buffer, "Angle: %d", p);
     lcd_puts(buffer); // Display the degree onto the LCD
@@ -646,7 +673,7 @@ void stepper_deg(int p) {
 
 // Function to scan between two degrees using stepper motor and display on LCD
 void stepper_scan(int l, int r) {
-    // gotoAngle finds the shortest path to the desired angle therefore we need to adjust the angles to make sure the motor moves in the correct direction
+    // gotoAngle finds the shortest path to the desired angle, GotAngleClockWise moves only in the clockwise direction
     char str_A[] = "I'm on my way!";
     char str_B[] = "Scanning...";
     char str_C[] = "Reached the first angle!";
@@ -667,13 +694,7 @@ void stepper_scan(int l, int r) {
     clear_LCD();
     lcd_puts(str_B); // Display scanning message on LCD
     timer_delay(delay_value * 5); // Timer-based delay
-    if (r - l > 180){
-        if (l < 90)
-            GotoAngle((unsigned long)90 * (unsigned long)SCALE_FACTOR);
-        else
-            GotoAngle((unsigned long)180 * (unsigned long)SCALE_FACTOR);
-    }
-    GotoAngle((unsigned long)r * (unsigned long)SCALE_FACTOR); // Move to the rightmost angle
+    GotoAngleClockWise((unsigned long)r * (unsigned long)SCALE_FACTOR); // Move to the rightmost angle
     lcd_clear();
     lcd_puts(str_D);    // Display the reached angle on LCD
     timer_delay(delay_value * 20); // Timer-based delay
@@ -681,8 +702,3 @@ void stepper_scan(int l, int r) {
     
     
 }   
-
-// Function to put the MCU into sleep mode
-void sleep_mcu() {
-    EnterLPM(); // Enter low-power mode
-}

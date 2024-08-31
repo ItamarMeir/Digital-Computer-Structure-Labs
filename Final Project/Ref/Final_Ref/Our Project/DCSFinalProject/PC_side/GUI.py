@@ -562,6 +562,6 @@ class GUI:
             frame.pack_forget()
 
 if __name__ == "__main__":
-    debug_mode = True
+    debug_mode = False
     gui = GUI()
     gui.run()

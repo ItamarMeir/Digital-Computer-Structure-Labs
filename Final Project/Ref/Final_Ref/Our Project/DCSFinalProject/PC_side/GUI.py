@@ -597,23 +597,20 @@ class GUI:
                 sg.popup_error("Script file must contain 10 lines or fewer", font=('Helvetica', 12))
                 return
             # Send the file name to MSP
-            if not self.debug_mode:
-                self.serial_comm.send_to_MSP(filename, file_option=True)
-                time.sleep(0.2)  # Small delay to ensure the file name is processed before sending the content    
-                # Send the file content to MSP for burning
-                self.serial_comm.send_to_MSP(content, file_option=True)
-                time.sleep(0.5)
-                # Update the GUI to show the file was burned successfully
+            self.serial_comm.send_to_MSP(filename, file_option=True)
+            time.sleep(0.2)  # Small delay to ensure the file name is processed before sending the content    
+            # Send the file content to MSP for burning
+            self.serial_comm.send_to_MSP(content, file_option=True)
+            time.sleep(0.5)
+            for _ in range(5):
                 response = self.serial_comm.read_from_MSP('ack', 3)
-            else:
-                response = 'ACK'
-            
-            if response == 'ACK':
-                self.window['_ACK_'].update("File burned successfully!")
-                self.execute_list.append(filename)
-                self.window['_ExecutedList_'].update(self.execute_list)
-            else:
-                sg.popup_error("Error burning file", font=('Helvetica', 12))
+                if response == 'ACK':
+                    self.window['_ACK_'].update("File burned successfully!")
+                    self.execute_list.append(filename)
+                    self.window['_ExecutedList_'].update(self.execute_list)
+                    return
+                time.sleep(0.5)
+            sg.popup_error("Error burning file", font=('Helvetica', 12))
 
 
     def handle_executed_file_selection(self, values):
@@ -630,20 +627,18 @@ class GUI:
         filename = self.window['_FileName_'].get()
         if filename:
             # Send the execute command to MSP
-            if not self.debug_mode:
-                self.serial_comm.send_to_MSP(f'e{self.burn_index}')
-                self.burn_index += 1
+            self.serial_comm.send_to_MSP(f'e{self.burn_index}')
+            print(self.burn_index)
+            self.burn_index += 1
             while True:
                 event, _ = self.window.read(timeout=100)
                 if event == "_BackScript_":
                     self.show_window(5)
                     self.serial_comm.send_to_MSP('s')
                     break
-                elif event == "_Run_":
-                    if not self.debug_mode:
-                        # Send the run command to MSP
-                        self.serial_comm.send_to_MSP('R')
-                    print("Running script...")
+                elif event.startswith("_Run_"):
+                    # Send the run command to MSP
+                    self.serial_comm.send_to_MSP('R')
                 
                 # Update degree data from the serial port
                 if not self.debug_mode:

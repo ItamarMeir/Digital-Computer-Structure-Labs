@@ -11,23 +11,20 @@ int j=0;
 char *ptr1, *ptr2, *ptr3;
 short MSBIFG = 0;
 short stateIFG = 0; // 0-state changed -> send state(pb pressed)
-int rotateIFG = 1;
 unsigned int delay_time = 500;
-const unsigned int timer_half_sec = 65535;
+//const unsigned int timer_half_sec = 65535;
 unsigned int i = 0;
 unsigned int tx_index;
 unsigned int tx_length = 0;
 const char *tx_str;
 char counter_str[4];
-char Vr_pc[8];
+//char Vr_pc[8];
 short Vr[] = {0, 0}; //Vr[0]=Vry , Vr[1]=Vrx
 const short state_changed[] = {1000, 1000}; // send if button pressed - state changed
 char RX_str[80];
 char file_content[80];
 int ExecuteFlag = 0;
 int FlashBurnIFG = 0;
-int startRotateLEDs = 0x10;
-int* rotateLEDs = &startRotateLEDs;
 int counter = 514;
 char step_str[4];
 char finish_str[3] = "ACK";
@@ -36,9 +33,10 @@ int max_counter = 2117;
 short finishIFG = 0;
 int curr_angle = 0;
 int delta_phi = 17;
-unsigned int JoyStickCounter = 0;
+//unsigned int JoyStickCounter = 0;
 short Vr_rest_value[2] = {512, 512};
 int SendFlag = 0;  // Flag to differentiate between filename and file content
+int burn_index;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -68,12 +66,6 @@ void send_to_PC(const char *input_str) {
 //--------------------------------------------------------------------
 void send_finish_to_PC(){
     finishIFG = 1;
-    // tx_index = 0;
-    // TXBuffer = finish_str[tx_index++];
-    // EnableTXIE;                        // Enable USCI_A0 TX interrupt
-    // __bis_SR_register(LPM0_bits + GIE); // Sleep
-    // timer_delay(100);
-    // // START_TIMERA0(10000);
     send_to_PC(finish_str);
     finishIFG = 0;
 }
@@ -82,12 +74,6 @@ void send_finish_to_PC(){
 //              Send degree to PC
 //--------------------------------------------------------------------
 void send_degree_to_PC(){
-    // tx_index = 0;
-    // TXBuffer = step_str[tx_index++];
-    // EnableTXIE;                        // Enable USCI_A0 TX interrupt
-    // __bis_SR_register(LPM0_bits + GIE); // Sleep
-    // timer_delay(100);
-    // // START_TIMERA0(10000);
     send_to_PC(step_str);
 }
 //--------------------------------------------------------------------
@@ -101,12 +87,6 @@ void SampleJoystick(void) {
 //---------------------------------------------------------------------
 //            General Function
 //---------------------------------------------------------------------
-//---------------------------------------------------------------------
-//            Convert Integer to String
-//---------------------------------------------------------------------
-// void int2str(char *str, unsigned int num) {
-//     sprintf(str, "%u", num);  // Use sprintf for easier and safer conversion
-// }
 //-----------------------------------------------------------------------
 //                  inn to str
 //-----------------------------------------------------------------------
@@ -134,7 +114,7 @@ void int2str(char *str, unsigned int num){
 }
 
 //-----------------------------------------------------------------------
-//                  hex to int
+//                     hex to int
 //-----------------------------------------------------------------------
 uint32_t hex2int(char *hex) {
     uint32_t val = 0;
@@ -152,91 +132,72 @@ uint32_t hex2int(char *hex) {
     return val;
 }
 //-----------------------------------------------------------------------
-//                  Motor Go To Position
+//                     hex to char
 //-----------------------------------------------------------------------
-void motorGoToPosition(uint32_t stepper_degrees, char script_state){
-
-    int clicks_cnt;
-    uint32_t step_counts;
-    uint32_t calc_temp;
-    calc_temp = stepper_degrees * counter;
-    step_counts = (calc_temp / 360); // how much clicks to wanted degree
-
-    //RK code
-    int diff = step_counts - curr_counter;
-    if(0 <= diff){ //move CW
-        for (clicks_cnt = 0; clicks_cnt < diff; clicks_cnt++){
-            curr_counter++;
-            Stepper_clockwise(150);
-            START_TIMERA0(10000);
-            //send data only if FINISH or stepper_deg (state 6)
-            if(script_state == '6'){
-                int2str(step_str, curr_counter);
-                send_degree_to_PC(); }
+char hex2char(char hex[]) {
+    int value = 0;
+    int i;
+    for (i = 0; i < 2; i++) {
+        if (hex[i] >= '0' && hex[i] <= '9') {
+            value = (value << 4) | (hex[i] - '0');
+        } else if (hex[i] >= 'A' && hex[i] <= 'F') {
+            value = (value << 4) | (hex[i] - 'A' + 10);
+        } else if (hex[i] >= 'a' && hex[i] <= 'f') {
+            value = (value << 4) | (hex[i] - 'a' + 10);
         }
-        if (script_state == '7') {
-            int2str(step_str, curr_counter);
-           // sprintf(step_str, "%d", curr_counter);
-            send_degree_to_PC(); }
-        sprintf(step_str, "%s", "FFFF"); // add finish flag
-        send_degree_to_PC();
     }
-    else{ // move CCW
-        for (clicks_cnt = diff; clicks_cnt < 0; clicks_cnt++){
-            curr_counter--;
-            Stepper_counter_clockwise(150);
-            START_TIMERA0(10000);
-            //send data only if FINISH or stepper_deg (state 6)
-            if(script_state == '6'){
-                int2str(step_str, curr_counter);
-          //      sprintf(step_str, "%d", curr_counter);
-                send_degree_to_PC(); }
-        }
-        if (script_state == '7') {
-            int2str(step_str, curr_counter);
-        //    sprintf(step_str, "%d", curr_counter);
-            send_degree_to_PC(); }
-        sprintf(step_str, "%s", "FFFF"); // add finish flag
-        send_degree_to_PC();
-    }
+    return value + '0'; 
 }
-// //---------------------------------------------------------------------
-// //                  Motor Go To Position- NEW
-// //---------------------------------------------------------------------
-// void motorGoToPosition(uint32_t stepper_degrees, char script_state) {
-//     uint32_t step_counts = (stepper_degrees * counter) / 360;
-//     int diff = step_counts - curr_counter;
 
-//     if (diff >= 0) {  // Move Clockwise
-//         for (int clicks_cnt = 0; clicks_cnt < diff; clicks_cnt++) {
-//             curr_counter++;
-//             Stepper_clockwise(150);
-//             START_TIMERA0(10000);
-//             if (script_state == '6') {
-//                 int2str(step_str, curr_counter);
-//                 send_degree_to_PC();
-//             }
-//         }
-//     } else {  // Move Counter-Clockwise
-//         for (int clicks_cnt = diff; clicks_cnt < 0; clicks_cnt++) {
-//             curr_counter--;
-//             Stepper_counter_clockwise(150);
-//             START_TIMERA0(10000);
-//             if (script_state == '6') {
-//                 int2str(step_str, curr_counter);
-//                 send_degree_to_PC();
-//             }
-//         }
-//     }
-
-//     if (script_state == '7') {
-//         int2str(step_str, curr_counter);
-//         send_degree_to_PC();
-//     }
-//     strcpy(step_str, "FFFF");  // Add finish flag
-//     send_degree_to_PC();
-// }
-
+//-----------------------------------------------------------------------
+//                  Motor Go To Position - DELETE
+//-----------------------------------------------------------------------
+//void motorGoToPosition(uint32_t stepper_degrees, char script_state){
+//
+//    int clicks_cnt;
+//    uint32_t step_counts;
+//    uint32_t calc_temp;
+//    calc_temp = stepper_degrees * counter;
+//    step_counts = (calc_temp / 360); // how much clicks to wanted degree
+//
+//    //RK code
+//    int diff = step_counts - curr_counter;
+//    if(0 <= diff){ //move CW
+//        for (clicks_cnt = 0; clicks_cnt < diff; clicks_cnt++){
+//            curr_counter++;
+//            Stepper_clockwise(150);
+//            START_TIMERA0(10000);
+//            //send data only if FINISH or stepper_deg (state 6)
+//            if(script_state == '6'){
+//                int2str(step_str, curr_counter);
+//                send_degree_to_PC(); }
+//        }
+//        if (script_state == '7') {
+//            int2str(step_str, curr_counter);
+//           // sprintf(step_str, "%d", curr_counter);
+//            send_degree_to_PC(); }
+//        sprintf(step_str, "%s", "FFFF"); // add finish flag
+//        send_degree_to_PC();
+//    }
+//    else{ // move CCW
+//        for (clicks_cnt = diff; clicks_cnt < 0; clicks_cnt++){
+//            curr_counter--;
+//            Stepper_counter_clockwise(150);
+//            START_TIMERA0(10000);
+//            //send data only if FINISH or stepper_deg (state 6)
+//            if(script_state == '6'){
+//                int2str(step_str, curr_counter);
+//          //      sprintf(step_str, "%d", curr_counter);
+//                send_degree_to_PC(); }
+//        }
+//        if (script_state == '7') {
+//            int2str(step_str, curr_counter);
+//        //    sprintf(step_str, "%d", curr_counter);
+//            send_degree_to_PC(); }
+//        sprintf(step_str, "%s", "FFFF"); // add finish flag
+//        send_degree_to_PC();
+//    }
+//}
 //------------------------------------------------------------------------
 //                      Timer Delay in ms
 //------------------------------------------------------------------------
@@ -257,9 +218,8 @@ void timer_delay(unsigned int delay_value) {
     StopTimerA1();
 }
 
-
 //------------------------------------------------------------------------
-//                      ATAN2- Fixed point - returns degrees based on taylor series approximation
+//                      ATAN2- Fixed point 
 //------------------------------------------------------------------------
 int16_t atan2_fixed_point(int16_t y, int16_t x){
     const int32_t COEFF_A = 45;     
@@ -302,64 +262,37 @@ int16_t atan2_fixed_point(int16_t y, int16_t x){
     // Adjust angle for quadrants III and IV
     return (y < 0) ? (FULL_CIRCLE - angle) : angle;
 }
-//------------------------------------------------------------------------------------------
-int16_t atan2_fp(int16_t y_fp, int16_t x_fp)
-{
-    int32_t coeff_1 = 45;
-    int32_t coeff_1b = -56; // 56.24;
-    int32_t coeff_1c = 11;  // 11.25
-    int16_t coeff_2 = 135;
 
-    int16_t angle = 0;
-
-    int32_t r;
-    int32_t r3;
-
-    int16_t y_abs_fp = y_fp;
-    if (y_abs_fp < 0)
-        y_abs_fp = -y_abs_fp;
-
-    if (y_fp == 0)
-    {
-        if (x_fp >= 0)
-        {
-            angle = 0;
-        }
-        else
-        {
-            angle = 180;
-        }
-    }
-    else if (x_fp >= 0)
-    {
-        r = (((int32_t)(x_fp - y_abs_fp)) << MULTIPLY_FP_RESOLUTION_BITS) /
-((int32_t)(x_fp + y_abs_fp));
-
-        r3 = r * r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= coeff_1c;
-        angle = (int16_t) (     coeff_1 + ((coeff_1b * r + r3) >>
-MULTIPLY_FP_RESOLUTION_BITS)   );
-    }
-    else
-    {
-        r = (((int32_t)(x_fp + y_abs_fp)) << MULTIPLY_FP_RESOLUTION_BITS) /
-((int32_t)(y_abs_fp - x_fp));
-        r3 = r * r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= r;
-        r3 =  r3 >> MULTIPLY_FP_RESOLUTION_BITS;
-        r3 *= coeff_1c;
-        angle = coeff_2 + ((int16_t)    (((coeff_1b * r + r3) >>
-MULTIPLY_FP_RESOLUTION_BITS))   );
+//---------------------------------------------------------------------
+//                 Flash TXT Files
+//---------------------------------------------------------------------
+void store_file_in_flash() {
+    static int current_file_index = 0;
+    if (current_file_index >= MAX_FILES) {
+        return;  // Handle the case where the maximum number of files has been reached
     }
 
-    if (y_fp < 0)
-        return (360-angle);     // negate if in quad III or IV
-    else
-        return (angle);
+    // Select flash address based on current file index
+    char* flash_address;
+    switch (current_file_index) {
+        case 0:
+            flash_address = (char*) 0x1000;
+            file.file_start_pointers[0] = flash_address;
+            break;
+        case 1:
+            flash_address = (char*) 0x1040;
+            file.file_start_pointers[1] = flash_address;
+            break;
+        case 2:
+            flash_address = (char*) 0x1080;
+            file.file_start_pointers[2] = flash_address;
+            break;
+    }
+    file.file_sizes[current_file_index] = j;
+    file.num_of_files = ++current_file_index;
+    // Erase and write to flash
+    write_Seg();
+    send_finish_to_PC();
 }
 //---------------------------------------------------------------------
 //                 Enter from LPM0 mode
@@ -443,9 +376,7 @@ void delay(unsigned int t){
 __interrupt void TimerA_ISR(void)
 {
     // Increment the global counter
-    JoyStickCounter ++;
     counter++;
-    //JoyStickCounter++;
     // Handle Full-Step Rotation (Clockwise or CounterClockwise)
     if (rotation == Clockwise || rotation == CounterClockwise) {
         // Full-step sequence
@@ -643,83 +574,26 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
             SendFlag = 0;
         }  // Store file content in flash, reset flag
         j = 0;  // Reset index after processing
-    } 
+    }
+    else if (RX_str[0] == 'e' && j == 1) {
+            burn_index = received_char - '0'; // Convert char to integer (assuming single digit index)
+            ExecuteFlag = 1; // Set flag to execute the selected script
+            j = 0;
+    }
     else { RX_str[j++] = received_char; }  // Store the received character in the buffer
 
-    if (RX_str[0] == MOTOR_STATE) { state = state0; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set motor state
-    else if (RX_str[0] == PAINT_STATE) { state = state1; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set paint state
-    else if (RX_str[0] == CALIB_STATE) { state = state2; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set calibration state
-    else if (RX_str[0] == SCRIPT_STATE) { state = state3; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set script state
-    else if (RX_str[0] == AUTO_ROTATE) { stateStepp = stateAutoRotate; rotateIFG = 1; j = 0; }  // Set auto rotate state
-    else if (RX_str[0] == STOP_ROTATE) { stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0; }  // Set stop rotate state
+    if (RX_str[0] == MOTOR_STATE) { state = state0; stateStepp = stateDefault; j = 0; }  // Set motor state
+    else if (RX_str[0] == PAINT_STATE) { state = state1; stateStepp = stateDefault; j = 0; }  // Set paint state
+    else if (RX_str[0] == CALIB_STATE) { state = state2; stateStepp = stateDefault; j = 0; }  // Set calibration state
+    else if (RX_str[0] == SCRIPT_STATE) { state = state3; stateStepp = stateDefault; j = 0; }  // Set script state
+    else if (RX_str[0] == AUTO_ROTATE) { stateStepp = stateAutoRotate; j = 0; }  // Set auto rotate state
+    else if (RX_str[0] == STOP_ROTATE) { stateStepp = stateStopRotate; rotation = stop; j = 0; }  // Set stop rotate state
     else if (RX_str[0] == JOYSTICK_ROTATE) { stateStepp = stateJSRotate; j = 0; }  // Set joystick rotate state
+
 
     LPM0_EXIT;  // Exit low power mode
 }
 
-void init_filesystem() {
-    file.num_of_files = 0;
-    int i = 0;
-    for (i = 0; i < MAX_FILES; i++) {
-        file.file_start_pointers[i] = NULL;
-        file.file_sizes[i] = 0;
-    }
-}
-
-void store_file_in_flash() {
-    static int current_file_index = 0;
-    if (current_file_index >= MAX_FILES) {
-        return;  // Handle the case where the maximum number of files has been reached
-    }
-
-    // Select flash address based on current file index
-    char* flash_address;
-    switch (current_file_index) {
-        case 0:
-            flash_address = (char*) 0x1000;
-            file.file_start_pointers[0] = flash_address;
-            break;
-        case 1:
-            flash_address = (char*) 0x1040;
-            file.file_start_pointers[1] = flash_address;
-            break;
-        case 2:
-            flash_address = (char*) 0x1080;
-            file.file_start_pointers[2] = flash_address;
-            break;
-    }
-
-
-
-    file.file_sizes[current_file_index] = j;
-    file.num_of_files = ++current_file_index;
-    // Erase and write to flash
-    write_Seg();
-    send_finish_to_PC();
-}
-
-// //*********************************************************************
-// //                         TX ISR
-// //*********************************************************************
-// #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-// #pragma vector=USCIAB0TX_VECTOR
-// __interrupt void USCI0TX_ISR(void)
-// #elif defined(__GNUC__)
-// void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
-// #else
-// #error Compiler not supported!
-// #endif
-// {
-//     if (tx_index < tx_length) {
-//         TXBuffer = tx_str[tx_index++];  // TX next character
-//     } else {
-//         tx_index = 0;  // Reset index for the next transmission
-//         DisableTXIE();  // Disable USCI_A0 TX interrupt
-//         stateStepp = stateDefault;  // Reset state
-//         LPM0_EXIT;  // Exit low-power mode
-//     }
-
-// }
 //*********************************************************************
 //                         TX ISR
 //*********************************************************************
@@ -765,40 +639,33 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
         }
     }
 
-      else if (stateIFG && state == state1){  // Send Push Button state
+      else if (stateIFG && state == state1){  
           if(MSBIFG) TXBuffer = (state_changed[i++]>>8) & 0xFF;
           else TXBuffer = state_changed[i] & 0xFF;
           MSBIFG ^= 1;
 
-          if (i == 2) {  // TX over?
+          if (i == 2) {  
               i=0;
-              DisableTXIE();                       // Disable USCI_A0 TX interrupt
+              DisableTXIE();                       
               START_TIMERA1(10000);
               stateIFG = 0;
               LPM0_EXIT;
           }
       }
-      else if(!stateIFG && state == state1){ //send data for painter!!
+      else if(!stateIFG && state == state1){ 
         if(MSBIFG) TXBuffer = (Vr[i++]>>8) & 0xFF;
         else TXBuffer = Vr[i] & 0xFF;
         MSBIFG ^= 1;
 
-        if (i == 2) {  // TX over?
+        if (i == 2) {  
             i=0;
-            DisableTXIE();                      // Disable USCI_A0 TX interrupt
+            DisableTXIE();                      
             START_TIMERA1(10000);
             LPM0_EXIT;
         }
     }
 }
 
-// void send_Vr_to_PC() {
-//     // Start sending the first part of the data
-//     MSBIFG = 1;  // Indicate that the next byte to send is the MSB
-//     TXBuffer = (Vr[i] >> 8) & 0xFF;  // Send the MSB of Vr[0]
-//     EnableTXIE();  // Enable USCI_A0 TX interrupt to handle the rest of the transmission
-//     EnterLPM();    // Enter low-power mode, will wake up after transmission is complete
-// }
 //*********************************************************************
 //                        Port1 ISR
 //*********************************************************************

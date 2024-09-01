@@ -19,25 +19,12 @@
 #define STX '\x02'  // Start of Text 
 #define ETX '\x03'  // End of Text 
 
-typedef signed int fix;
-#define multfix(a,b) ((fix)(((signed long long)(a) * (signed long long)(b)) >> 15))
-#define divfix(a,b) ((fix)(((signed long long)(a) << 15) / (b)))
-#define int2fix(a) ((fix)((a) << 15))
-#define fix2int(a) ((int)((a) >> 15))
-#define float2fix(a) ((fix)((a) * 32768.0))
-#define fix2float(a) ((float)(a) / 32768.0)
-#define sqrtfix(a) (float2fix(sqrt(fix2float(a))))
-
-
 extern enum FSMstate state;   // global variable
 extern enum Stepperstate stateStepp;
 extern enum SYSmode lpm_mode; // global variable
 extern enum RotationState rotation;
 
 extern unsigned int delay_time;
-extern int startRotateLEDs;
-extern int* rotateLEDs;
-extern int pushedIFG;
 extern int sendIFG;
 extern short MSBIFG;
 extern short stateIFG;
@@ -50,7 +37,6 @@ extern int SendFlag;
 extern int j;
 extern short Vr[];
 extern int counter;
-extern int rotateIFG;
 extern char counter_str[];
 extern unsigned int i;
 extern unsigned int tx_index;
@@ -64,27 +50,24 @@ extern int delta_phi;
 extern short Vr_rest_value[];
 extern short finishIFG;
 extern char Vr_pc[];
+extern burn_index;
 
-extern unsigned int JoyStickCounter;
-#define JoyStick_Stepper_Rotate 40
 extern void sysConfig(void);
 extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
-//extern void GotoAngle(int angle);
-extern void send_Vr_to_PC();
 extern void disable_interrupts();
-extern void timer_call_counter();
+//extern void timer_call_counter();
 extern void timer_delay();
 extern void START_TIMERA0(unsigned int counter);
 extern void START_TIMERA1(unsigned int counter);
-extern float angle(float X, float Y);
-extern void  motorGoToPosition(uint32_t stepper_degrees, char script_state);
-extern int16_t atan2_fp(int16_t y_fp, int16_t x_fp);
+//extern void  motorGoToPosition(uint32_t stepper_degrees, char script_state);
 extern int16_t atan2_fixed_point(int16_t y, int16_t x);
 extern void send_finish_to_PC();
 extern void send_to_PC(const char *input_str);
 extern uint32_t hex2int(char *hex);
+extern char hex2char(char* hexStr);
+
 extern void SampleJoystick(void);
 
 extern __interrupt void Timer_A0(void);

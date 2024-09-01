@@ -50,6 +50,7 @@ extern int delta_phi;
 extern short Vr_rest_value[];
 extern short finishIFG;
 extern char Vr_pc[];
+extern burn_index;
 
 extern void sysConfig(void);
 extern void delay(unsigned int);
@@ -65,6 +66,8 @@ extern int16_t atan2_fixed_point(int16_t y, int16_t x);
 extern void send_finish_to_PC();
 extern void send_to_PC(const char *input_str);
 extern uint32_t hex2int(char *hex);
+extern char hex2char(char* hexStr);
+
 extern void SampleJoystick(void);
 
 extern __interrupt void Timer_A0(void);

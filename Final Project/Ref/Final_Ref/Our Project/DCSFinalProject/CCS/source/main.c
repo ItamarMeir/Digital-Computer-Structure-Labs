@@ -72,7 +72,7 @@ void main(void){
         break;
 
 	case state3:  //Script
-	    while ( state == state3){
+	    while (state == state3){
 	        ScriptFunc();
 	    }
 		break;

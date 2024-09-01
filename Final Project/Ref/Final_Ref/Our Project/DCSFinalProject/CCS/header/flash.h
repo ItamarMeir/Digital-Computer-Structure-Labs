@@ -6,7 +6,7 @@
 extern void write_Seg(void);
 
 #define MAX_FILES 3
-#define MAX_FILENAME_LENGTH 11
+#define MAX_FILENAME_LENGTH 12
 
 typedef struct Files{
     short num_of_files;

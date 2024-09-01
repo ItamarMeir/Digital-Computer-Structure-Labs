@@ -36,6 +36,7 @@ int delta_phi = 17;
 //unsigned int JoyStickCounter = 0;
 short Vr_rest_value[2] = {512, 512};
 int SendFlag = 0;  // Flag to differentiate between filename and file content
+int burn_index;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -113,7 +114,7 @@ void int2str(char *str, unsigned int num){
 }
 
 //-----------------------------------------------------------------------
-//                  hex to int - DELETE
+//                     hex to int
 //-----------------------------------------------------------------------
 uint32_t hex2int(char *hex) {
     uint32_t val = 0;
@@ -130,6 +131,24 @@ uint32_t hex2int(char *hex) {
     }
     return val;
 }
+//-----------------------------------------------------------------------
+//                     hex to char
+//-----------------------------------------------------------------------
+char hex2char(char hex[]) {
+    int value = 0;
+    int i;
+    for (i = 0; i < 2; i++) {
+        if (hex[i] >= '0' && hex[i] <= '9') {
+            value = (value << 4) | (hex[i] - '0');
+        } else if (hex[i] >= 'A' && hex[i] <= 'F') {
+            value = (value << 4) | (hex[i] - 'A' + 10);
+        } else if (hex[i] >= 'a' && hex[i] <= 'f') {
+            value = (value << 4) | (hex[i] - 'a' + 10);
+        }
+    }
+    return value + '0'; 
+}
+
 //-----------------------------------------------------------------------
 //                  Motor Go To Position - DELETE
 //-----------------------------------------------------------------------
@@ -555,7 +574,12 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
             SendFlag = 0;
         }  // Store file content in flash, reset flag
         j = 0;  // Reset index after processing
-    } 
+    }
+    else if (RX_str[0] == 'e' && j == 1) {
+            burn_index = received_char - '0'; // Convert char to integer (assuming single digit index)
+            ExecuteFlag = 1; // Set flag to execute the selected script
+            j = 0;
+    }
     else { RX_str[j++] = received_char; }  // Store the received character in the buffer
 
     if (RX_str[0] == MOTOR_STATE) { state = state0; stateStepp = stateDefault; j = 0; }  // Set motor state
@@ -565,6 +589,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     else if (RX_str[0] == AUTO_ROTATE) { stateStepp = stateAutoRotate; j = 0; }  // Set auto rotate state
     else if (RX_str[0] == STOP_ROTATE) { stateStepp = stateStopRotate; rotation = stop; j = 0; }  // Set stop rotate state
     else if (RX_str[0] == JOYSTICK_ROTATE) { stateStepp = stateJSRotate; j = 0; }  // Set joystick rotate state
+
 
     LPM0_EXIT;  // Exit low power mode
 }

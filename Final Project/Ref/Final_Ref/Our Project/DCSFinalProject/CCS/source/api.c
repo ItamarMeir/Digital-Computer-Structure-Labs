@@ -13,7 +13,7 @@ char y;
 int step_index = 0;
 unsigned int JoyStick_Error = 0;
 int AVG_Vr[2] = {0, 0};
-static int delay_value = 200; // Default delay value in units of 10ms
+static int delay_value = 50; // Default delay value in units of 10ms
 
 
 // //-------------------------------------------------------------
@@ -221,74 +221,64 @@ void JoyStickADC_Painter(){
 }
 
 
-//-----------For Flash New-------------------------------------
+//-------------------------------------------------------------
+//                       Script
+//-------------------------------------------------------------
 void ScriptFunc() {
 
-    if(FlashBurnIFG){
-        FlashBurnIFG=0;
-        configureFlashTiming();
-        file.file_sizes[file.num_of_files - 1] = strlen(file_content) - 1;
-        write_Seg();
-        finishIFG = 1;
-        send_to_PC("ACK");
-        finishIFG = 0;
-        EnableRXIE();
-    }
     if(ExecuteFlag){
         ExecuteFlag = 0;
         flag_script = 1;
-        delay_time = 500;  // delay default time
         ExecuteScript();
-        finishIFG = 1;
-        send_to_PC("FIN");
-        finishIFG = 0;
     }
     EnterLPM();
 }
-//---------------Execute Script New--------------------------------
+//-------------------------------------------------------------
+//                       Execute Script
+//-------------------------------------------------------------
 void ExecuteScript(void)
 {
     char *Flash_ptrscript;                         
-    char OPCstr[10], Operand1Flash[20], Operand2Flash[20];
-    unsigned int Oper2ToInt, X, start, stop, y;
+    char OPC[10], Var1_Flash[20], Var2_Flash[20];
+    unsigned int Var1, Var2, y;
     if (flag_script)
-        Flash_ptrscript = file.file_start_pointers[file.num_of_files - 1];
+        Flash_ptrscript = file.file_start_pointers[burn_index];
     flag_script = 0;
     for (y = 0; y < 64;){
-        OPCstr[0] = *Flash_ptrscript++;
-        OPCstr[1] = *Flash_ptrscript++;
+        OPC[0] = *Flash_ptrscript++;
+        OPC[1] = *Flash_ptrscript++;
         y = y + 2;
-        switch (OPCstr[1]){
+        switch (OPC[1]){
             case '1':
-                Operand1Flash[0] = *Flash_ptrscript++;
-                Operand1Flash[1] = *Flash_ptrscript++;
+                Var1_Flash[0] = *Flash_ptrscript++;
+                Var1_Flash[1] = *Flash_ptrscript++;
                 y = y + 2;
-                Oper2ToInt = hex2int(Operand1Flash);
-                inc_lcd(Oper2ToInt);
+                Var1 = hex2int(Var1_Flash);
+                inc_lcd(Var1);
                 break;
 
             case '2':
-                Operand1Flash[0] = *Flash_ptrscript++;
-                Operand1Flash[1] = *Flash_ptrscript++;
+                Var1_Flash[0] = *Flash_ptrscript++;
+                Var1_Flash[1] = *Flash_ptrscript++;
                 y = y + 2;
-                Oper2ToInt = hex2int(Operand1Flash);
-                dec_lcd(Oper2ToInt);
+                Var1 = hex2int(Var1_Flash);
+                dec_lcd(Var1);
                 break;
 
             case '3':
-                Operand1Flash[0] = *Flash_ptrscript++;
-                Operand1Flash[1] = *Flash_ptrscript++;
+                Var1_Flash[0] = *Flash_ptrscript++;
+                Var1_Flash[1] = *Flash_ptrscript++;
                 y = y + 2;
-                Oper2ToInt = hex2int(Operand1Flash);
-                rra_lcd(Oper2ToInt);
+                Var1 = hex2char(Var1_Flash);
+                rra_lcd(Var1);
                 break;
 
             case '4':
-                Operand1Flash[0] = *Flash_ptrscript++;
-                Operand1Flash[1] = *Flash_ptrscript++;
+                Var1_Flash[0] = *Flash_ptrscript++;
+                Var1_Flash[1] = *Flash_ptrscript++;
                 y = y + 2;
-                Oper2ToInt = hex2int(Operand1Flash);
-                set_delay(Oper2ToInt);
+                Var1 = hex2int(Var1_Flash);
+                set_delay(Var1);
                 break;
 
             case '5':
@@ -296,26 +286,23 @@ void ExecuteScript(void)
                 break;
 
             case '6': //point stepper motor to degree p
-                Operand1Flash[0] = *Flash_ptrscript++;
-                Operand1Flash[1] = *Flash_ptrscript++;
+                Var1_Flash[0] = *Flash_ptrscript++;
+                Var1_Flash[1] = *Flash_ptrscript++;
                 y = y + 2;
-                X = hex2int(Operand1Flash);
-                //motorGoToPosition(X, OPCstr[1]);
+                Var1 = hex2int(Var1_Flash);
+                stepper_deg(Var1);
                 break;
 
             case '7': //scan area between angle l to r
-                Operand1Flash[0] = *Flash_ptrscript++;
-                Operand1Flash[1] = *Flash_ptrscript++;
+                Var1_Flash[0] = *Flash_ptrscript++;
+                Var1_Flash[1] = *Flash_ptrscript++;
                 y = y + 2;
-                Operand2Flash[0] = *Flash_ptrscript++;
-                Operand2Flash[1] = *Flash_ptrscript++;
+                Var2_Flash[0] = *Flash_ptrscript++;
+                Var2_Flash[1] = *Flash_ptrscript++;
                 y = y + 2;
-                X = hex2int(Operand1Flash);
-                start = X;
-                //motorGoToPosition(X, OPCstr[1]);
-                X = hex2int(Operand2Flash);
-                stop = X;
-                //motorGoToPosition(X, OPCstr[1]);
+                Var1 = hex2int(Var1_Flash);
+                Var2 = hex2int(Var2_Flash);
+                stepper_scan(Var1, Var2);
                 break
                 ;
             case '8': // go sleep
@@ -324,132 +311,6 @@ void ExecuteScript(void)
         }
     }
 }
-
-//-------------------------------------------------------------
-//                     Flash Script
-//-------------------------------------------------------------
-// void ScriptFunc() {
-
-//     if(FlashBurnIFG){
-//         FlashBurnIFG=0;
-//         FCTL2 = FWKEY + FSSEL0 + FN1;             // MCLK/3 for Flash Timing Generator
-//    //     ScriptData();
-//         file.file_size[file.num_of_files - 1] = strlen(file_content) - 1;
-//         write_Seg();
-//         send_finish_to_PC(); // send ACK to PC
-//         IE2 |= UCA0RXIE;
-//     }
-//     if(ExecuteFlag){
-//         ExecuteFlag=0;
-//         flag_script = 1;
-//         delay_time = 500;  // delay default time
-//         ExecuteScript();
-//         send_finish_to_PC(); // finish script
-//     }
-//     __bis_SR_register(LPM0_bits + GIE);
-// }
-//-------------------------------------------------------------
-//                     Execute Script
-//-------------------------------------------------------------
-// void ExecuteScript(void)
-// {
-//     char *Flash_ptrscript;                         // Segment pointer
-//     char OPCstr[10], Operand1Flash[20], Operand2Flash[20];
-//     unsigned int Oper2ToInt, X, start, stop, y;
-//     if (flag_script)
-//         Flash_ptrscript = file.file_ptr[file.num_of_files - 1];
-//     flag_script = 0;
-//   //  IE2 != ~UCA0RXIE; // Now added by mg
-//    // for (y = 0; y <= file.file_size[file.num_of_files - 1];)
-//     for (y = 0; y < 64;)
-//     {
-//         OPCstr[0] = *Flash_ptrscript++;
-//         OPCstr[1] = *Flash_ptrscript++;
-//         y = y + 2;
-//         switch (OPCstr[1])
-//         {
-//         case '1':
-//             Operand1Flash[0] = *Flash_ptrscript++;
-//             Operand1Flash[1] = *Flash_ptrscript++;
-//             y = y + 2;
-// //            sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
-//             Oper2ToInt = hex2int(Operand1Flash);
-//             while (Oper2ToInt > 0)
-//             {
-//                 // blinkRGB();    //blink RGB LED
-//                 Oper2ToInt--;
-//             }
-//             break;
-
-//         case '2':
-//             Operand1Flash[0] = *Flash_ptrscript++;
-//             Operand1Flash[1] = *Flash_ptrscript++;
-//             y = y + 2;
-//       //      sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
-//             Oper2ToInt = hex2int(Operand1Flash);
-//             while (Oper2ToInt)
-//             {
-//                 // rlc_leds(rotateLEDs);           //rotate left
-//                 Oper2ToInt--;
-//             }
-//             break;
-//         case '3':
-//             Operand1Flash[0] = *Flash_ptrscript++;
-//             Operand1Flash[1] = *Flash_ptrscript++;
-//             y = y + 2;
-//          //   sscanf(Oper1fFromFlash, "%2x", &Oper2ToInt);
-//             Oper2ToInt = hex2int(Operand1Flash);
-//             while (Oper2ToInt)
-//             {
-//                 // rrc_leds(rotateLEDs);         //rotate right
-//                 Oper2ToInt--;
-//             }
-//             break;
-//         case '4':
-//             Operand1Flash[0] = *Flash_ptrscript++;
-//             Operand1Flash[1] = *Flash_ptrscript++;
-//             y = y + 2;
-//        //     sscanf(Oper1fFromFlash, "%2x", &delay_time); //set delay
-//             delay_time = hex2int(Operand1Flash);
-//             delay_time = delay_time * 10 ; //its in unit of 10ms
-//             break;
-//         case '5':
-//             // ClearLEDsRGB();
-//             break;
-//         case '6': //point stepper motor to degree p
-//             Operand1Flash[0] = *Flash_ptrscript++;
-//             Operand1Flash[1] = *Flash_ptrscript++;
-//             y = y + 2;
-//         //    sscanf(Oper1fFromFlash, "%2x", &X);
-//             X = hex2int(Operand1Flash);
-//             motorGoToPosition(X, OPCstr[1]);
-
-//             break;
-//         case '7': //scan area between angle l to r
-//             Operand1Flash[0] = *Flash_ptrscript++;
-//             Operand1Flash[1] = *Flash_ptrscript++;
-//             y = y + 2;
-//             Operand2Flash[0] = *Flash_ptrscript++;
-//             Operand2Flash[1] = *Flash_ptrscript++;
-//             y = y + 2;
-//         //    sscanf(Oper1fFromFlash, "%2x", &X);
-//             X = hex2int(Operand1Flash);
-//             start = X;
-//             motorGoToPosition(X, OPCstr[1]);
-//        //     sscanf(Oper2fFromFlash, "%2x", &X);
-//             X = hex2int(Operand2Flash);
-//             stop = X;
-//             motorGoToPosition(X, OPCstr[1]);
-
-//             break;
-//         case '8': // go sleep
-// //            state = state0;
-//             break;
-
-//         }
-//     }
-// }
-
 //-------------------------------------------------------------
 //                Script Mode Functions 
 //-------------------------------------------------------------
@@ -472,7 +333,7 @@ void inc_lcd(int x) {
 //-------------------------------------------------------------
 // Function to decrement display from x to 0 with delay
 void dec_lcd(int x) {
-    unsigned int i;
+    int i;
     for (i = x; i >= 0; i--) {
         char buffer[16];
         sprintf(buffer, "%d", i);
@@ -562,7 +423,9 @@ void stepper_scan(int l, int r) {
     
     
 }   
-
+//-------------------------------------------------------------
+//                   Sleep Mode
+//-------------------------------------------------------------
 // Function to put the MCU into sleep mode
 void sleep_mcu() {
     EnterLPM(); // Enter low-power mode

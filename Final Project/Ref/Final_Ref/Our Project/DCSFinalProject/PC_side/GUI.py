@@ -555,14 +555,15 @@ class GUI:
             # Send the file content to MSP for burning
             self.serial_comm.send_to_MSP(content, file_option=True)
             time.sleep(0.5)
-            # Update the GUI to show the file was burned successfully
-            response = self.serial_comm.read_from_MSP('ack', 3)
-            if response == 'ACK':
-                self.window['_ACK_'].update("File burned successfully!")
-                self.execute_list.append(filename)
-                self.window['_ExecutedList_'].update(self.execute_list)
-            else:
-                sg.popup_error("Error burning file", font=('Helvetica', 12))
+            for _ in range(5):
+                response = self.serial_comm.read_from_MSP('ack', 3)
+                if response == 'ACK':
+                    self.window['_ACK_'].update("File burned successfully!")
+                    self.execute_list.append(filename)
+                    self.window['_ExecutedList_'].update(self.execute_list)
+                    return
+                time.sleep(0.5)
+            sg.popup_error("Error burning file", font=('Helvetica', 12))
 
 
     def handle_executed_file_selection(self, values):
@@ -579,12 +580,13 @@ class GUI:
         if filename:
             # Send the execute command to MSP
             self.serial_comm.send_to_MSP(f'e{self.burn_index}')
+            print(self.burn_index)
             self.burn_index += 1
             while True:
                 event, _ = self.window.read(timeout=100)
-                if event == "_BackScript_":
+                if event.startswith("_BackScript_"):
                     break
-                elif event == "_Run_":
+                elif event.startswith("_Run_"):
                     # Send the run command to MSP
                     self.serial_comm.send_to_MSP('R')
                 

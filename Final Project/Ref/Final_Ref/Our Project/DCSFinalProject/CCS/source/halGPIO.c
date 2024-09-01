@@ -606,28 +606,6 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 #error Compiler not supported!
 #endif
 {
-//    if(state == state3 && finishIFG == 1){  // For script
-//        UCA0TXBUF = finish_str[tx_index++];                 // TX next character
-//
-//        if (tx_index == sizeof step_str - 1) {   // TX over?
-//            tx_index=0;
-//            DisableTXIE;                       // Disable USCI_A0 TX interrupt
-//            stateStepp = stateDefault;
-//            LPM0_EXIT;
-//        }
-//    }
-//
-//    if (state == state3 && finishIFG == 0){  // For script
-//        UCA0TXBUF = step_str[tx_index++];                 // TX next character
-//
-//        if (tx_index == sizeof step_str - 1) {   // TX over?
-//            tx_index=0;
-//            DisableTXIE;                       // Disable USCI_A0 TX interrupt
-//            stateStepp = stateDefault;
-//            LPM0_EXIT;
-//        }
-//    }
-//    else if (state==state2 && stateStepp==stateStopRotate){
     if (state==state2 || state==state3){
         if (tx_index < tx_length) {
             TXBuffer = tx_str[tx_index++];  // TX next character

@@ -396,9 +396,13 @@ void stepper_scan(int l, int r) {
     // gotoAngle finds the shortest path to the desired angle, GotAngleClockWise moves only in the clockwise direction
     char str_A[] = "I'm on my way!";
     char str_B[] = "Scanning...";
-    char str_C[] = "Reached the first angle!";
-    char str_D[] = "Reached the second angle!";
+    char str_C[32]; // Increased size to hold the formatted string
+    char str_D[32]; // Increased size to hold the formatted string
     
+    // Format the strings with the angles
+    sprintf(str_C, "Reached the first angle: %d!", l);
+    sprintf(str_D, "Reached the second angle: %d!", r);
+
     lcd_clear();
 
     lcd_puts(str_A); // Display scanning message on LCD

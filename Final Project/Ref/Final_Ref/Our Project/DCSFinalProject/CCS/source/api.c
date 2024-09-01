@@ -375,7 +375,7 @@ void set_delay(int d) {
 //-------------------------------------------------------------
 //                Clear LCD
 //-------------------------------------------------------------
-// Function to clear all LEDs (or LCD screen)
+// Function to clear LCD screen
 void clear_LCD() {
     lcd_clear(); // Clear display command
 }
@@ -384,10 +384,10 @@ void clear_LCD() {
 //-------------------------------------------------------------
 // Function to move stepper motor to a specific degree
 void stepper_deg(int p) {
+    char* deg_str[4];
+    sprintf(deg_str, "%d", p);
+    send_to_PC(deg_str); // Send the degree to the PC
     GotoAngle((unsigned long)p * (unsigned long)SCALE_FACTOR); // Move stepper motor to the specified degree
-    char buffer[16];
-    sprintf(buffer, "Angle: %d", p);
-    lcd_puts(buffer); // Display the degree onto the LCD
 }
 //-------------------------------------------------------------
 //         Scan Stepper Motor from Degree1 to Degree2
@@ -400,28 +400,22 @@ void stepper_scan(int l, int r) {
     char str_C[] = "Reached the first angle!";
     char str_D[] = "Reached the second angle!";
     
-    // sprintf(str_C, "Reached: %d [deg]", l);
-    // char str_D[10];
-    // sprintf(str_D, "Reached: %d [deg]", r);
     lcd_clear();
-
 
     lcd_puts(str_A); // Display scanning message on LCD
     GotoAngle((unsigned long)l * (unsigned long)SCALE_FACTOR); // Move to the leftmost angle
     timer_delay(delay_value * 5); // Timer-based delay
     clear_LCD();
     lcd_puts(str_C);    // Display the reached angle on LCD
-    timer_delay(delay_value * 20); // Timer-based delay
+    timer_delay(delay_value * 10); // Timer-based delay
     clear_LCD();
     lcd_puts(str_B); // Display scanning message on LCD
     timer_delay(delay_value * 5); // Timer-based delay
     GotoAngleClockWise((unsigned long)r * (unsigned long)SCALE_FACTOR); // Move to the rightmost angle
     lcd_clear();
     lcd_puts(str_D);    // Display the reached angle on LCD
-    timer_delay(delay_value * 20); // Timer-based delay
-    clear_LCD();
-    
-    
+    timer_delay(delay_value * 10); // Timer-based delay
+    clear_LCD();  
 }   
 //-------------------------------------------------------------
 //                   Sleep Mode

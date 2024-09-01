@@ -343,7 +343,7 @@ void JoyStickRestVr(){
 //
 //-------------------------------------------------------------
 void JoyStickADC_Painter(){
-    JoyStickIntEN &= ~BIT5; // allow interrupt only in the end of cycle
+    EnableJoystickInt(); // allow interrupt only in the end of cycle
     i = 0;
     if(!stateIFG) { //send data
         ADC10CTL0 &= ~ENC;

@@ -256,35 +256,6 @@ void timer_delay(unsigned int delay_value) {
 }
 
 
-// Fixed-point multiplication
-int16_t fixed_mul(int16_t a, int16_t b) {
-    return (int16_t)(((int32_t)a * b) / Q8_8);
-}
-
-// Fixed-point division
-int16_t fixed_div(int16_t a, int16_t b) {
-    
-    // Convert Q8.8 to Q16.16 by shifting left by 8 bits
-    uint32_t a_long = (uint32_t)a << 8;
-
-    // Perform the division
-    uint32_t result_long = a_long / b;
-
-    // Convert back to Q8.8 by taking the lower 16 bits
-    uint16_t result = (uint16_t)result_long;
-
-    return result;
-}
-
-// Fixed-point multiplication for uint16_t
-long fixed_mul_u(long a, long b) {
-    return (long)(((a >> 8) * (b >> 8)) >> 0);
-}
-
-// Fixed-point division for uint16_t
-long fixed_div_u(long a, long b) {
-    return (long)(((a) << 7)/(b) << 9);
-}
 //------------------------------------------------------------------------
 //                      ATAN2- Fixed point - returns degrees
 //------------------------------------------------------------------------
@@ -629,15 +600,15 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     }
 
 
-    // If's for states
-    if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
-    else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was p
+    // FSM state change:
+    if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateStopRotate; rotateIFG = 0; j = 0;}        // Manual control mode - no need for defalut state (less states needed)
+    else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Paint mode
     else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Calibration mode
-    else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
+    else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Script mode
 
-    else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
-    else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
-    else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
+    else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}                  // Auto Rotate
+    else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0;} // Stop Rotate
+    else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}                                   // Joystick
 
 
     LPM0_EXIT;

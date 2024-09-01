@@ -80,6 +80,7 @@ class Paint:
 
     def use_eraser(self):
         self.activate_button(self.eraser_button, eraser_mode=True)
+        self.paint_state=1
 
     def erase_all(self):
         self.c.delete("all")

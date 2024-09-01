@@ -73,6 +73,7 @@ class Paint:
 
     def use_pen(self):
         self.activate_button(self.pen_button)
+        self.paint_state=0
 
     def choose_color(self):
         self.eraser_on = False

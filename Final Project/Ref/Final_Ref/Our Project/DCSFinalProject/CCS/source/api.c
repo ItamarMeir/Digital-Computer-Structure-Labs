@@ -231,7 +231,6 @@ void ScriptFunc() {
         flag_script = 1;
         ExecuteScript();
     }
-    EnterLPM();
 }
 //-------------------------------------------------------------
 //                       Execute Script

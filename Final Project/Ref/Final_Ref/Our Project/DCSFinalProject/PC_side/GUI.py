@@ -619,9 +619,10 @@ class GUI:
             filename = values['_ExecutedList_'][0]
             # Update the file name in the GUI and show the corresponding window
             self.window['_FileName_'].update(filename)
-            self.show_window(6)
+            self.show_window(5)
 
     def handle_execute_file(self):
+        self.show_window(6) # Show the script execution window
         # Execute the selected file
         filename = self.window['_FileName_'].get()
         if filename:
@@ -638,7 +639,10 @@ class GUI:
                     self.serial_comm.send_to_MSP('R')
                 
                 # Update degree data from the serial port
-                script_data = self.serial_comm.read_from_MSP('script', 4)
+                if not self.debug_mode:
+                    script_data = self.serial_comm.read_from_MSP('script', 4)
+                else:
+                    script_data = '0'
                 if script_data:
                     self.window['Degree'].update(script_data)
 

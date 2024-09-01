@@ -67,7 +67,7 @@ class Paint:
         self.color = self.COLOR
         self.eraser_on = False
         self.active_button = self.pen_button
-        self.c.bind('<B1-Motion>', self.paint)
+        self.c.bind('<Motion>', self.paint)
         self.c.bind('<ButtonRelease-1>', self.reset)
         self.paint_state = 0
 
@@ -425,8 +425,15 @@ class GUI:
         # Show the Paint application
         frame = self.paint_app.c.master
         frame.pack(expand=YES, fill=BOTH)
+
+        # time.sleep(1)
         
-        while self.PaintActive and not self.debug_mode:
+        while self.PaintActive:
+            event, _ = self.window.read(timeout=10)  # Small timeout to keep GUI responsive
+            if event == sg.WIN_CLOSED or event.startswith("_BackMenu_"):
+                self.PaintActive = 0
+                self.show_window(1)
+                break
             try:
                 Vx, Vy = self.get_Vx_Vy()   # Get joystick Vx and Vy
             except:
@@ -436,7 +443,7 @@ class GUI:
             else:
                 # Move the cursor based on joystick Vx and Vy
                 curr_x, curr_y = mouse.get_position()
-                dx, dy = int(Vx), int(Vy)
+                dx, dy = int(Vx)-464, int(Vy)-479
                 mouse.move(curr_x - int(dx / 50), curr_y - int(dy / 50))
 
     def start_painter(self):

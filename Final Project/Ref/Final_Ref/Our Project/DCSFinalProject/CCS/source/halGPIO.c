@@ -10,7 +10,7 @@
 int j=0;
 char *ptr1, *ptr2, *ptr3;
 short MSBIFG = 0;
-short stateIFG = 1; // 0-state changed -> send state(pb pressed)
+short stateIFG = 0; // 0-state changed -> send state(pb pressed)
 int rotateIFG = 1;
 unsigned int delay_time = 500;
 const unsigned int timer_half_sec = 65535;
@@ -630,7 +630,7 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
     char received_char = RXBuffer;  // Read the received character from the buffer
 
     if (received_char == STX) { j = 0; }  // Start of message, reset index
-    else if (received_char == ETX) {  // End of message
+    else if (received_char == ETX) {        // End of message
         RX_str[j] = '\0';  // Null-terminate the received string
         if (SendFlag == 0) {
             strncpy(file.file_name[file.num_of_files], RX_str, MAX_FILENAME_LENGTH - 1);
@@ -771,7 +771,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
         if (i == 2) {  // TX over?
             i=0;
             DisableTXIE;                       // Disable USCI_A0 TX interrupt
-            START_TIMERA0(10000);
+            START_TIMERA1(10000);
             stateIFG = 0;
             LPM0_EXIT;
         }
@@ -784,7 +784,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
         if (i == 2) {  // TX over?
             i=0;
             IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
-            START_TIMERA0(10000);
+            START_TIMERA1(10000);
             LPM0_EXIT;
         }
     }

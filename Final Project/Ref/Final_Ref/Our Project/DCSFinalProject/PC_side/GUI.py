@@ -637,6 +637,7 @@ class GUI:
                 event, _ = self.window.read(timeout=100)
                 if event == "_BackScript_":
                     self.show_window(5)
+                    self.serial_comm.send_to_MSP('s')
                     break
                 elif event == "_Run_":
                     if not self.debug_mode:

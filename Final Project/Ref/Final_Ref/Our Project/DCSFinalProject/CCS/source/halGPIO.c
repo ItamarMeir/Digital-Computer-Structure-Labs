@@ -257,10 +257,10 @@ void timer_delay(unsigned int delay_value) {
 
 
 //------------------------------------------------------------------------
-//                      ATAN2- Fixed point - returns degrees
+//                      ATAN2- Fixed point - returns degrees based on taylor series approximation
 //------------------------------------------------------------------------
 int16_t atan2_fixed_point(int16_t y, int16_t x){
-    const int32_t COEFF_A = 45;
+    const int32_t COEFF_A = 45;     
     const int32_t COEFF_B = -56;  // Approximation of -56.24
     const int32_t COEFF_C = 11;   // Approximation of 11.25
     const int16_t RIGHT_ANGLE = 90;
@@ -284,7 +284,7 @@ int16_t atan2_fixed_point(int16_t y, int16_t x){
         ratio_cubed = ((ratio * ratio) >> FIXED_POINT_SHIFT) * ratio >> FIXED_POINT_SHIFT;
         
         // Calculate angle using polynomial approximation
-        angle = (int16_t)(COEFF_A + ((COEFF_B * ratio + COEFF_C * ratio_cubed) >> FIXED_POINT_SHIFT));
+        angle = (int16_t)(COEFF_A + ((COEFF_B * ratio + COEFF_C * ratio_cubed) >> FIXED_POINT_SHIFT));  // 45 + (-56 * ratio + 11 * ratio^3)
     } else {
         // Quadrants II and III
         ratio = (((int32_t)(x + y_abs)) << FIXED_POINT_SHIFT) / ((int32_t)(y_abs - x));

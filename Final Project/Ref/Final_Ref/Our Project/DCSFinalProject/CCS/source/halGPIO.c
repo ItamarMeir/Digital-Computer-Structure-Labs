@@ -10,17 +10,15 @@
 int j=0;
 char *ptr1, *ptr2, *ptr3;
 short MSBIFG = 0;
-short stateIFG = 0; // 0-state changed -> send state(pb pressed)
+short stateIFG = 0; 
 unsigned int delay_time = 500;
-//const unsigned int timer_half_sec = 65535;
 unsigned int i = 0;
 unsigned int tx_index;
 unsigned int tx_length = 0;
 const char *tx_str;
 char counter_str[4];
-//char Vr_pc[8];
-short Vr[] = {0, 0}; //Vr[0]=Vry , Vr[1]=Vrx
-const short state_changed[] = {1000, 1000}; // send if button pressed - state changed
+short Vr[] = {0, 0}; 
+const short state_changed[] = {1000, 1000}; 
 char RX_str[80];
 char file_content[80];
 int ExecuteFlag = 0;
@@ -33,9 +31,8 @@ int max_counter = 2117;
 short finishIFG = 0;
 int curr_angle = 0;
 int delta_phi = 17;
-//unsigned int JoyStickCounter = 0;
 short Vr_rest_value[2] = {512, 512};
-int SendFlag = 0;  // Flag to differentiate between filename and file content
+int SendFlag = 0;  
 int burn_index;
 
 //--------------------------------------------------------------------
@@ -148,56 +145,6 @@ char hex2char(char hex[]) {
     }
     return value + '0'; 
 }
-
-//-----------------------------------------------------------------------
-//                  Motor Go To Position - DELETE
-//-----------------------------------------------------------------------
-//void motorGoToPosition(uint32_t stepper_degrees, char script_state){
-//
-//    int clicks_cnt;
-//    uint32_t step_counts;
-//    uint32_t calc_temp;
-//    calc_temp = stepper_degrees * counter;
-//    step_counts = (calc_temp / 360); // how much clicks to wanted degree
-//
-//    //RK code
-//    int diff = step_counts - curr_counter;
-//    if(0 <= diff){ //move CW
-//        for (clicks_cnt = 0; clicks_cnt < diff; clicks_cnt++){
-//            curr_counter++;
-//            Stepper_clockwise(150);
-//            START_TIMERA0(10000);
-//            //send data only if FINISH or stepper_deg (state 6)
-//            if(script_state == '6'){
-//                int2str(step_str, curr_counter);
-//                send_degree_to_PC(); }
-//        }
-//        if (script_state == '7') {
-//            int2str(step_str, curr_counter);
-//           // sprintf(step_str, "%d", curr_counter);
-//            send_degree_to_PC(); }
-//        sprintf(step_str, "%s", "FFFF"); // add finish flag
-//        send_degree_to_PC();
-//    }
-//    else{ // move CCW
-//        for (clicks_cnt = diff; clicks_cnt < 0; clicks_cnt++){
-//            curr_counter--;
-//            Stepper_counter_clockwise(150);
-//            START_TIMERA0(10000);
-//            //send data only if FINISH or stepper_deg (state 6)
-//            if(script_state == '6'){
-//                int2str(step_str, curr_counter);
-//          //      sprintf(step_str, "%d", curr_counter);
-//                send_degree_to_PC(); }
-//        }
-//        if (script_state == '7') {
-//            int2str(step_str, curr_counter);
-//        //    sprintf(step_str, "%d", curr_counter);
-//            send_degree_to_PC(); }
-//        sprintf(step_str, "%s", "FFFF"); // add finish flag
-//        send_degree_to_PC();
-//    }
-//}
 //------------------------------------------------------------------------
 //                      Timer Delay in ms
 //------------------------------------------------------------------------
@@ -464,88 +411,6 @@ __interrupt void ADC10_ISR (void)
     ClearADCIFG();    // Clear the interrupt flag
     LPM0_EXIT;     // Exit the LPM0 mode
 }
-
-//*********************************************************************
-//                         RX ISR- OLD
-//*********************************************************************
-// #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-// #pragma vector=USCIAB0RX_VECTOR
-// __interrupt void USCI0RX_ISR(void)
-// #elif defined(__GNUC__)
-// void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
-// #else
-// #error Compiler not supported!
-// #endif
-// {
-//     RX_str[j] = RXBuffer;  // Get Whole string from PC
-//     j++;
-//     // This if to get the file data. Added 'Z' to the end of the data in the python file, acts like ack
-//     if (RX_str[j-1] == 'Z'){
-//         j = 0;
-//         SendFlag = 0;
-//         strcpy(file_content, RX_str);
-//      //   ExecuteFlag = 1;
-//     }
-//     // This if to get the file name
-//     if (!SendFlag && RX_str[j-1] == '\x0a'){
-//         for (i=0; i < j; i++){
-//             file.file_name[i] = RX_str[i];
-//         }
-//         SendFlag = 1;
-//         j = 0;
-//     }
-//     if (RX_str[j-1] == 'W'){ //pointer for 1st selected file
-//         FlashBurnIFG = 1;
-//         ptr1 = (char*) 0x1000;
-//         file.file_start_pointers[0]=ptr1;
-//         file.num_of_files = 1;
-//         j = 0;
-//     }
-//     if (RX_str[j-1] == 'X'){ //pointer for 2nd selected file
-//         FlashBurnIFG = 1;
-//         ptr2 = (char*) 0x1040;
-//         file.file_start_pointers[1]=ptr2;
-//         file.num_of_files = 2;
-//         j = 0;
-//     }
-//     if (RX_str[j-1] == 'Y'){ //pointer for 3rd selected file
-//         FlashBurnIFG = 1;
-//         ptr3 = (char*) 0x1080;
-//         file.file_start_pointers[2]=ptr3;
-//         file.num_of_files = 3;
-//         j = 0; // Added by mg at 1:33 30.7.2022 at night
-//     }
-
-//     if (RX_str[j-1] == 'T'){ //index of executed list
-//         ExecuteFlag = 1;
-//         j = 0; // Added by mg at 1:33 30.7.2022 at night
-//         file.num_of_files = 1;
-//     }
-//     if (RX_str[j-1] == 'U'){
-//         ExecuteFlag = 1;
-//         j = 0; // Added by mg at 1:33 30.7.2022 at night
-//         file.num_of_files = 2;
-//     }
-//     if (RX_str[j-1] == 'V'){
-//         ExecuteFlag = 1;
-//         j = 0; // Added by mg at 1:33 30.7.2022 at night
-//         file.num_of_files = 3;
-//     }
-
-
-//     // If's for states
-//     if (RX_str[0] == MOTOR_STATE) {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
-//     else if (RX_str[0] == PAINT_STATE) { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was p
-//     else if (RX_str[0] == CALIB_STATE) { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Calibration mode
-//     else if (RX_str[0] == SCRIPT_STATE) { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
-
-//     else if (RX_str[0] == AUTO_ROTATE){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
-//     else if (RX_str[0] == STOP_ROTATE){ stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
-//     else if (RX_str[0] == JOYSTICK_ROTATE){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
-
-
-//     LPM0_EXIT;
-// }
 
 //*********************************************************************
 //                         RX ISR

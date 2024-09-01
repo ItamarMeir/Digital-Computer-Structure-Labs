@@ -40,8 +40,8 @@ extern int counter;
 extern char counter_str[];
 extern unsigned int i;
 extern unsigned int tx_index;
-#define clk_tmp 131            // (2^20) / (8 * 10^ 3) to convert ms to counter value for TACCR0
-#define max_timer_count 65535  // Maximum value the timer can handle (16-bit)
+#define clk_tmp 131            
+#define max_timer_count 65535  
 extern int curr_counter;
 extern int max_counter;
 extern int step_index;
@@ -57,11 +57,9 @@ extern void delay(unsigned int);
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
-//extern void timer_call_counter();
 extern void timer_delay();
 extern void START_TIMERA0(unsigned int counter);
 extern void START_TIMERA1(unsigned int counter);
-//extern void  motorGoToPosition(uint32_t stepper_degrees, char script_state);
 extern int16_t atan2_fixed_point(int16_t y, int16_t x);
 extern void send_finish_to_PC();
 extern void send_to_PC(const char *input_str);
@@ -78,8 +76,6 @@ extern __interrupt void USCI0TX_ISR(void);
 extern __interrupt void Joystick_handler(void);
 
 #endif
-
-// #define CHECKBUSY    1  // using this define, only if we want to read from LCD
 
 #ifdef CHECKBUSY
     #define LCD_WAIT lcd_check_busy()

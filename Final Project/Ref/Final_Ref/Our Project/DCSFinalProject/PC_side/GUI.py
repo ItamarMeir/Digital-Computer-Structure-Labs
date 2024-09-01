@@ -530,11 +530,58 @@ class GUI:
             self.window['_FileHeader_'].update(filename)
             self.window['_FileContent_'].update(content)
 
-    def file_translator(file):
-        # Placeholder function for file translation
-        with open(file, 'rb') as f:
-            content = f.read()
-        return
+   # Input: string of file content, Output: string of translated machine code
+    def file_translator(self, file_content: str) -> str:
+        # Define a simple mapping from high-level instructions to machine code templates
+        instruction_mapping = {
+            "inc_lcd": "01{arg1:02X}",  # Example: inc_lcd with a 1-byte argument in hex
+            "dec_lcd": "02{arg1:02X}",  # Example: dec_lcd with a 1-byte argument in hex
+            "rra_lcd": "03{arg1:02X}",  # Example: rra_lcd with a 1-byte argument in hex
+            "set_delay": "04{arg1:02X}",  # Example: set_delay with two 1-byte arguments in hex
+            "clear_lcd": "05",  # Example: clear_lcd with a 1-byte argument in hex
+            "stepper_deg": "06{arg1:02X}",  # Example: stepper_deg with a 1-byte argument in hex
+            "stepper_scan": "07{arg1:02X}{arg2:02X}",  # Example: stepper_scan with two 1-byte arguments in hex
+            "sleep": "08"  # Example: sleep with no arguments
+        }
+        
+        # Split the input content into lines
+        lines = file_content.strip().split('\n')
+        
+        # Translate each line using the mapping
+        machine_code_lines = []
+        for line in lines:
+            parts = line.strip().replace(',', ' ').split()
+            instruction = parts[0]
+            if instruction in instruction_mapping:
+                try:
+                    if len(parts) > 2:
+                        # Handle instructions with two arguments
+                        arg1 = int(parts[1])
+                        arg2 = int(parts[2])
+                        machine_code = instruction_mapping[instruction].format(arg1=arg1, arg2=arg2)
+                    elif len(parts) > 1:
+                        # Handle instructions with one argument
+                        arg1 = int(parts[1])
+                        machine_code = instruction_mapping[instruction].format(arg1=arg1)
+                    else:
+                        # Handle instructions without arguments
+                        machine_code = instruction_mapping[instruction]
+                except KeyError as e:
+                    machine_code = "????"  # Use "????" for unknown instructions
+                    print(f"Error: Missing argument {e} for instruction {instruction}")
+                except ValueError as e:
+                    machine_code = "????"  # Use "????" for invalid argument values
+                    print(f"Error: Invalid argument value for instruction {instruction}: {e}")
+            else:
+                machine_code = "????"  # Use "????" for unknown instructions
+                print(f"Error: Unknown instruction {instruction}")
+            machine_code_lines.append(machine_code)
+            print(f"Translated line: {machine_code}")  # Print each translated line
+        
+        # Join the translated lines into a single string
+        result = '\n'.join(machine_code_lines)
+        print(f"Final translated content:\n{result}")  # Print the final translated content
+        return result
 
     def handle_burn_file(self, values):
         # Handle burning of the selected file
@@ -545,7 +592,7 @@ class GUI:
             filename = values['_FileList_'][0]
             filepath = os.path.join(values['_Folder_'], filename)
             with open(filepath, 'rb') as file:
-                content = file.read()
+                content = self.file_translator(file.read().decode('utf-8'))
             if len(content.splitlines()) > 10:
                 sg.popup_error("Script file must contain 10 lines or fewer", font=('Helvetica', 12))
                 return

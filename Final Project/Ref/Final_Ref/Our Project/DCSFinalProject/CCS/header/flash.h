@@ -3,9 +3,6 @@
 
 #include  <msp430g2553.h>          // MSP430x2xx
 
-
-extern void ScriptData(void);
-extern void SetPtrData(void);
 extern void write_Seg(void);
 
 #define MAX_FILES 3

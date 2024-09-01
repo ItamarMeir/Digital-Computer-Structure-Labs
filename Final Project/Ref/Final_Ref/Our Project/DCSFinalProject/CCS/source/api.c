@@ -753,7 +753,7 @@ void set_delay(int d) {
 //-------------------------------------------------------------
 //                Clear LCD
 //-------------------------------------------------------------
-// Function to clear all LEDs (or LCD screen)
+// Function to clear LCD screen
 void clear_LCD() {
     lcd_clear(); // Clear display command
 }

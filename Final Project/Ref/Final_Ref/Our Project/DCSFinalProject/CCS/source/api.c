@@ -388,20 +388,19 @@ void JoyStickADC_Painter(){
         EnterLPM();
     }
 
-
     else if (stateIFG) { //send state
-        UCA0TXBUF = state_changed[i] & 0xFF;
+        TXBuffer = state_changed[i] & 0xFF;
         MSBIFG = 1;
-        IE2 |= UCA0TXIE;
-        __bis_SR_register(LPM0_bits + GIE);        // LPM0, will exit when finish tx
+        EnableTXIE();
+        EnterLPM();
 
-
-        START_TIMERA0(5000); // wait for PC to get and sync after all the debounce and interrupt delay
-        JoyStickIntPend &= ~BIT5;
+        START_TIMERA1(5000);
+        ClearJoystickIFG();
+        //JoyStickIntPend &= ~BIT5;
 
     }
-
-    JoyStickIntEN |= BIT5; // allow interrupt only in the end of cycle
+    EnableJoystickInt();
+    //JoyStickIntEN |= BIT5; // allow interrupt only in the end of cycle
 }
 
 

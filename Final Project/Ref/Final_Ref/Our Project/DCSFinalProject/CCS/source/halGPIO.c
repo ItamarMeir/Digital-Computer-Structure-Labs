@@ -257,40 +257,11 @@ void timer_delay(unsigned int delay_value) {
 }
 
 
-// Fixed-point multiplication
-int16_t fixed_mul(int16_t a, int16_t b) {
-    return (int16_t)(((int32_t)a * b) / Q8_8);
-}
-
-// Fixed-point division
-int16_t fixed_div(int16_t a, int16_t b) {
-    
-    // Convert Q8.8 to Q16.16 by shifting left by 8 bits
-    uint32_t a_long = (uint32_t)a << 8;
-
-    // Perform the division
-    uint32_t result_long = a_long / b;
-
-    // Convert back to Q8.8 by taking the lower 16 bits
-    uint16_t result = (uint16_t)result_long;
-
-    return result;
-}
-
-// Fixed-point multiplication for uint16_t
-long fixed_mul_u(long a, long b) {
-    return (long)(((a >> 8) * (b >> 8)) >> 0);
-}
-
-// Fixed-point division for uint16_t
-long fixed_div_u(long a, long b) {
-    return (long)(((a) << 7)/(b) << 9);
-}
 //------------------------------------------------------------------------
-//                      ATAN2- Fixed point - returns degrees
+//                      ATAN2- Fixed point - returns degrees based on taylor series approximation
 //------------------------------------------------------------------------
 int16_t atan2_fixed_point(int16_t y, int16_t x){
-    const int32_t COEFF_A = 45;
+    const int32_t COEFF_A = 45;     
     const int32_t COEFF_B = -56;  // Approximation of -56.24
     const int32_t COEFF_C = 11;   // Approximation of 11.25
     const int16_t RIGHT_ANGLE = 90;
@@ -314,7 +285,7 @@ int16_t atan2_fixed_point(int16_t y, int16_t x){
         ratio_cubed = ((ratio * ratio) >> FIXED_POINT_SHIFT) * ratio >> FIXED_POINT_SHIFT;
         
         // Calculate angle using polynomial approximation
-        angle = (int16_t)(COEFF_A + ((COEFF_B * ratio + COEFF_C * ratio_cubed) >> FIXED_POINT_SHIFT));
+        angle = (int16_t)(COEFF_A + ((COEFF_B * ratio + COEFF_C * ratio_cubed) >> FIXED_POINT_SHIFT));  // 45 + (-56 * ratio + 11 * ratio^3)
     } else {
         // Quadrants II and III
         ratio = (((int32_t)(x + y_abs)) << FIXED_POINT_SHIFT) / ((int32_t)(y_abs - x));
@@ -824,21 +795,24 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
 #pragma vector=PORT1_VECTOR
   __interrupt void Joystick_handler(void){
       delay(debounceVal);
-
-      if(JoyStickIntPend & BIT5){          // PB at P1.5           
-          JoyStickIntPend &= ~BIT5;
-          if (stateStepp == stateDefault){
-            stateStepp = stateAutoRotate;
+    if(JoyStickIntPend & BIT5){     // PB at P1.5
+        JoyStickIntPend &= ~BIT5;       // Clear the interrupt flag
+        if (state == state2){        
+            if (stateStepp == stateDefault){    // If the state is default
+                stateStepp = stateAutoRotate;   // Change the state to Auto Rotate
+            }
+            else if (stateStepp == stateAutoRotate){    // If the state is Auto Rotate
+                StopTimerA0();
+                rotation = stop;
+                stateStepp = stateStopRotate;
+            }  
         }
-        else if (stateStepp == stateAutoRotate){
-            StopTimerA0();
-            rotation = stop;
-            stateStepp = stateStopRotate;
+        else if (state == state1){
+            stateIFG = 1;
         }
-          LPM0_EXIT;
-      }
-     
-}
+    }
+    LPM0_EXIT;
+  }
 //---------------------------------------------------------------------
 //                           LCD
 //---------------------------------------------------------------------

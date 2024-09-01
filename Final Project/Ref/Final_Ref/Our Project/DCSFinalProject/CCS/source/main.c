@@ -13,7 +13,7 @@ enum SYSmode lpm_mode;
 void main(void){
   
   state = state0;  // start in idle state on RESET
-  stateStepp = stateDefault;
+  stateStepp = stateStopRotate; // in state0 the default state is stop
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();     // Configure GPIO, Init ADC
   DisableTXIE();  // Disable USCI_A0 TX interrupt
@@ -21,49 +21,40 @@ void main(void){
 
 
   while(1){
+    EnableRXIE();                          // Enable USCI_A0 RX interrupt
 	switch(state){
-	case state0: //   StepperUsingJoyStick
+	case state0: //state0 -  Manual Control
         
 	    switch(stateStepp){
             case stateAutoRotate: 
-                stepper_scan(90, 30);
-                //Activate_Stepper_Clicks(max_counter/4, 500, Clockwise); // Rotate stepper motor
-                //Activate_Stepper(500, Clockwise); // Rotate stepper motor
+                Activate_Stepper(500, Clockwise); // Rotate stepper motor
                 break;
         
             case stateJSRotate:
                  JoyStickRestVr();    // Calibrate Joystick rest values
-                 StepperUsingJoyStick();
-                 ClearJoystickIFG();
-                 DisableJoystickInt();
-                break;
-            case stateDefault:
-                EnterLPM();       // Enter LPM0 w/ int until Byte RXed
-                break;
-            
+                 StepperUsingJoyStick(); // Rotate stepper motor using Joystick
+                 ClearJoystickIFG();     // Clear Joystick interrupt flag
+                 DisableJoystickInt();  // Disable Joystick interrupt
+                break; 
+
             case stateStopRotate:
                 EnterLPM(); 
                 break;
             }
 	    break;
 
-	case state1: // Paint
-	  //  JoyStickIntEN |= BIT5;
-	 //   IE2 |= UCA0RXIE; // Enable USCI_A0 RX interrupt
-        //JoyStickRestVr();   // Calibrate Joystick rest values
+	case state1: // state1 - Paint
 	    while (state == state1){
 	        JoyStickADC_Painter();
 	    }
-        JoyStickIntEN &= ~BIT5;
+        DisableJoystickInt();
 	    break;
 
 	case state2: // Calibrate
-        EnableRXIE();                          // Enable USCI_A0 RX interrupt
         switch(stateStepp){
             case stateDefault:
                 EnableJoystickInt();
                 EnterLPM();       // Enter LPM0 w/ int until Byte RXed
-                //stateStepp = stateAutoRotate;
                 break;
 
             case stateAutoRotate: // start rotate
@@ -81,32 +72,10 @@ void main(void){
         break;
 
 	case state3:  //Script
-        EnableRXIE();                          // Enable USCI_A0 RX interrupt
 	    while ( state == state3){
 	        ScriptFunc();
 	    }
 		break;
-		
-	case state4: //
-
-		break;
-
-    case state5: //
-
-        break;
-
-    case state6: //
-
-        break;
-
-    case state7: //
-
-        break;
-
-    case state8: //
-
-        break;
-		
 	}
   }
 }

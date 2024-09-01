@@ -59,6 +59,7 @@ class Paint:
         self.c = Canvas(self.parent_frame, bg='white', width=800, height=800)
         self.c.pack(expand=YES, fill=BOTH)
 
+
     def setup(self):
         self.old_x = None
         self.old_y = None
@@ -68,6 +69,7 @@ class Paint:
         self.active_button = self.pen_button
         self.c.bind('<B1-Motion>', self.paint)
         self.c.bind('<ButtonRelease-1>', self.reset)
+        self.paint_state = 0
 
     def use_pen(self):
         self.activate_button(self.pen_button)
@@ -88,15 +90,23 @@ class Paint:
         self.active_button = some_button
         self.eraser_on = eraser_mode
 
+
+
     def paint(self, event):
         self.line_width = self.choose_size_button.get()
-        paint_color = 'white' if self.eraser_on else self.color
-        if self.old_x and self.old_y:
-            self.c.create_line(self.old_x, self.old_y, event.x, event.y,
-                               width=self.line_width, fill=paint_color,
-                               capstyle=ROUND, smooth=TRUE, splinesteps=36)
-        self.old_x = event.x
-        self.old_y = event.y
+            
+        if self.paint_state == 0:              # Default - paint  
+            self.color = 'black'
+        elif self.paint_state == 1:          # Erase
+            self.color = 'white'
+        
+        if self.paint_state != 2:             # If not in hover mode
+            if self.old_x and self.old_y:    # If there is an old x and y
+                self.c.create_line(self.old_x, self.old_y, event.x, event.y,
+                                width=self.line_width, fill=self.color,
+                                capstyle=ROUND, smooth=TRUE, splinesteps=36)    # Draw the line
+        self.old_x = event.x    # Set the old x to the current x
+        self.old_y = event.y    # Set the old y to the current y
 
     def reset(self, event):
         self.old_x, self.old_y = None, None
@@ -154,11 +164,11 @@ class SerialCommunication:
             final_message = ""
             # Read data from the serial port based on the current state
             while self.ser.in_waiting > 0:
-                if state == 'Painter':
-                    message = self.ser.read(size=size)
-                    message = binascii.hexlify(message).decode('utf-8')
-                    message_split = "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])
-                    final_message = [message_split[i:i + 4] for i in range(0, len(message_split), 4)]
+                if state == 'Painter':  # Read data for painter mode
+                    message = self.ser.read(size=size) # Read data from the serial port
+                    message = binascii.hexlify(message).decode('utf-8') # Convert the data to hex
+                    message_split = "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1]) # Split the data into chunks of 4
+                    final_message = [message_split[i:i + 4] for i in range(0, len(message_split), 4)] 
                 elif state == 'script':
                     final_message = self.ser.read(size=size).decode('utf-8')
                 else:
@@ -383,16 +393,19 @@ class GUI:
                 self.serial_comm.send_to_MSP(JOYSTICK_ROTATE)
             
 
-    # def handle_painter(self):
-    #     # Handle painter mode and start the paint application in a separate thread
-    #     if not self.serial_comm and not self.debug_mode:
-    #         sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
-    #         return
-    #     self.PaintActive = 1
-    #     if not self.debug_mode:
-    #         self.serial_comm.send_to_MSP('P')
-    #     paint_thread = threading.Thread(target=self.start_painter)
-    #     paint_thread.start()
+    def get_Vx_Vy(self):
+        Vr = self.serial_comm.read_from_MSP('Painter', 4) # Read data from the serial port
+        Vx = int((Vr[0]), 16)    # Convert the data to int from hex
+        Vy = int((Vr[1]), 16)    # Convert the data to int from hex
+        if Vx > 1024 or Vy > 1024:  # If the data is not in the correct range
+            Vr[0] = "".join([Vr[0][x:x + 2] for x in range(0, len(Vr[0]), 2)][::-1]) # Reverse the data
+            Vr[1] = "".join([Vr[1][x:x + 2] for x in range(0, len(Vr[1]), 2)][::-1]) # Reverse the data
+            Vx = int((Vr[0]), 16)   # Convert the data to int from hex
+            Vy = int((Vr[1]), 16)  # Convert the data to int from hex
+   
+        print("Vx: " + str(Vx) + ", Vy: " + str(Vy) + ", state: " + str(self.paint_app.paint_state))
+        return Vx, Vy
+
 
     def handle_painter(self):
         if not self.serial_comm and not self.debug_mode:
@@ -412,6 +425,19 @@ class GUI:
         # Show the Paint application
         frame = self.paint_app.c.master
         frame.pack(expand=YES, fill=BOTH)
+        
+        while self.PaintActive and not self.debug_mode:
+            try:
+                Vx, Vy = self.get_Vx_Vy()   # Get joystick Vx and Vy
+            except:
+                continue
+            if Vx == 1000 and Vy == 1000:       # If Joystick PB is pressed
+                self.paint_app.paint_state = (self.paint_app.paint_state + 1) % 3   # Change the state
+            else:
+                # Move the cursor based on joystick Vx and Vy
+                curr_x, curr_y = mouse.get_position()
+                dx, dy = int(Vx), int(Vy)
+                mouse.move(curr_x - int(dx / 50), curr_y - int(dy / 50))
 
     def start_painter(self):
         # Start the painting application

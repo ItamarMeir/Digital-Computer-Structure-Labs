@@ -278,19 +278,52 @@ void GotoAngle(unsigned long angle){ // assume input angle is scaled by SCALE_FA
 // Input: scaled angle in degrees (0 to 360000).
 // Output: rotate stepper motor to the specified angle in Clockwise direction
 //-------------------------------------------------------------
-void GotoAngleClockWise(unsigned long angle){ // assume input angle is scaled by SCALE_FACTOR and positive
-    unsigned long phi_current = ((unsigned long)curr_counter * (unsigned long)delta_phi) % (unsigned long)360000; // Current angle in scaled degrees
-    unsigned long mod_angle = angle % 360000;   // Wanted angle in scaled degrees
-    if (mod_angle == 0 && phi_current > 180000) mod_angle = 360000; // Special case for 0 degrees 
-    unsigned long diff = 0; // difference between the current angle and the wanted angle
+// void GotoAngleClockWise(unsigned long angle){ // assume input angle is scaled by SCALE_FACTOR and positive
+//     unsigned long phi_current = ((unsigned long)curr_counter * (unsigned long)delta_phi) % (unsigned long)360000; // Current angle in scaled degrees
+//     unsigned long mod_angle = angle % 360000;   // Wanted angle in scaled degrees
+//     if (mod_angle == 0 && phi_current > 180000) mod_angle = 360000; // Special case for 0 degrees 
+//     unsigned long diff = 0; // difference between the current angle and the wanted angle
     
-    if (mod_angle > phi_current){       // if the wanted angle is bigger than the current angle       
-        diff = mod_angle - phi_current;     
+//     if (mod_angle > phi_current){       // if the wanted angle is bigger than the current angle       
+//         diff = mod_angle - phi_current;     
+//     }
+//     else{                            // if the wanted angle is smaller than the current angle
+//         diff = (unsigned long)360000 - (mod_angle - phi_current);
+//     }
+//     unsigned int clicks_needed = (diff / (unsigned long)delta_phi) % max_counter;   // Number of clicks needed to reach the wanted angle
+//     Activate_Stepper_Clicks(clicks_needed, 500, Clockwise);
+// }
+void GotoAngleClockWise(unsigned long angle) {
+    // Declare variables to hold the results in memory
+    volatile unsigned long phi_current;
+    volatile unsigned long mod_angle;
+    volatile unsigned long diff;
+    volatile unsigned int clicks_needed;
+
+
+    // Calculate the current angle in scaled degrees
+    phi_current = ((unsigned long)curr_counter * (unsigned long)delta_phi) % (unsigned long)360000;
+
+    // Calculate the target angle modulo 360000
+    mod_angle = angle % 360000;
+
+    // Special case for 0 degrees
+    if (mod_angle == 0 && phi_current > 180000) {
+        mod_angle = 360000;
     }
-    else{                            // if the wanted angle is smaller than the current angle
-        diff = (unsigned long)360000 - (mod_angle - phi_current);
+
+    // Calculate the difference between the current angle and the target angle
+    if (mod_angle > phi_current) {       
+        diff = mod_angle - phi_current;
+    } else {
+        // Handle the case where the desired angle is smaller
+        diff = 360000 - (phi_current - mod_angle);
     }
-    unsigned int clicks_needed = (diff / (unsigned long)delta_phi) % max_counter;   // Number of clicks needed to reach the wanted angle
+
+    // Calculate the number of steps (clicks) needed to reach the target angle
+    clicks_needed = (unsigned int)((diff / delta_phi) % max_counter);
+
+    // Activate the stepper motor to move the calculated number of clicks
     Activate_Stepper_Clicks(clicks_needed, 500, Clockwise);
 }
 
@@ -376,16 +409,71 @@ void JoyStickADC_Painter(){
 
 
 
+// void init_filesystem() {
+//     fs.file_count = 0;
+//     for (int i = 0; i < MAX_FILES; i++) {
+//         fs.file_start_pointers[i] = NULL;
+//         fs.file_sizes[i] = 0;
+//     }
+// }
+
+// void receive_script(char* file_name, uint8_t* data, uint32_t size) {
+//     if (fs.file_count >= MAX_FILES) {
+//         return; // No space for additional files
+//     }
+
+//     // Store file metadata
+//     strcpy(fs.file_names[fs.file_count], file_name);
+//     fs.file_sizes[fs.file_count] = size;
+//     fs.file_start_pointers[fs.file_count] = flash_store_file(data, size); // Store file in flash memory
+
+//     fs.file_count++;
+//     send_acknowledgment(); // Send ACK to the PC
+// }
+
+
+// void execute_script(uint8_t script_index) {
+//     if (script_index >= fs.file_count) {
+//         return; // Invalid script index
+//     }
+
+//     uint32_t* script_start = fs.file_start_pointers[script_index];
+//     uint32_t script_size = fs.file_sizes[script_index];
+
+//     // Execute the script (implementation depends on the script format and commands)
+//     execute_commands(script_start, script_size);
+// }
+
+// void execute_commands(uint32_t* script, uint32_t size) {
+//     for (uint32_t i = 0; i < size; i++) {
+//         switch (script[i]) {
+//             case 'A':
+//                 // Execute command A
+//                 break;
+//             case 'B':
+//                 // Execute command B
+//                 break;
+//             // Add cases for other commands
+//             default:
+//                 break;
+//         }
+//     }
+// }
+
+
+
+
+
 //-----------For Flash New-------------------------------------
 void ScriptFunc() {
 
     if(FlashBurnIFG){
         FlashBurnIFG=0;
         configureFlashTiming();
-        file.file_size[file.num_of_files - 1] = strlen(file_content) - 1;
+        file.file_sizes[file.num_of_files - 1] = strlen(file_content) - 1;
         write_Seg();
         finishIFG = 1;
-        send_to_PC("FIN");
+        send_to_PC("ACK");
         finishIFG = 0;
         EnableRXIE();
     }
@@ -407,7 +495,7 @@ void ExecuteScript(void)
     char OPCstr[10], Operand1Flash[20], Operand2Flash[20];
     unsigned int Oper2ToInt, X, start, stop, y;
     if (flag_script)
-        Flash_ptrscript = file.file_ptr[file.num_of_files - 1];
+        Flash_ptrscript = file.file_start_pointers[file.num_of_files - 1];
     flag_script = 0;
     for (y = 0; y < 64;){
         OPCstr[0] = *Flash_ptrscript++;

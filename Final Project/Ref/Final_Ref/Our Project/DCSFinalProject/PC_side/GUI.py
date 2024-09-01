@@ -12,6 +12,17 @@ import threading
 import binascii
 import pyautogui
 
+STX = '\x02'  # Start of Text
+ETX = '\x03'  # End of Text 
+
+MOTOR_STATE = 'm'
+PAINT_STATE = 'P'
+CALIB_STATE = 'C'
+SCRIPT_STATE = 's'
+AUTO_ROTATE = 'A'
+STOP_ROTATE = 'M'
+JOYSTICK_ROTATE = 'J'
+
 # Class to handle the paint application using Tkinter
 class Paint:
     PEN_SIZE = 5.0
@@ -110,12 +121,30 @@ class SerialCommunication:
             print(f"Error opening serial port: {e}")
             raise
 
+    # def send_to_MSP(self, message, file_option=False):
+    #     try:
+    #         # Send message through serial port
+    #         self.ser.reset_output_buffer()
+    #         bytesMenu = message if file_option else bytes(message, 'ascii')
+    #         self.ser.write(bytesMenu)
+    #     except serial.SerialException as e:
+    #         print(f"Error sending data: {e}")
+    #         raise
+
     def send_to_MSP(self, message, file_option=False):
         try:
             # Send message through serial port
             self.ser.reset_output_buffer()
-            bytesMenu = message if file_option else bytes(message, 'ascii')
-            self.ser.write(bytesMenu)
+            if file_option:
+                self.ser.write(STX.encode('ascii'))
+                if isinstance(message, str):
+                    self.ser.write(message.encode('ascii'))
+                else:
+                    self.ser.write(message)                
+                self.ser.write(ETX.encode('ascii'))
+            else:
+                self.ser.write(bytes(message, 'ascii'))
+
         except serial.SerialException as e:
             print(f"Error sending data: {e}")
             raise
@@ -151,6 +180,7 @@ class GUI:
         self.setup_gui()
         self.execute_list = []
         self.burn_index = 0
+        self.max_scripts = 3
         self.state = 2  # Start at neutral state
         self.PaintActive = 0
         self.paint_app = None
@@ -335,7 +365,7 @@ class GUI:
             sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
             return
         if not self.debug_mode:
-            self.serial_comm.send_to_MSP('m')
+            self.serial_comm.send_to_MSP(MOTOR_STATE)
         self.show_window(2)
         while True:
             event, _ = self.window.read()
@@ -346,11 +376,11 @@ class GUI:
                 break
 
             elif event.startswith("_Rotation_"):
-                self.serial_comm.send_to_MSP('A')
+                self.serial_comm.send_to_MSP(AUTO_ROTATE)
             elif event.startswith("_Stop_"):
-                self.serial_comm.send_to_MSP('M')
+                self.serial_comm.send_to_MSP(STOP_ROTATE)
             elif event.startswith("_JoyStickCrtl_"):
-                self.serial_comm.send_to_MSP('J')
+                self.serial_comm.send_to_MSP(JOYSTICK_ROTATE)
             
 
     # def handle_painter(self):
@@ -370,7 +400,7 @@ class GUI:
             return
         self.PaintActive = 1
         if not self.debug_mode:
-            self.serial_comm.send_to_MSP('P')
+            self.serial_comm.send_to_MSP(PAINT_STATE)
         self.show_window(3)
         
         # Create the Paint application if it doesn't exist
@@ -393,7 +423,7 @@ class GUI:
             sg.popup_error("Please connect to a port first", font=('Helvetica', 12))
             return
         if not self.debug_mode:
-            self.serial_comm.send_to_MSP('C')
+            self.serial_comm.send_to_MSP(CALIB_STATE)
         self.show_window(4)
         while True:
             event, _ = self.window.read()
@@ -406,9 +436,9 @@ class GUI:
                 break
 
             elif event.startswith("_Rotation_"):
-                self.serial_comm.send_to_MSP('A')
+                self.serial_comm.send_to_MSP(AUTO_ROTATE)
             elif event.startswith("_Stop_"):
-                self.serial_comm.send_to_MSP('M')
+                self.serial_comm.send_to_MSP(STOP_ROTATE)
                 time.sleep(0.2) 
                 # Update calibration data
                 if not self.debug_mode:
@@ -431,23 +461,17 @@ class GUI:
             return
         if not self.debug_mode:
             # Send 's' command to MSP if not in debug mode
-            self.serial_comm.send_to_MSP('s')
+            self.serial_comm.send_to_MSP(SCRIPT_STATE)
         # Show the window corresponding to script mode
         self.show_window(5)
 
     def handle_folder_selection(self, values):
         # Handle folder selection from the GUI
         folder = values['_Folder_']
-        print(f"Selected folder: {folder}")  # Debugging step to check the folder path
-
         if folder:
             try:
-                # Verify the folder contents
-                print(f"Contents of the folder: {os.listdir(folder)}")  # Print the folder contents for debugging
-
                 # List all files with .txt extension in the selected folder
                 file_list = [f for f in os.listdir(folder) if f.lower().endswith('.txt')]
-                print(f"Filtered .txt files: {file_list}")  # Debugging step to see the filtered files
                 # Update the file list in the GUI
                 self.window['_FileList_'].update(file_list)
             except Exception as e:
@@ -477,17 +501,31 @@ class GUI:
     def handle_burn_file(self, values):
         # Handle burning of the selected file
         if values['_FileList_']:
+            if len(self.execute_list) >= self.max_scripts:
+                sg.popup_error(f"Maximum number of scripts ({self.max_scripts}) reached", font=('Helvetica', 12))
+                return
             filename = values['_FileList_'][0]
             filepath = os.path.join(values['_Folder_'], filename)
             with open(filepath, 'rb') as file:
                 content = file.read()
+            if len(content.splitlines()) > 10:
+                sg.popup_error("Script file must contain 10 lines or fewer", font=('Helvetica', 12))
+                return
+            # Send the file name to MSP
+            self.serial_comm.send_to_MSP(filename, file_option=True)
+            time.sleep(0.2)  # Small delay to ensure the file name is processed before sending the content    
             # Send the file content to MSP for burning
             self.serial_comm.send_to_MSP(content, file_option=True)
+            time.sleep(0.5)
             # Update the GUI to show the file was burned successfully
-            self.window['_ACK_'].update("File burned successfully!")
-            # Add the file to the executed list and update the GUI
-            self.execute_list.append(filename)
-            self.window['_ExecutedList_'].update(self.execute_list)
+            response = self.serial_comm.read_from_MSP('ack', 3)
+            if response == 'ACK':
+                self.window['_ACK_'].update("File burned successfully!")
+                self.execute_list.append(filename)
+                self.window['_ExecutedList_'].update(self.execute_list)
+            else:
+                sg.popup_error("Error burning file", font=('Helvetica', 12))
+
 
     def handle_executed_file_selection(self, values):
         # Handle selection of executed files for viewing

@@ -8,6 +8,17 @@
 #define MULTIPLY_FP_RESOLUTION_BITS 15 // For atan2-fixed point
 #define FIXED_POINT_SHIFT 15
 
+#define MOTOR_STATE 'm'
+#define PAINT_STATE 'P'
+#define CALIB_STATE 'C'
+#define SCRIPT_STATE 's'
+#define AUTO_ROTATE 'A'
+#define STOP_ROTATE 'M'
+#define JOYSTICK_ROTATE 'J'
+
+#define STX '\x02'  // Start of Text 
+#define ETX '\x03'  // End of Text 
+
 typedef signed int fix;
 #define multfix(a,b) ((fix)(((signed long long)(a) * (signed long long)(b)) >> 15))
 #define divfix(a,b) ((fix)(((signed long long)(a) << 15) / (b)))
@@ -31,7 +42,7 @@ extern int sendIFG;
 extern short MSBIFG;
 extern short stateIFG;
 extern const short state_changed[];
-extern char stringFromPC[];
+extern char RX_str[];
 extern char file_content[];
 extern int ExecuteFlag;
 extern int FlashBurnIFG;

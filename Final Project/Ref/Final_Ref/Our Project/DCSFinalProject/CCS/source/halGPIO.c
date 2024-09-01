@@ -21,16 +21,15 @@ const char *tx_str;
 char counter_str[4];
 short Vr[] = {0, 0}; //Vr[0]=Vry , Vr[1]=Vrx
 const short state_changed[] = {1000, 1000}; // send if button pressed - state changed
-char stringFromPC[80];
+char RX_str[80];
 char file_content[80];
 int ExecuteFlag = 0;
 int FlashBurnIFG = 0;
-int SendFlag = 0;
 int startRotateLEDs = 0x10;
 int* rotateLEDs = &startRotateLEDs;
 int counter = 514;
 char step_str[4];
-char finish_str[3] = "FIN";
+char finish_str[3] = "ACK";
 int curr_counter = 0;
 int max_counter = 2117;
 short finishIFG = 0;
@@ -38,6 +37,8 @@ int curr_angle = 0;
 int delta_phi = 17;
 unsigned int JoyStickCounter = 0;
 short Vr_rest_value[2] = {512, 512};
+int SendFlag = 0;  // Flag to differentiate between filename and file content
+
 //--------------------------------------------------------------------
 //             System Configuration  
 //--------------------------------------------------------------------
@@ -562,6 +563,88 @@ __interrupt void ADC10_ISR (void)
 }
 
 //*********************************************************************
+//                         RX ISR- OLD
+//*********************************************************************
+// #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+// #pragma vector=USCIAB0RX_VECTOR
+// __interrupt void USCI0RX_ISR(void)
+// #elif defined(__GNUC__)
+// void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
+// #else
+// #error Compiler not supported!
+// #endif
+// {
+//     RX_str[j] = RXBuffer;  // Get Whole string from PC
+//     j++;
+//     // This if to get the file data. Added 'Z' to the end of the data in the python file, acts like ack
+//     if (RX_str[j-1] == 'Z'){
+//         j = 0;
+//         SendFlag = 0;
+//         strcpy(file_content, RX_str);
+//      //   ExecuteFlag = 1;
+//     }
+//     // This if to get the file name
+//     if (!SendFlag && RX_str[j-1] == '\x0a'){
+//         for (i=0; i < j; i++){
+//             file.file_name[i] = RX_str[i];
+//         }
+//         SendFlag = 1;
+//         j = 0;
+//     }
+//     if (RX_str[j-1] == 'W'){ //pointer for 1st selected file
+//         FlashBurnIFG = 1;
+//         ptr1 = (char*) 0x1000;
+//         file.file_start_pointers[0]=ptr1;
+//         file.num_of_files = 1;
+//         j = 0;
+//     }
+//     if (RX_str[j-1] == 'X'){ //pointer for 2nd selected file
+//         FlashBurnIFG = 1;
+//         ptr2 = (char*) 0x1040;
+//         file.file_start_pointers[1]=ptr2;
+//         file.num_of_files = 2;
+//         j = 0;
+//     }
+//     if (RX_str[j-1] == 'Y'){ //pointer for 3rd selected file
+//         FlashBurnIFG = 1;
+//         ptr3 = (char*) 0x1080;
+//         file.file_start_pointers[2]=ptr3;
+//         file.num_of_files = 3;
+//         j = 0; // Added by mg at 1:33 30.7.2022 at night
+//     }
+
+//     if (RX_str[j-1] == 'T'){ //index of executed list
+//         ExecuteFlag = 1;
+//         j = 0; // Added by mg at 1:33 30.7.2022 at night
+//         file.num_of_files = 1;
+//     }
+//     if (RX_str[j-1] == 'U'){
+//         ExecuteFlag = 1;
+//         j = 0; // Added by mg at 1:33 30.7.2022 at night
+//         file.num_of_files = 2;
+//     }
+//     if (RX_str[j-1] == 'V'){
+//         ExecuteFlag = 1;
+//         j = 0; // Added by mg at 1:33 30.7.2022 at night
+//         file.num_of_files = 3;
+//     }
+
+
+//     // If's for states
+//     if (RX_str[0] == MOTOR_STATE) {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
+//     else if (RX_str[0] == PAINT_STATE) { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was p
+//     else if (RX_str[0] == CALIB_STATE) { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Calibration mode
+//     else if (RX_str[0] == SCRIPT_STATE) { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
+
+//     else if (RX_str[0] == AUTO_ROTATE){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
+//     else if (RX_str[0] == STOP_ROTATE){ stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
+//     else if (RX_str[0] == JOYSTICK_ROTATE){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
+
+
+//     LPM0_EXIT;
+// }
+
+//*********************************************************************
 //                         RX ISR
 //*********************************************************************
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -573,75 +656,77 @@ void __attribute__ ((interrupt(USCIAB0RX_VECTOR))) USCI0RX_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    stringFromPC[j] = RXBuffer;  // Get Whole string from PC
-    j++;
-    // This if to get the file data. Added 'Z' to the end of the data in the python file, acts like ack
-    if (stringFromPC[j-1] == 'Z'){
-        j = 0;
-        SendFlag = 0;
-        strcpy(file_content, stringFromPC);
-     //   ExecuteFlag = 1;
-    }
-    // This if to get the file name
-    if (!SendFlag && stringFromPC[j-1] == '\x0a'){
-        for (i=0; i < j; i++){
-            file.file_name[i] = stringFromPC[i];
-        }
-        SendFlag = 1;
-        j = 0;
-    }
-    if (stringFromPC[j-1] == 'W'){ //pointer for 1st selected file
-        FlashBurnIFG = 1;
-        ptr1 = (char*) 0x1000;
-        file.file_ptr[0]=ptr1;
-        file.num_of_files = 1;
-        j = 0;
-    }
-    if (stringFromPC[j-1] == 'X'){ //pointer for 2nd selected file
-        FlashBurnIFG = 1;
-        ptr2 = (char*) 0x1040;
-        file.file_ptr[1]=ptr2;
-        file.num_of_files = 2;
-        j = 0;
-    }
-    if (stringFromPC[j-1] == 'Y'){ //pointer for 3rd selected file
-        FlashBurnIFG = 1;
-        ptr3 = (char*) 0x1080;
-        file.file_ptr[2]=ptr3;
-        file.num_of_files = 3;
-        j = 0; // Added by mg at 1:33 30.7.2022 at night
-    }
+    char received_char = RXBuffer;  // Read the received character from the buffer
 
-    if (stringFromPC[j-1] == 'T'){ //index of executed list
-        ExecuteFlag = 1;
-        j = 0; // Added by mg at 1:33 30.7.2022 at night
-        file.num_of_files = 1;
-    }
-    if (stringFromPC[j-1] == 'U'){
-        ExecuteFlag = 1;
-        j = 0; // Added by mg at 1:33 30.7.2022 at night
-        file.num_of_files = 2;
-    }
-    if (stringFromPC[j-1] == 'V'){
-        ExecuteFlag = 1;
-        j = 0; // Added by mg at 1:33 30.7.2022 at night
-        file.num_of_files = 3;
-    }
+    if (received_char == STX) { j = 0; }  // Start of message, reset index
+    else if (received_char == ETX) {  // End of message
+        RX_str[j] = '\0';  // Null-terminate the received string
+        if (SendFlag == 0) {
+            strncpy(file.file_name[file.num_of_files], RX_str, MAX_FILENAME_LENGTH - 1);
+            file.file_name[file.num_of_files][MAX_FILENAME_LENGTH - 1] = '\0';  // Ensure null termination
+            SendFlag = 1;
+        }  // Store file name, set flag for content
+        else {
+            store_file_in_flash();
+            SendFlag = 0;
+        }  // Store file content in flash, reset flag
+        j = 0;  // Reset index after processing
+    } 
+    else { RX_str[j++] = received_char; }  // Store the received character in the buffer
 
+    if (RX_str[0] == MOTOR_STATE) { state = state0; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set motor state
+    else if (RX_str[0] == PAINT_STATE) { state = state1; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set paint state
+    else if (RX_str[0] == CALIB_STATE) { state = state2; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set calibration state
+    else if (RX_str[0] == SCRIPT_STATE) { state = state3; stateStepp = stateDefault; rotateIFG = 0; j = 0; }  // Set script state
+    else if (RX_str[0] == AUTO_ROTATE) { stateStepp = stateAutoRotate; rotateIFG = 1; j = 0; }  // Set auto rotate state
+    else if (RX_str[0] == STOP_ROTATE) { stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0; }  // Set stop rotate state
+    else if (RX_str[0] == JOYSTICK_ROTATE) { stateStepp = stateJSRotate; j = 0; }  // Set joystick rotate state
 
-    // If's for states
-    if (stringFromPC[0] == 'm') {state = state0; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
-    else if (stringFromPC[0] == 'P') { state = state1; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  //Was p
-    else if (stringFromPC[0] == 'C') { state = state2; stateStepp=stateDefault; rotateIFG = 0; j = 0;}  // Calibration mode
-    else if (stringFromPC[0] == 's') { state = state3; stateStepp=stateDefault; rotateIFG = 0; j = 0;}
-
-    else if (stringFromPC[0] == 'A'){ stateStepp = stateAutoRotate; rotateIFG = 1; j = 0;}// Auto Rotate
-    else if (stringFromPC[0] == 'M'){ stateStepp = stateStopRotate; rotation = stop; rotateIFG = 0; j = 0;}// Stop Rotate
-    else if (stringFromPC[0] == 'J'){ stateStepp = stateJSRotate; j = 0;}// JoyStick Rotatefixed pmsp430
-
-
-    LPM0_EXIT;
+    LPM0_EXIT;  // Exit low power mode
 }
+
+void init_filesystem() {
+    file.num_of_files = 0;
+    int i = 0;
+    for (i = 0; i < MAX_FILES; i++) {
+        file.file_start_pointers[i] = NULL;
+        file.file_sizes[i] = 0;
+    }
+}
+
+void store_file_in_flash() {
+    static int current_file_index = 0;
+    if (current_file_index >= MAX_FILES) {
+        return;  // Handle the case where the maximum number of files has been reached
+    }
+
+    // Select flash address based on current file index
+    char* flash_address;
+    switch (current_file_index) {
+        case 0:
+            flash_address = (char*) 0x1000;
+            file.file_start_pointers[0] = flash_address;
+            break;
+        case 1:
+            flash_address = (char*) 0x1040;
+            file.file_start_pointers[1] = flash_address;
+            break;
+        case 2:
+            flash_address = (char*) 0x1080;
+            file.file_start_pointers[2] = flash_address;
+            break;
+    }
+
+
+
+    file.file_sizes[current_file_index] = j;
+    file.num_of_files = ++current_file_index;
+    // Erase and write to flash
+    write_Seg();
+    send_finish_to_PC();
+    //send_to_PC("ACK");
+}
+
 // //*********************************************************************
 // //                         TX ISR
 // //*********************************************************************

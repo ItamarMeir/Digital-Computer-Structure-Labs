@@ -41,7 +41,6 @@ extern char y;
 #define MAX_SPEED 1000        // Maximum speed in Hz
 
 
-
 #endif
 
 

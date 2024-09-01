@@ -73,6 +73,7 @@ class Paint:
 
     def use_pen(self):
         self.activate_button(self.pen_button)
+        self.paint_state=0
 
     def choose_color(self):
         self.eraser_on = False
@@ -80,6 +81,7 @@ class Paint:
 
     def use_eraser(self):
         self.activate_button(self.eraser_button, eraser_mode=True)
+        self.paint_state=1
 
     def erase_all(self):
         self.c.delete("all")

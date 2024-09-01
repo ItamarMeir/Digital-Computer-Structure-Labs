@@ -762,10 +762,10 @@ void clear_LCD() {
 //-------------------------------------------------------------
 // Function to move stepper motor to a specific degree
 void stepper_deg(int p) {
+    char* deg_str[4];
+    sprintf(deg_str, "%d", p);
+    send_to_PC(deg_str); // Send the degree to the PC
     GotoAngle((unsigned long)p * (unsigned long)SCALE_FACTOR); // Move stepper motor to the specified degree
-    char buffer[16];
-    sprintf(buffer, "Angle: %d", p);
-    lcd_puts(buffer); // Display the degree onto the LCD
 }
 //-------------------------------------------------------------
 //         Scan Stepper Motor from Degree1 to Degree2

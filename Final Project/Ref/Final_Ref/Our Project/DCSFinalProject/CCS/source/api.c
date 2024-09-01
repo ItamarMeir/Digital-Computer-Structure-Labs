@@ -379,17 +379,14 @@ void JoyStickADC_Painter(){
     EnableJoystickInt(); // allow interrupt only in the end of cycle
     i = 0;
     if(!stateIFG) { //send data
-        ADC10CTL0 &= ~ENC;
-        while (ADC10CTL1 & ADC10BUSY);               // Wait if ADC10 core is active
-        ADC10SA = &Vr;                        // Data buffer start
-        ADC10CTL0 |= ENC + ADC10SC; // Sampling and conversion start
-        __bis_SR_register(LPM0_bits + GIE);        // LPM0, ADC10_ISR will force exit
-
-        UCA0TXBUF = Vr[i] & 0xFF;
-        MSBIFG = 1;
-        IE2 |= UCA0TXIE;
-        __bis_SR_register(LPM0_bits + GIE);        // LPM0, will exit when finish tx
-
+        DisableADC();
+        EnableADC(Vr);
+        EnterLPM();
+        send_to_PC(Vr);
+        // TXBuffer = Vr[i] & 0xFF;  // Transmit the lower 8 bits of the joystick data via UART
+        // MSBIFG = 1;
+        EnableTXIE();
+        EnterLPM();
     }
 
     else if (stateIFG) { //send state

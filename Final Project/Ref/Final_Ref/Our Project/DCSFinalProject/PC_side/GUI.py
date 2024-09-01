@@ -302,8 +302,7 @@ class GUI:
             [sg.Text("", key='_FileName_', size=(40, 2), justification='center', font=('Helvetica', 16))],
             [sg.Text("Current Degree:", justification='right', size=(15, 1), font=('Helvetica', 12)),
              sg.Text("", size=(20, 1), key="Degree", font=('Helvetica', 12))],
-            [sg.Button('Run', key='_Run_', size=(10, 1), font=('Helvetica', 12)),
-             sg.Button("Back", key='_BackScript_', size=(10, 1), font=('Helvetica', 12))]
+            [sg.Button("Back", key='_BackScript_', size=(10, 1), font=('Helvetica', 12))]
         ]
 
         # Layout for different sections
@@ -636,10 +635,6 @@ class GUI:
                     self.show_window(5)
                     self.serial_comm.send_to_MSP('s')
                     break
-                elif event.startswith("_Run_"):
-                    # Send the run command to MSP
-                    self.serial_comm.send_to_MSP('R')
-                
                 # Update degree data from the serial port
                 if not self.debug_mode:
                     script_data = self.serial_comm.read_from_MSP('script', 4)

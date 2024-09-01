@@ -1,7 +1,7 @@
 inc_lcd 4
 dec_lcd 20
 rra_lcd 30
-set_delay 2
+set_delay 50
 clear_lcd
 stepper_deg 30
 stepper_scan 30,80

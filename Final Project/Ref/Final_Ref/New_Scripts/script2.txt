@@ -2,6 +2,6 @@ stepper_deg 30
 inc_lcd 4
 dec_lcd 2
 rra_lcd 2
-set_delay 2
+set_delay 50
 stepper_scan 40,360
 sleep

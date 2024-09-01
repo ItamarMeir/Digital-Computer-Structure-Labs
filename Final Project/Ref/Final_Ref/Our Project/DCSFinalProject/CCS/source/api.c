@@ -305,7 +305,7 @@ void ExecuteScript(void)
                 break
                 ;
             case '8': // go sleep
-                state = state0;
+                sleep_mcu();
                 break;
         }
     }
@@ -421,5 +421,6 @@ void stepper_scan(int l, int r) {
 //-------------------------------------------------------------
 // Function to put the MCU into sleep mode
 void sleep_mcu() {
+    StopAllTimers();
     EnterLPM(); // Enter low-power mode
 }

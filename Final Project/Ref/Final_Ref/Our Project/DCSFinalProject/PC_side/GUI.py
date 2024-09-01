@@ -625,10 +625,9 @@ class GUI:
         # Execute the selected file
         filename = self.window['_FileName_'].get()
         if filename:
+            burn_index = self.execute_list.index(filename)
             # Send the execute command to MSP
-            self.serial_comm.send_to_MSP(f'e{self.burn_index}')
-            print(self.burn_index)
-            self.burn_index += 1
+            self.serial_comm.send_to_MSP(f'e{burn_index}')
             while True:
                 event, _ = self.window.read(timeout=100)
                 if event == "_BackScript_":

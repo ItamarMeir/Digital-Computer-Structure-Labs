@@ -380,14 +380,14 @@ void JoyStickADC_Painter(){
     i = 0;
     if(!stateIFG) { //send data
         DisableADC();
-        EnableADC(Vr);
+        EnableADC(&Vr);
         EnterLPM();
-        send_to_PC(Vr);
-        // TXBuffer = Vr[i] & 0xFF;  // Transmit the lower 8 bits of the joystick data via UART
-        // MSBIFG = 1;
+        TXBuffer = Vr[i] & 0xFF;
+        MSBIFG = 1;
         EnableTXIE();
         EnterLPM();
     }
+
 
     else if (stateIFG) { //send state
         UCA0TXBUF = state_changed[i] & 0xFF;

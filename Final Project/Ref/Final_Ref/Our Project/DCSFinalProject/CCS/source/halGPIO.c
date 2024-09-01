@@ -19,6 +19,7 @@ unsigned int tx_index;
 unsigned int tx_length = 0;
 const char *tx_str;
 char counter_str[4];
+char Vr_pc[8];
 short Vr[] = {0, 0}; //Vr[0]=Vry , Vr[1]=Vrx
 const short state_changed[] = {1000, 1000}; // send if button pressed - state changed
 char RX_str[80];
@@ -763,43 +764,41 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCI0TX_ISR (void)
             LPM0_EXIT;  // Exit low-power mode
         }
     }
-    else if (stateIFG && state==state1){
-        if (tx_index < tx_length) {
-            TXBuffer = tx_str[tx_index++];  // TX next character
-        } else {
-            tx_index = 0;  // Reset index for the next transmission
-            DisableTXIE();  // Disable USCI_A0 TX interrupt
+
+      else if (stateIFG && state == state1){  // Send Push Button state
+          if(MSBIFG) TXBuffer = (state_changed[i++]>>8) & 0xFF;
+          else TXBuffer = state_changed[i] & 0xFF;
+          MSBIFG ^= 1;
+
+          if (i == 2) {  // TX over?
+              i=0;
+              DisableTXIE();                       // Disable USCI_A0 TX interrupt
+              START_TIMERA1(10000);
+              stateIFG = 0;
+              LPM0_EXIT;
+          }
+      }
+      else if(!stateIFG && state == state1){ //send data for painter!!
+        if(MSBIFG) TXBuffer = (Vr[i++]>>8) & 0xFF;
+        else TXBuffer = Vr[i] & 0xFF;
+        MSBIFG ^= 1;
+
+        if (i == 2) {  // TX over?
+            i=0;
+            DisableTXIE();                      // Disable USCI_A0 TX interrupt
             START_TIMERA1(10000);
-            stateIFG = 0;
-            LPM0_EXIT;  // Exit low-power mode
+            LPM0_EXIT;
         }
     }
-    // else if (stateIFG && state == state1){  // Send Push Button state
-    //     if(MSBIFG) UCA0TXBUF = (state_changed[i++]>>8) & 0xFF;
-    //     else UCA0TXBUF = state_changed[i] & 0xFF;
-    //     MSBIFG ^= 1;
-
-    //     if (i == 2) {  // TX over?
-    //         i=0;
-    //         DisableTXIE;                       // Disable USCI_A0 TX interrupt
-    //         START_TIMERA1(10000);
-    //         stateIFG = 0;
-    //         LPM0_EXIT;
-    //     }
-    // }
-    // else if(!stateIFG && state == state1){ //send data for painter!!
-    //     if(MSBIFG) UCA0TXBUF = (Vr[i++]>>8) & 0xFF;
-    //     else UCA0TXBUF = Vr[i] & 0xFF;
-    //     MSBIFG ^= 1;
-
-    //     if (i == 2) {  // TX over?
-    //         i=0;
-    //         IE2 &= ~UCA0TXIE;                       // Disable USCI_A0 TX interrupt
-    //         START_TIMERA1(10000);
-    //         LPM0_EXIT;
-    //     }
-    // }
 }
+
+// void send_Vr_to_PC() {
+//     // Start sending the first part of the data
+//     MSBIFG = 1;  // Indicate that the next byte to send is the MSB
+//     TXBuffer = (Vr[i] >> 8) & 0xFF;  // Send the MSB of Vr[0]
+//     EnableTXIE();  // Enable USCI_A0 TX interrupt to handle the rest of the transmission
+//     EnterLPM();    // Enter low-power mode, will wake up after transmission is complete
+// }
 //*********************************************************************
 //                        Port1 ISR
 //*********************************************************************

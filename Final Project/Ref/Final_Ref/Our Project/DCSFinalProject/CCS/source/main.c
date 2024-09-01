@@ -74,6 +74,7 @@ void main(void){
 	case state3:  //Script
 	    while ( state == state3){
 	        ScriptFunc();
+            EnterLPM();
 	    }
 		break;
 	}

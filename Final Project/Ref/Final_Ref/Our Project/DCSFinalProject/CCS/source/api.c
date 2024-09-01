@@ -482,7 +482,6 @@ void ScriptFunc() {
         send_to_PC("FIN");
         finishIFG = 0;
     }
-    EnterLPM();
 }
 //---------------Execute Script New--------------------------------
 void ExecuteScript(void)

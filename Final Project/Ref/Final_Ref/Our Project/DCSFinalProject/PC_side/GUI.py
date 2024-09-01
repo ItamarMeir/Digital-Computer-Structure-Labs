@@ -70,6 +70,7 @@ class Paint:
         self.c.bind('<Motion>', self.paint)
         self.c.bind('<ButtonRelease-1>', self.reset)
         self.paint_state = 0
+        self.picked_color = 'black'
 
     def use_pen(self):
         self.activate_button(self.pen_button)
@@ -78,6 +79,7 @@ class Paint:
     def choose_color(self):
         self.eraser_on = False
         self.color = askcolor(color=self.color)[1]
+        self.picked_color = self.color
         self.paint_state=0
 
     def use_eraser(self):
@@ -99,7 +101,7 @@ class Paint:
         self.line_width = self.choose_size_button.get()
             
         if self.paint_state == 0:              # Default - paint  
-            self.color = 'black'
+            self.color = self.picked_color
         elif self.paint_state == 1:          # Erase
             self.color = 'white'
         
